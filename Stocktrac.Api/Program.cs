@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
-    .AddCheck<SampleReadinessHealthCheck>("readiness", tags: ["ready"]);
+    .AddCheck<RequiredConfigurationHealthCheck>("required_configuration", tags: ["ready"]);
 
 var app = builder.Build();
 
@@ -20,6 +20,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("live")
