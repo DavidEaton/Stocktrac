@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
+using Stocktrac.Domain.Features;
 
 namespace Stocktrac.Api.Features
 {

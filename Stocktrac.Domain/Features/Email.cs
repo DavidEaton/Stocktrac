@@ -1,9 +1,9 @@
+using System.ComponentModel.DataAnnotations;
 using CSharpFunctionalExtensions;
-using Entity = Stocktrac.Domain.Entity;
 
 namespace Stocktrac.Domain.Features
 {
-public class Email : Entity, IHasPrimary
+    public class Email : Entity, IHasPrimary
     {
         public static readonly string InvalidMessage = "Email address and/or its format is invalid";
         public static readonly int MinimumLength = 5;
@@ -11,7 +11,7 @@ public class Email : Entity, IHasPrimary
         public static readonly string MinimumLengthMessage = $"Email address cannot be less than {MinimumLength} character(s) in length.";
         public static readonly string MaximumLengthMessage = $"Email address cannot be over {MaximumLength} characters in length.";
         public static readonly string EmptyMessage = $"Email address cannot be empty.";
-        public static readonly string DuplicateMessage = $"Email address already in use. Please enter a unique email.";
+        public static readonly string DuplicateMessage = $"Email address already in use. Please enter a unique email address.";
 
         public string Address { get; private set; }
         public bool IsPrimary { get; private set; }
