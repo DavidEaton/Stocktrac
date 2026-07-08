@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features
+namespace Stocktrac.Domain.Features.Contact
 {
     public class Email : Entity, IHasPrimary
     {
