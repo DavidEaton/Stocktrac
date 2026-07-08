@@ -1,25 +1,24 @@
 using System.Security.Claims;
 
-namespace Stocktrac.Api.Features.Users
+namespace Stocktrac.Api.Features.Users;
+
+public class UserContext(IHttpContextAccessor accessor)
 {
-    public class UserContext(IHttpContextAccessor accessor)
+    private readonly IHttpContextAccessor _accessor = accessor;
+
+    public object? Identity
     {
-        private readonly IHttpContextAccessor _accessor = accessor;
-
-        public object? Identity
+        get
         {
-            get
-            {
-                return _accessor.HttpContext?.User.Identity;
-            }
+            return _accessor.HttpContext?.User.Identity;
         }
+    }
 
-        public IEnumerable<Claim>? Claims
+    public IEnumerable<Claim>? Claims
+    {
+        get
         {
-            get
-            {
-                return _accessor.HttpContext?.User.Claims;
-            }
+            return _accessor.HttpContext?.User.Claims;
         }
     }
 }

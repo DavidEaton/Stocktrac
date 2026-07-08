@@ -1,200 +1,199 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Stocktrac.Domain.Features.Contact
+namespace Stocktrac.Domain.Features.Contact;
+
+public enum State
 {
-    public enum State
-    {
-        [Display(Name = "Alabama")]
-        AL,
+    [Display(Name = "Alabama")]
+    AL,
 
-        [Display(Name = "Alaska")]
-        AK,
+    [Display(Name = "Alaska")]
+    AK,
 
-        [Display(Name = "Arkansas")]
-        AR,
+    [Display(Name = "Arkansas")]
+    AR,
 
-        [Display(Name = "Arizona")]
-        AZ,
+    [Display(Name = "Arizona")]
+    AZ,
 
-        [Display(Name = "California")]
-        CA,
+    [Display(Name = "California")]
+    CA,
 
-        [Display(Name = "Colorado")]
-        CO,
+    [Display(Name = "Colorado")]
+    CO,
 
-        [Display(Name = "Connecticut")]
-        CT,
+    [Display(Name = "Connecticut")]
+    CT,
 
-        [Display(Name = "District of Columbia")]
-        DC,
+    [Display(Name = "District of Columbia")]
+    DC,
 
-        [Display(Name = "Delaware")]
-        DE,
+    [Display(Name = "Delaware")]
+    DE,
 
-        [Display(Name = "Florida")]
-        FL,
+    [Display(Name = "Florida")]
+    FL,
 
-        [Display(Name = "Georgia")]
-        GA,
+    [Display(Name = "Georgia")]
+    GA,
 
-        [Display(Name = "Hawaii")]
-        HI,
+    [Display(Name = "Hawaii")]
+    HI,
 
-        [Display(Name = "Iowa")]
-        IA,
+    [Display(Name = "Iowa")]
+    IA,
 
-        [Display(Name = "Idaho")]
-        ID,
+    [Display(Name = "Idaho")]
+    ID,
 
-        [Display(Name = "Illinois")]
-        IL,
+    [Display(Name = "Illinois")]
+    IL,
 
-        [Display(Name = "Indiana")]
-        IN,
+    [Display(Name = "Indiana")]
+    IN,
 
-        [Display(Name = "Kansas")]
-        KS,
+    [Display(Name = "Kansas")]
+    KS,
 
-        [Display(Name = "Kentucky")]
-        KY,
+    [Display(Name = "Kentucky")]
+    KY,
 
-        [Display(Name = "Louisiana")]
-        LA,
+    [Display(Name = "Louisiana")]
+    LA,
 
-        [Display(Name = "Massachusetts")]
-        MA,
+    [Display(Name = "Massachusetts")]
+    MA,
 
-        [Display(Name = "Maryland")]
-        MD,
+    [Display(Name = "Maryland")]
+    MD,
 
-        [Display(Name = "Maine")]
-        ME,
+    [Display(Name = "Maine")]
+    ME,
 
-        [Display(Name = "Michigan")]
-        MI,
+    [Display(Name = "Michigan")]
+    MI,
 
-        [Display(Name = "Minnesota")]
-        MN,
+    [Display(Name = "Minnesota")]
+    MN,
 
-        [Display(Name = "Missouri")]
-        MO,
+    [Display(Name = "Missouri")]
+    MO,
 
-        [Display(Name = "Mississippi")]
-        MS,
+    [Display(Name = "Mississippi")]
+    MS,
 
-        [Display(Name = "Montana")]
-        MT,
+    [Display(Name = "Montana")]
+    MT,
 
-        [Display(Name = "North Carolina")]
-        NC,
+    [Display(Name = "North Carolina")]
+    NC,
 
-        [Display(Name = "North Dakota")]
-        ND,
+    [Display(Name = "North Dakota")]
+    ND,
 
-        [Display(Name = "Nebraska")]
-        NE,
+    [Display(Name = "Nebraska")]
+    NE,
 
-        [Display(Name = "New Hampshire")]
-        NH,
+    [Display(Name = "New Hampshire")]
+    NH,
 
-        [Display(Name = "New Jersey")]
-        NJ,
+    [Display(Name = "New Jersey")]
+    NJ,
 
-        [Display(Name = "New Mexico")]
-        NM,
+    [Display(Name = "New Mexico")]
+    NM,
 
-        [Display(Name = "Nevada")]
-        NV,
+    [Display(Name = "Nevada")]
+    NV,
 
-        [Display(Name = "New York")]
-        NY,
+    [Display(Name = "New York")]
+    NY,
 
-        [Display(Name = "Oklahoma")]
-        OK,
+    [Display(Name = "Oklahoma")]
+    OK,
 
-        [Display(Name = "Ohio")]
-        OH,
+    [Display(Name = "Ohio")]
+    OH,
 
-        [Display(Name = "Oregon")]
-        OR,
+    [Display(Name = "Oregon")]
+    OR,
 
-        [Display(Name = "Pennsylvania")]
-        PA,
+    [Display(Name = "Pennsylvania")]
+    PA,
 
-        [Display(Name = "Rhode Island")]
-        RI,
+    [Display(Name = "Rhode Island")]
+    RI,
 
-        [Display(Name = "South Carolina")]
-        SC,
+    [Display(Name = "South Carolina")]
+    SC,
 
-        [Display(Name = "South Dakota")]
-        SD,
+    [Display(Name = "South Dakota")]
+    SD,
 
-        [Display(Name = "Tennessee")]
-        TN,
+    [Display(Name = "Tennessee")]
+    TN,
 
-        [Display(Name = "Texas")]
-        TX,
+    [Display(Name = "Texas")]
+    TX,
 
-        [Display(Name = "Utah")]
-        UT,
+    [Display(Name = "Utah")]
+    UT,
 
-        [Display(Name = "Virginia")]
-        VA,
+    [Display(Name = "Virginia")]
+    VA,
 
-        [Display(Name = "Vermont")]
-        VT,
+    [Display(Name = "Vermont")]
+    VT,
 
-        [Display(Name = "Washington")]
-        WA,
+    [Display(Name = "Washington")]
+    WA,
 
-        [Display(Name = "Wisconsin")]
-        WI,
+    [Display(Name = "Wisconsin")]
+    WI,
 
-        [Display(Name = "West Virginia")]
-        WV,
+    [Display(Name = "West Virginia")]
+    WV,
 
-        [Display(Name = "Wyoming")]
-        WY,
+    [Display(Name = "Wyoming")]
+    WY,
 
-        //canada
-        [Display(Name = "Alberta")]
-        AB,
+    //canada
+    [Display(Name = "Alberta")]
+    AB,
 
-        [Display(Name = "British Columbia")]
-        BC,
+    [Display(Name = "British Columbia")]
+    BC,
 
-        [Display(Name = "Manitoba")]
-        MB,
+    [Display(Name = "Manitoba")]
+    MB,
 
-        [Display(Name = "New Brunswick")]
-        NB,
+    [Display(Name = "New Brunswick")]
+    NB,
 
-        [Display(Name = "Newfoundland and Labrador")]
-        NL,
+    [Display(Name = "Newfoundland and Labrador")]
+    NL,
 
-        [Display(Name = "Nova Scotia")]
-        NS,
+    [Display(Name = "Nova Scotia")]
+    NS,
 
-        [Display(Name = "Northwest Territories")]
-        NT,
+    [Display(Name = "Northwest Territories")]
+    NT,
 
-        [Display(Name = "Nunavut")]
-        NU,
+    [Display(Name = "Nunavut")]
+    NU,
 
-        [Display(Name = "Ontario")]
-        ON,
+    [Display(Name = "Ontario")]
+    ON,
 
-        [Display(Name = "Prince Edward Island")]
-        PE,
+    [Display(Name = "Prince Edward Island")]
+    PE,
 
-        [Display(Name = "Quebec")]
-        QC,
+    [Display(Name = "Quebec")]
+    QC,
 
-        [Display(Name = "Saskatchewan")]
-        SK,
+    [Display(Name = "Saskatchewan")]
+    SK,
 
-        [Display(Name = "Yukon")]
-        YT
-    }
+    [Display(Name = "Yukon")]
+    YT
 }

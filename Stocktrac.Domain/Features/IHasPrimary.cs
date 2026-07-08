@@ -1,7 +1,6 @@
-namespace Stocktrac.Domain.Features
+namespace Stocktrac.Domain.Features;
+
+public interface IHasPrimary
 {
-    public interface IHasPrimary
-    {
-        public bool IsPrimary { get; }
-    }
+    public bool IsPrimary { get; }
 }

@@ -1,230 +1,218 @@
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact
+namespace Stocktrac.Domain.Features.Contact;
+
+public abstract class Contactable : Entity, IContactable
 {
-    public abstract class Contactable : Entity, IContactable
+    // Targeting tests at the abstract base class binds them to the code’s implementation details.
+    // Always test only concrete classes; don’t test abstract classes directly
+    public static readonly int NoteMaximumLength = 10000;
+    public static readonly string NoteMaximumLengthMessage = $"Notes cannot be over {NoteMaximumLength} characters in length.";
+    public static readonly string RequiredMessage = "Please include all required items.";
+    public static readonly string NonuniqueMessage = $"Item has already been entered; each item must be unique.";
+    public static readonly string PrimaryExistsMessage = $"Primary has already been entered.";
+    public static readonly string InvalidValueMessage = $"Value was invalid";
+    public static readonly string NotFoundMessage = $"Item was not found";
+    public string Notes { get; private set; }
+    public Address Address { get; private set; }
+
+    private readonly List<Phone> phones = new();
+    public IReadOnlyList<Phone> Phones => phones.ToList();
+    private readonly List<Email> emails = new();
+    public IReadOnlyList<Email> Emails => emails.ToList();
+
+    internal Contactable(string notes, Address address, IReadOnlyList<Phone> phones, IReadOnlyList<Email> emails)
     {
-        // Targeting tests at the abstract base class binds them to the code’s implementation details.
-        // Always test only concrete classes; don’t test abstract classes directly
-        public static readonly int NoteMaximumLength = 10000;
-        public static readonly string NoteMaximumLengthMessage = $"Notes cannot be over {NoteMaximumLength} characters in length.";
-        public static readonly string RequiredMessage = "Please include all required items.";
-        public static readonly string NonuniqueMessage = $"Item has already been entered; each item must be unique.";
-        public static readonly string PrimaryExistsMessage = $"Primary has already been entered.";
-        public static readonly string InvalidValueMessage = $"Value was invalid";
-        public static readonly string NotFoundMessage = $"Item was not found";
-        public string Notes { get; private set; }
-        public Address Address { get; private set; }
+        Notes = notes;
 
-        private readonly List<Phone> phones = new();
-        public IReadOnlyList<Phone> Phones => phones.ToList();
-        private readonly List<Email> emails = new();
-        public IReadOnlyList<Email> Emails => emails.ToList();
+        if (address is not null)
+            SetAddress(address);
 
-        internal Contactable(string notes, Address address, IReadOnlyList<Phone> phones, IReadOnlyList<Email> emails)
-        {
-            Notes = notes;
+        if (phones is not null)
+            foreach (var phone in phones)
+                AddPhone(phone);
 
-            if (address is not null)
-                SetAddress(address);
+        if (emails is not null)
+            foreach (var email in emails)
+                AddEmail(email);
+    }
 
-            if (phones is not null)
-                foreach (var phone in phones)
-                    AddPhone(phone);
+    public Result<Email> AddEmail(Email email)
+    {
+        if (email is null)
+            return Result.Failure<Email>(RequiredMessage);
 
-            if (emails is not null)
-                foreach (var email in emails)
-                    AddEmail(email);
-        }
+        if (HasEmail(email))
+            return Result.Failure<Email>(NonuniqueMessage);
 
-        public Result<Email> AddEmail(Email email)
-        {
-            if (email is null)
-                return Result.Failure<Email>(RequiredMessage);
+        if (HasPrimaryEmail() && email.IsPrimary)
+            return Result.Failure<Email>(PrimaryExistsMessage);
 
-            if (HasEmail(email))
-                return Result.Failure<Email>(NonuniqueMessage);
+        emails.Add(email);
 
-            if (HasPrimaryEmail() && email.IsPrimary)
-                return Result.Failure<Email>(PrimaryExistsMessage);
+        return Result.Success(email);
+    }
 
-            emails.Add(email);
+    public Result<Email> RemoveEmail(Email email)
+    {
+        if (email is null)
+            return Result.Failure<Email>(RequiredMessage);
 
-            return Result.Success(email);
-        }
+        if (!emails.Contains(email))
+            return Result.Failure<Email>(NotFoundMessage);
 
-        public Result<Email> RemoveEmail(Email email)
-        {
-            if (email is null)
-                return Result.Failure<Email>(RequiredMessage);
+        emails.Remove(email);
 
-            if (!emails.Contains(email))
-                return Result.Failure<Email>(NotFoundMessage);
+        return Result.Success(email);
+    }
 
-            emails.Remove(email);
+    public Result<Phone> AddPhone(Phone phone)
+    {
+        if (phone is null)
+            return Result.Failure<Phone>(RequiredMessage);
 
-            return Result.Success(email);
-        }
+        if (HasPhone(phone))
+            return Result.Failure<Phone>(NonuniqueMessage);
 
-        public Result<Phone> AddPhone(Phone phone)
-        {
-            if (phone is null)
-                return Result.Failure<Phone>(RequiredMessage);
+        if (HasPrimaryPhone() && phone.IsPrimary)
+            return Result.Failure<Phone>(PrimaryExistsMessage);
 
-            if (HasPhone(phone))
-                return Result.Failure<Phone>(NonuniqueMessage);
+        phones.Add(phone);
 
-            if (HasPrimaryPhone() && phone.IsPrimary)
-                return Result.Failure<Phone>(PrimaryExistsMessage);
+        return Result.Success(phone);
+    }
 
-            phones.Add(phone);
+    public Result<Phone> RemovePhone(Phone phone)
+    {
+        if (phone is null)
+            return Result.Failure<Phone>(RequiredMessage);
 
-            return Result.Success(phone);
-        }
+        if (!phones.Contains(phone))
+            return Result.Failure<Phone>(NotFoundMessage);
 
-        public Result<Phone> RemovePhone(Phone phone)
-        {
-            if (phone is null)
-                return Result.Failure<Phone>(RequiredMessage);
+        phones.Remove(phone);
 
-            if (!phones.Contains(phone))
-                return Result.Failure<Phone>(NotFoundMessage);
+        return Result.Success(phone);
+    }
 
-            phones.Remove(phone);
+    public Result<string> SetNotes(string note) =>
+        Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
 
-            return Result.Success(phone);
-        }
+    public Result SetAddress(Address address)
+    {
+        if (address is null)
+            return Result.Failure<Address>(RequiredMessage);
 
-        public Result<string> SetNotes(string note)
-        {
-            return Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
-        }
+        // Address (if present) is guaranteed to be valid;
+        // it was validated on creation.
+        return Result.Success(Address = address);
+    }
 
-        public Result SetAddress(Address address)
-        {
-            if (address is null)
-                return Result.Failure<Address>(RequiredMessage);
+    public Result ClearAddress() =>
+        Result.Success(Address = null);
 
-            // Address (if present) is guaranteed to be valid;
-            // it was validated on creation.
-            return Result.Success(Address = address);
-        }
+    public bool HasPhone(Phone phone) =>
+        Phones.Any(existingPhone => existingPhone.Number == phone.Number);
 
-        public Result ClearAddress()
-        {
-            return Result.Success(Address = null);
-        }
+    public bool HasPrimaryPhone() =>
+        Phones.Any(existingPhone => existingPhone.IsPrimary);
 
-        public bool HasPhone(Phone phone)
-        {
-            return Phones.Any(existingPhone => existingPhone.Number == phone.Number);
-        }
+    public bool HasEmail(Email email) =>
+        Emails.Any(existingEmail => existingEmail.Address == email.Address);
 
-        public bool HasPrimaryPhone()
-        {
-            return Phones.Any(existingPhone => existingPhone.IsPrimary);
-        }
+    public bool HasPrimaryEmail() =>
+        Emails.Any(email => email.IsPrimary);
 
-        public bool HasEmail(Email email)
-        {
-            return Emails.Any(existingEmail => existingEmail.Address == email.Address);
-        }
+    public void UpdateContactDetails(ContactDetails contactDetails)
+    {
+        UpdatePhones(contactDetails.Phones);
+        UpdateEmails(contactDetails.Emails);
+        Address = contactDetails.Address.GetValueOrDefault();
+    }
 
-        public bool HasPrimaryEmail()
-        {
-            return Emails.Any(email => email.IsPrimary);
-        }
+    private void UpdatePhones(IReadOnlyList<Phone> phones)
+    {
+        var toAdd = phones
+            .Where(phone => phone.Id == 0)
+            .ToArray();
 
-        public void UpdateContactDetails(ContactDetails contactDetails)
-        {
-            UpdatePhones(contactDetails.Phones);
-            UpdateEmails(contactDetails.Emails);
-            Address = contactDetails.Address.GetValueOrDefault();
-        }
+        var toDelete = Phones
+            .Where(phone => !phones.Any(callerPhone => callerPhone.Id == phone.Id))
+            .ToArray();
 
-        private void UpdatePhones(IReadOnlyList<Phone> phones)
-        {
-            var toAdd = phones
-                .Where(phone => phone.Id == 0)
-                .ToArray();
+        var toModify = Phones
+            .Where(phone => phones.Any(callerPhone => callerPhone.Id == phone.Id))
+            .ToArray();
 
-            var toDelete = Phones
-                .Where(phone => !phones.Any(callerPhone => callerPhone.Id == phone.Id))
-                .ToArray();
+        toModify.ToList()
+            .ForEach(phone =>
+            {
+                var phoneFromCaller = phones.Single(callerPhone => callerPhone.Id == phone.Id);
 
-            var toModify = Phones
-                .Where(phone => phones.Any(callerPhone => callerPhone.Id == phone.Id))
-                .ToArray();
+                if (phone.Number != phoneFromCaller.Number)
+                    phone.SetNumber(phoneFromCaller.Number);
 
-            toModify.ToList()
-                .ForEach(phone =>
-                {
-                    var phoneFromCaller = phones.Single(callerPhone => callerPhone.Id == phone.Id);
+                if (phone.PhoneType != phoneFromCaller.PhoneType)
+                    phone.SetPhoneType(phoneFromCaller.PhoneType);
 
-                    if (phone.Number != phoneFromCaller.Number)
-                        phone.SetNumber(phoneFromCaller.Number);
+                if (phone.IsPrimary != phoneFromCaller.IsPrimary)
+                    phone.SetIsPrimary(phoneFromCaller.IsPrimary);
+            });
 
-                    if (phone.PhoneType != phoneFromCaller.PhoneType)
-                        phone.SetPhoneType(phoneFromCaller.PhoneType);
+        toDelete.ToList()
+            .ForEach(phone => RemovePhone(phone));
 
-                    if (phone.IsPrimary != phoneFromCaller.IsPrimary)
-                        phone.SetIsPrimary(phoneFromCaller.IsPrimary);
-                });
+        toAdd.ToList()
+            .ForEach(phone =>
+            {
+                var result = AddPhone(phone);
+                if (result.IsFailure)
+                    throw new Exception(result.Error);
+            });
+    }
 
-            toDelete.ToList()
-                .ForEach(phone => RemovePhone(phone));
+    private void UpdateEmails(IReadOnlyList<Email> emails)
+    {
+        var toAdd = emails
+            .Where(email => email.Id == 0)
+            .ToArray();
 
-            toAdd.ToList()
-                .ForEach(phone =>
-                {
-                    var result = AddPhone(phone);
-                    if (result.IsFailure)
-                        throw new Exception(result.Error);
-                });
-        }
+        var toDelete = Emails
+            .Where(email => !emails.Any(callerEmail => callerEmail.Id == email.Id))
+            .ToArray();
 
-        private void UpdateEmails(IReadOnlyList<Email> emails)
-        {
-            var toAdd = emails
-                .Where(email => email.Id == 0)
-                .ToArray();
+        var toModify = Emails
+            .Where(email => emails.Any(callerEmail => callerEmail.Id == email.Id))
+            .ToArray();
 
-            var toDelete = Emails
-                .Where(email => !emails.Any(callerEmail => callerEmail.Id == email.Id))
-                .ToArray();
+        toModify.ToList()
+            .ForEach(email =>
+            {
+                var emailFromCaller = emails.Single(callerEmail => callerEmail.Id == email.Id);
 
-            var toModify = Emails
-                .Where(email => emails.Any(callerEmail => callerEmail.Id == email.Id))
-                .ToArray();
+                if (email.Address != emailFromCaller.Address)
+                    email.SetAddress(emailFromCaller.Address);
 
-            toModify.ToList()
-                .ForEach(email =>
-                {
-                    var emailFromCaller = emails.Single(callerEmail => callerEmail.Id == email.Id);
+                if (email.IsPrimary != emailFromCaller.IsPrimary)
+                    email.SetIsPrimary(emailFromCaller.IsPrimary);
+            });
 
-                    if (email.Address != emailFromCaller.Address)
-                        email.SetAddress(emailFromCaller.Address);
+        toDelete.ToList()
+            .ForEach(email => RemoveEmail(email));
 
-                    if (email.IsPrimary != emailFromCaller.IsPrimary)
-                        email.SetIsPrimary(emailFromCaller.IsPrimary);
-                });
+        toAdd.ToList()
+            .ForEach(email =>
+            {
+                Result result = AddEmail(email);
+                if (result.IsFailure)
+                    throw new Exception(result.Error);
+            });
+    }
 
-            toDelete.ToList()
-                .ForEach(email => RemoveEmail(email));
-
-            toAdd.ToList()
-                .ForEach(email =>
-                {
-                    Result result = AddEmail(email);
-                    if (result.IsFailure)
-                        throw new Exception(result.Error);
-                });
-        }
-
-        protected Contactable()
-        {
-            phones = [];
-            emails = [];
-        }
+    // EF requires a parameterless constructor
+    protected Contactable()
+    {
+        phones = [];
+        emails = [];
     }
 }
