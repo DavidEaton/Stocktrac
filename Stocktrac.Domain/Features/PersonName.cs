@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features;
 
 public class PersonName : ValueObject
 {
@@ -9,7 +9,7 @@ public class PersonName : ValueObject
     public static readonly string InvalidLengthMessage = $"First, last and middle names must be between {MinimumLength} character(s) {MaximumLength} and in length";
     public static readonly string RequiredMessage = $"First and last names are required";
 
-    private PersonName(string lastName, string firstName, string middleName = null)
+    private PersonName(string lastName, string firstName, string? middleName = null)
     {
         LastName = lastName;
         FirstName = firstName;
@@ -18,9 +18,9 @@ public class PersonName : ValueObject
 
     public string LastName { get; }
     public string FirstName { get; }
-    public string MiddleName { get; }
+    public string? MiddleName { get; }
 
-    public static Result<PersonName> Create(string lastName, string firstName, string middleName = null)
+    public static Result<PersonName> Create(string lastName, string firstName, string? middleName = null)
     {
         if (string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(firstName))
             return Result.Failure<PersonName>(RequiredMessage);
@@ -62,15 +62,19 @@ public class PersonName : ValueObject
         return Result.Success(new PersonName(LastName, newFirstName, MiddleName));
     }
 
-    public Result<PersonName> NewMiddleName(string newMiddleName)
+    public Result<PersonName> NewMiddleName(string? newMiddleName)
     {
-        newMiddleName = newMiddleName is null || newMiddleName == string.Empty ? null : newMiddleName.Trim();
-
-        if (newMiddleName?.Length < MinimumLength ||
-            newMiddleName?.Length > MaximumLength)
+        if (newMiddleName is null || newMiddleName == string.Empty)
+        {
             return Result.Failure<PersonName>(InvalidLengthMessage);
+        }
 
-        return Result.Success(new PersonName(LastName, FirstName, newMiddleName));
+        newMiddleName = newMiddleName.Trim();
+
+        return newMiddleName?.Length < MinimumLength ||
+            newMiddleName?.Length > MaximumLength
+            ? Result.Failure<PersonName>(InvalidLengthMessage)
+            : Result.Success(new PersonName(LastName, FirstName, newMiddleName));
     }
 
     public string LastFirstMiddle =>
