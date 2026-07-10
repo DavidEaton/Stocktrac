@@ -4,6 +4,8 @@ namespace Stocktrac.Domain.Features;
 
 public class Company : Entity
 {
+    // TODO: Move these constants to user-configurable settings in the future.
+    // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static readonly long MinimumValue = 0;
     public static readonly string MinimumValueMessage = $"Invoice Number Starting value must be >= {MinimumValue}.";
     public static readonly string RequiredMessage = $"Please include all required items.";

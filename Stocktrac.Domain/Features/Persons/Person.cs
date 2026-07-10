@@ -1,12 +1,12 @@
 ﻿using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contact;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Persons;
 
 public class Person : Contactable, ICustomerEntity
 {
-    // Targeting tests at the abstract base class binds them to the code’s implementation details.
-    // Always test all concrete classes; don’t test abstract classes directly (like Contactable)
+    // TODO: Move these constants to user-configurable settings in the future.
+    // For now, they are hard-coded to match the current validation rules in StockTrac.
     public PersonName Name { get; private set; }
     public DateTime? Birthday { get; private set; }
     public DriversLicense DriversLicense { get; private set; }

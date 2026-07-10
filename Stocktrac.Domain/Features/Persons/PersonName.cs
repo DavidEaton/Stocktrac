@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Persons;
 
 public class PersonName : ValueObject
 {

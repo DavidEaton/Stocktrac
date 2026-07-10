@@ -1,10 +1,13 @@
 ﻿using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features;
 
 public class Customer : Entity
 {
+    // TODO: Move these constants to user-configurable settings in the future.
+    // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static readonly int MaximumCodeLength = 20;
     public static readonly string DuplicateItemMessagePrefix = $"Customer already has this ";
     public static readonly string UnknownEntityTypeMessage = $"Unknown entity type.";

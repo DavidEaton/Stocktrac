@@ -4,6 +4,8 @@ namespace Stocktrac.Domain.Features;
 
 public class CreditCard : Entity
 {
+    // TODO: Move these constants to user-configurable settings in the future.
+    // For now, they are hard-coded to match the current validation rules in StockTrac.
     public const int MinimumLength = 2;
     public const int MaximumLength = 50;
     public const string RequiredMessage = "A valid value is required.";

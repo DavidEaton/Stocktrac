@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features;
 
