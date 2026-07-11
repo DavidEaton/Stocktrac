@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Customers;
 
 public enum CustomerType
 {

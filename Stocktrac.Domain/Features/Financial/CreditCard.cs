@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Financial;
 
 public class CreditCard : Entity
 {
@@ -74,5 +74,11 @@ public class CreditCard : Entity
         Result.Success(IsAddedToDeposit = isAddedToDeposit);
 
     // EF requires a parameterless constructor
-    protected CreditCard() { }
+    private CreditCard()
+    {
+        Name = string.Empty;
+        FeeType = CreditCardFeeType.Flat;
+        Fee = 0;
+        IsAddedToDeposit = false;
+    }
 }

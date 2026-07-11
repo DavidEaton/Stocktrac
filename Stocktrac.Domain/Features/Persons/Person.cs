@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Customers;
 
 namespace Stocktrac.Domain.Features.Persons;
 
@@ -9,7 +10,7 @@ public class Person : Contactable, ICustomerEntity
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public PersonName Name { get; private set; }
     public DateTime? Birthday { get; private set; }
-    public DriversLicense DriversLicense { get; private set; }
+    public DriversLicense? DriversLicense { get; private set; }
     public override string ToString() => Name.ToString();
     public string DisplayName => Name.ToString();
     public EntityType EntityType => EntityType.Person;
@@ -17,11 +18,11 @@ public class Person : Contactable, ICustomerEntity
     internal Person(
         PersonName name,
         string notes,
-        Address address,
-        IReadOnlyList<Email> emails,
-        IReadOnlyList<Phone> phones,
-        DateTime? birthday = null,
-        DriversLicense driversLicense = null)
+        Address? address,
+        IReadOnlyList<Email>? emails,
+        IReadOnlyList<Phone>? phones,
+        DriversLicense? driversLicense,
+        DateTime? birthday = null)
         : base(notes, address, phones, emails)
     {
         Name = name;
@@ -31,26 +32,30 @@ public class Person : Contactable, ICustomerEntity
 
     public static Result<Person> Create(
         PersonName name,
-        string notes,
+        string? notes,
         DateTime? birthday = null,
-        IReadOnlyList<Email> emails = null,
-        IReadOnlyList<Phone> phones = null,
-        Address address = null,
-        DriversLicense driversLicense = null)
+        IReadOnlyList<Email>? emails = null,
+        IReadOnlyList<Phone>? phones = null,
+        Address? address = null,
+        DriversLicense? driversLicense = null)
     {
         if (name is null)
             return Result.Failure<Person>(RequiredMessage);
 
         notes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
 
-        if (!string.IsNullOrWhiteSpace(notes) && notes.Length > NoteMaximumLength)
-            return Result.Failure<Person>(NoteMaximumLengthMessage);
-
         if (birthday.HasValue)
             if (!IsValidAgeOn(birthday))
                 return Result.Failure<Person>(InvalidValueMessage);
 
-        return Result.Success(new Person(name, notes, address, emails, phones, birthday, driversLicense));
+        return Result.Success(new Person(
+            name: name,
+            notes: notes,
+            address: address,
+            emails: emails,
+            phones: phones,
+            birthday: birthday,
+            driversLicense: driversLicense));
     }
 
     public Result<PersonName> SetName(PersonName name) =>
@@ -58,7 +63,8 @@ public class Person : Contactable, ICustomerEntity
             ? Result.Failure<PersonName>(RequiredMessage)
             : Result.Success(Name = name);
 
-    public Result<DateTime?> SetBirthday(DateTime? birthday) => !IsValidAgeOn(birthday)
+    public Result<DateTime?> SetBirthday(DateTime? birthday) =>
+        !IsValidAgeOn(birthday)
             ? Result.Failure<DateTime?>(InvalidValueMessage)
             : Result.Success(Birthday = birthday);
 
@@ -90,5 +96,17 @@ public class Person : Contactable, ICustomerEntity
     }
 
     // EF requires a parameterless constructor
-    protected Person() { }
+    private Person()
+    {
+        Name = PersonName.Create(string.Empty, string.Empty).Value;
+        Birthday = DateTime.MinValue;
+        DriversLicense = DriversLicense.Create(
+            string.Empty,
+            State.MI,
+            DateTimeRange.Create(
+                DateTime.MinValue,
+                DateTime.MinValue.AddYears(1))
+            .Value)
+        .Value;
+    }
 }

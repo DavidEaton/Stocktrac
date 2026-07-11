@@ -13,17 +13,19 @@ public abstract class Contactable : Entity, IContactable
     public static readonly string PrimaryExistsMessage = $"Primary has already been entered.";
     public static readonly string InvalidValueMessage = $"Value was invalid";
     public static readonly string NotFoundMessage = $"Item was not found";
-    public string Notes { get; private set; }
-    public Address Address { get; private set; }
+    public string? Notes { get; private set; }
+    public Address? Address { get; private set; }
 
-    private readonly List<Phone> phones = new();
-    public IReadOnlyList<Phone> Phones => phones.ToList();
-    private readonly List<Email> emails = new();
-    public IReadOnlyList<Email> Emails => emails.ToList();
+    private readonly List<Phone> phones = [];
+    public IReadOnlyList<Phone> Phones => [.. phones];
+    private readonly List<Email> emails = [];
+    public IReadOnlyList<Email> Emails => [.. emails];
 
-    internal Contactable(string notes, Address address, IReadOnlyList<Phone> phones, IReadOnlyList<Email> emails)
+    internal Contactable(string? notes, Address? address, IReadOnlyList<Phone>? phones, IReadOnlyList<Email>? emails)
     {
-        Notes = notes;
+        Notes = notes?
+            .Trim()
+            .Truncate(NoteMaximumLength);
 
         if (address is not null)
             SetAddress(address);

@@ -9,7 +9,7 @@ public class Vehicle : Entity
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static readonly int MaximumMakeModelLength = 50;
     public static readonly int MinimumMakeModelLength = 2;
-    public static readonly int VinLength = 17;
+    public static readonly int VinRequiredLength = 17;
     public static readonly int MaximumPlateLength = 20;
     public static readonly int MaximumUnitNumberLength = 20;
     public static readonly int MaximumColorLength = 12;
@@ -22,7 +22,7 @@ public class Vehicle : Entity
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length";
     public static readonly string InvalidPlateStateProvinceMessage = $"Plate State/Province is invalid";
 
-    public string VIN { get; private set; }
+    public string VIN { get; private set; } // Refactor to ValueObject
     public int? Year { get; private set; }
     public string Make { get; private set; }
     public string Model { get; private set; }
@@ -35,7 +35,17 @@ public class Vehicle : Entity
 
     public override string ToString() => $"{Year ?? 0} {Make} {Model}";
 
-    private Vehicle(string vin, int? year, string make, string model, bool nonTraditionalVehicle, string plate, State? plateStateProvince, string unitNumber, string color, bool active)
+    private Vehicle(
+        string vin,
+        int? year,
+        string make,
+        string model,
+        bool nonTraditionalVehicle,
+        string plate,
+        State? plateStateProvince,
+        string unitNumber,
+        string color,
+        bool active)
     {
         VIN = vin;
         Year = year;
@@ -49,7 +59,17 @@ public class Vehicle : Entity
         Active = active;
     }
 
-    public static Result<Vehicle> Create(string vin, int? year, string make, string model, string plate, State? plateStateProvince, string unitNumber, string color, bool active = true, bool nonTraditionalVehicle = false)
+    public static Result<Vehicle> Create(
+        string vin,
+        int? year,
+        string make,
+        string model,
+        string plate,
+        State? plateStateProvince,
+        string unitNumber,
+        string color,
+        bool active = true,
+        bool nonTraditionalVehicle = false)
     {
         make = (make ?? string.Empty).Trim();
         model = (model ?? string.Empty).Trim();
@@ -85,7 +105,18 @@ public class Vehicle : Entity
         if (colorResult.IsFailure)
             return Result.Failure<Vehicle>(colorResult.Error);
 
-        return Result.Success(new Vehicle(vin, year, make, model, nonTraditionalVehicle, plate, plateStateProvince, unitNumber, color, active));
+        return Result.Success(
+            new Vehicle(
+                vin: vin,
+                year: year,
+                make: make,
+                model: model,
+                nonTraditionalVehicle: nonTraditionalVehicle,
+                plate: plate,
+                plateStateProvince: plateStateProvince,
+                unitNumber: unitNumber,
+                color: color,
+                active: active));
     }
 
     private static Result ValidateMakeModel(string make, string model, bool nonTraditionalVehicle)
@@ -107,62 +138,64 @@ public class Vehicle : Entity
         return Result.Success();
     }
 
-    private static Result ValidateVin(string vin, bool nonTraditionalVehicle) =>
-        // Allows null VINs only for non-traditional vehicles. For all other cases, the VIN must match the expected length (VinLength) to be considered valid
-        vin is null && nonTraditionalVehicle
-            ? Result.Success()
-            : vin is null && !nonTraditionalVehicle
-                ? Result.Failure(InvalidVinMessage)
-                : vin.Length.Equals(VinLength)
-                    ? Result.Success()
-                    : Result.Failure(InvalidVinMessage);
+    private static Result ValidateVin(
+        string? vin,
+        bool nonTraditionalVehicle)
+    {
+        if (vin is null)
+        {
+            return nonTraditionalVehicle
+                ? Result.Success()
+                : Result.Failure(InvalidVinMessage);
+        }
+
+        if (vin.Length != VinRequiredLength)
+            return Result.Failure(InvalidVinMessage);
+
+        return Result.Success();
+    }
 
     private static Result ValidateYear(int? year) =>
         year > DateTime.Today.Year + 1 || year < YearMinimum
             ? Result.Failure(InvalidYearMessage)
             : Result.Success();
 
-    private static Result ValidatePlate(string plate)
+    private static Result ValidatePlate(string? plate)
     {
-        plate = (plate ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(plate)
-            ? Result.Success()
-            : plate.Length <= MaximumPlateLength
-                ? Result.Success()
-                : Result.Failure(InvalidMaximumLengthMessage(MaximumPlateLength));
+        plate = plate?.Trim() ?? string.Empty;
+        return plate.Length > MaximumPlateLength
+            ? Result.Failure(
+                InvalidMaximumLengthMessage(MaximumPlateLength))
+            : Result.Success();
     }
 
     private static Result ValidatePlateStateProvince(State? plateStateProvince) =>
-        plateStateProvince is null
+        plateStateProvince is null || Enum.IsDefined(plateStateProvince.Value)
             ? Result.Success()
-            : Enum.IsDefined(typeof(State), plateStateProvince)
-                ? Result.Success()
-                : Result.Failure(InvalidPlateStateProvinceMessage);
+            : Result.Failure(InvalidPlateStateProvinceMessage);
 
-    private static Result ValidateUnitNumber(string unitNumber)
+    private static Result ValidateUnitNumber(string? unitNumber)
     {
-        unitNumber = (unitNumber ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(unitNumber)
-            ? Result.Success()
-            : unitNumber.Length <= MaximumUnitNumberLength
-                ? Result.Success()
-                : Result.Failure(InvalidMaximumLengthMessage(MaximumUnitNumberLength));
+        unitNumber = unitNumber?.Trim() ?? string.Empty;
+        return unitNumber.Length > MaximumUnitNumberLength
+            ? Result.Failure(
+                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
+            : Result.Success();
     }
 
-    private static Result ValidateColor(string color)
+    private static Result ValidateColor(string? color)
     {
-        color = (color ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(color)
-            ? Result.Success()
-            : color.Length <= MaximumColorLength
-                ? Result.Success()
-                : Result.Failure(InvalidMaximumLengthMessage(MaximumColorLength));
+        color = color?.Trim() ?? string.Empty;
+        return color.Length > MaximumColorLength
+            ? Result.Failure(
+                InvalidMaximumLengthMessage(MaximumColorLength))
+            : Result.Success();
     }
 
     public Result<string> SetVin(string vin)
     {
         vin = (vin ?? string.Empty).Trim();
-        return vin.Length.Equals(VinLength)
+        return vin.Length.Equals(VinRequiredLength)
             ? Result.Success(VIN = vin)
             : Result.Failure<string>(InvalidVinMessage);
     }
@@ -188,41 +221,36 @@ public class Vehicle : Entity
             : Result.Success(Model = model);
     }
 
-    public Result<string> SetPlate(string plate)
+    public Result<string> SetPlate(string? plate)
     {
-        plate = (plate ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(plate)
-            ? Result.Success(Plate = plate)
-            : plate.Length <= MaximumPlateLength
-                ? Result.Success(Plate = plate)
-                : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumPlateLength));
+        plate = plate?.Trim() ?? string.Empty;
+        return plate.Length > MaximumPlateLength
+            ? Result.Failure<string>(
+                InvalidMaximumLengthMessage(MaximumPlateLength))
+            : Result.Success(Plate = plate);
     }
 
     public Result<State?> SetPlateStateProvince(State? plateStateProvince) =>
-        plateStateProvince is null
-            ? Result.Success(PlateStateProvince = plateStateProvince)
-            : Enum.IsDefined(typeof(State), plateStateProvince)
-                ? Result.Success(PlateStateProvince = plateStateProvince)
-                : Result.Failure<State?>(InvalidPlateStateProvinceMessage);
+        plateStateProvince is not null && !Enum.IsDefined(plateStateProvince.Value)
+            ? Result.Failure<State?>(InvalidPlateStateProvinceMessage)
+            : Result.Success(PlateStateProvince = plateStateProvince);
 
-    public Result<string> SetUnitNumber(string unitNumber)
+    public Result<string> SetUnitNumber(string? unitNumber)
     {
-        unitNumber = (unitNumber ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(unitNumber)
-            ? Result.Success(UnitNumber = unitNumber)
-            : unitNumber.Length <= MaximumUnitNumberLength
-                ? Result.Success(UnitNumber = unitNumber)
-                : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumUnitNumberLength));
+        unitNumber = unitNumber?.Trim() ?? string.Empty;
+        return unitNumber.Length > MaximumUnitNumberLength
+            ? Result.Failure<string>(
+                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
+            : Result.Success(UnitNumber = unitNumber);
     }
 
-    public Result<string> SetColor(string color)
+    public Result<string> SetColor(string? color)
     {
-        color = (color ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(color)
-            ? Result.Success(Color = color)
-            : color.Length <= MaximumColorLength
-                ? Result.Success(Color = color)
-                : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumColorLength));
+        color = color?.Trim() ?? string.Empty;
+        return color.Length > MaximumColorLength
+            ? Result.Failure<string>(
+                InvalidMaximumLengthMessage(MaximumColorLength))
+            : Result.Success(Color = color);
     }
 
     public Result<bool> SetActive(bool active = true) =>
@@ -233,5 +261,13 @@ public class Vehicle : Entity
         Result.Success(NonTraditionalVehicle = nonTraditionalVehicle);
 
     // EF requires a parameterless constructor
-    protected Vehicle() { }
+    private Vehicle()
+    {
+        Make = string.Empty;
+        Model = string.Empty;
+        Plate = string.Empty;
+        UnitNumber = string.Empty;
+        Color = string.Empty;
+        VIN = string.Empty;
+    }
 }

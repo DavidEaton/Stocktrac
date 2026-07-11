@@ -1,4 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Customers;
 
 namespace Stocktrac.Domain.Features;
 
@@ -34,5 +36,9 @@ public class Company : Entity
             : Result.Success(NextInvoiceNumberOrSeed = seed);
 
     // EF requires a parameterless constructor
-    protected Company() { }
+    private Company() =>
+        Business = Business.Create(
+            BusinessName.Create("Business Name")
+                .Value)
+            .Value;
 }

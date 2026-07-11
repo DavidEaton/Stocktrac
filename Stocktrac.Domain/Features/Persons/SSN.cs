@@ -7,19 +7,14 @@ public sealed class SSN : ValueObject
     private const int AreaNumberLength = 3;
     private const int GroupNumberLength = 2;
     private const int SerialNumberLength = 4;
-
     private const int NormalizedLength =
         AreaNumberLength + GroupNumberLength + SerialNumberLength;
-
     private const int FirstHyphenIndex = AreaNumberLength;
     private const int SecondHyphenIndex =
         AreaNumberLength + GroupNumberLength + 1;
-
     private const int FormattedLength = NormalizedLength + 2;
-
     public const string RequiredMessage =
         "A Social Security number is required.";
-
     public const string InvalidFormatMessage =
         "The Social Security number must contain exactly nine digits.";
 
@@ -28,25 +23,25 @@ public sealed class SSN : ValueObject
     public string Masked =>
         $"***-**-{Value[^SerialNumberLength..]}";
 
-    private SSN(string value)
-    {
+    private SSN(string value) =>
         Value = value;
-    }
+
+    // Static SSN.None instance to represent a non-existent SSN
+    public static readonly SSN None = new(string.Empty);
 
     public static Result<SSN> Create(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return Result.Failure<SSN>(RequiredMessage);
 
-        var input = value.Trim();
-
-        var normalized = input.Length switch
+        value = value?.Trim() ?? string.Empty;
+        var normalized = value.Length switch
         {
-            NormalizedLength when input.All(char.IsAsciiDigit) =>
-                input,
+            NormalizedLength when value.All(char.IsAsciiDigit) =>
+                value,
 
-            FormattedLength when IsFormatted(input) =>
-                input.Replace("-", string.Empty),
+            FormattedLength when IsFormatted(value) =>
+                value.Replace("-", string.Empty),
 
             _ => null
         };
@@ -81,5 +76,11 @@ public sealed class SSN : ValueObject
                        index != FirstHyphenIndex &&
                        index != SecondHyphenIndex)
                     .All(char.IsAsciiDigit);
+    }
+
+    // EF requires an empty constructor
+    private SSN()
+    {
+        Value = string.Empty;
     }
 }

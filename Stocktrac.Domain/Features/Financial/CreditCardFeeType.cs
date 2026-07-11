@@ -1,4 +1,4 @@
-﻿namespace Stocktrac.Domain.Features;
+﻿namespace Stocktrac.Domain.Features.Financial;
 
 public enum CreditCardFeeType
 {

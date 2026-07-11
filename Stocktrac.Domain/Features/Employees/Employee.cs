@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Contact;
 using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Employees;
@@ -22,32 +23,31 @@ public class Employee : Entity
     public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length";
 
-    public Person PersonalDetails { get; private set; }
+    public Person PersonEmployed { get; private set; }
     public DateTime? Hired { get; private set; } = null;
     public DateTime? Exited { get; private set; }
-    public string CompanyEmployeeId { get; set; }
-    public IReadOnlyList<RoleAssignment> RoleAssignments => roleAssignments.ToList();
-    private readonly List<RoleAssignment> roleAssignments = new();
-    public string Notes { get; private set; }
+    public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
+    private readonly List<RoleAssignment> roleAssignments = [];
+    public string? Notes { get; private set; }
     public SSN SSN { get; private set; }
-    public string CertificationNumber { get; private set; }
-    public bool Active { get; private set; } = true;
-    public string PrintedName { get; private set; }
+    public string? CertificationNumber { get; private set; } // This should be defined and probably a value object 
+    public bool Active { get; private set; } = true; // This should be a derived value, read only
+    public string? PrintedName { get; private set; } // This should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
-    public double BenefitLoad { get; private set; } = 0.0;
+    public double BenefitLoad { get; private set; } = 0.0; // This should be defined and probably a value object 
 
-    private Employee(Person personalDetails,
+    private Employee(Person personEmployed,
         List<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
-        string notes,
-        string certificationNumber,
+        string? notes,
+        string? certificationNumber,
         bool active,
-        string printedName,
+        string? printedName,
         EmployeeExpenseCategory expenseCategory,
         double benefitLoad)
     {
-        PersonalDetails = personalDetails;
+        PersonEmployed = personEmployed;
         SSN = ssn;
         Hired = hired;
         Notes = notes;
@@ -72,7 +72,8 @@ public class Employee : Entity
         return Result.Success(assignment);
     }
 
-    public static Result<Employee> Create(Person hiredPerson,
+    public static Result<Employee> Create(
+        Person hiredPerson,
         List<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
@@ -96,12 +97,12 @@ public class Employee : Entity
         var certificationNumberValidationResult = ValidateCertificationNumber(certificationNumber);
         if (certificationNumberValidationResult.IsFailure)
             return Result.Failure<Employee>(certificationNumberValidationResult.Error);
-        certificationNumber = certificationNumber?.Trim();
+        certificationNumber ??= certificationNumber?.Trim() ?? string.Empty;
 
         var printedNameValidationResult = ValidatePrintedName(printedName);
         if (printedNameValidationResult.IsFailure)
             return Result.Failure<Employee>(printedNameValidationResult.Error);
-        printedName = printedName?.Trim();
+        printedName ??= printedName?.Trim() ?? string.Empty;
 
         var expenseCategoryValidationResult = ValidateExpenseCategory(expenseCategory);
         if (expenseCategoryValidationResult.IsFailure)
@@ -111,17 +112,17 @@ public class Employee : Entity
         if (benefitLoadValidationResult.IsFailure)
             return Result.Failure<Employee>(benefitLoadValidationResult.Error);
 
-        return Result.Success(new Employee(hiredPerson, roleAssignments, ssn, hired, notes.Trim(), certificationNumber!, active, printedName!, expenseCategory, benefitLoad));
-    }
-
-    private static Result ValidateSSN(string? ssn)
-    {
-        if (string.IsNullOrWhiteSpace(ssn))
-            return Result.Success();
-
-        return ssn.Trim().Length <= MaximumSSNLength
-            ? Result.Success()
-            : Result.Failure(InvalidMaximumLengthMessage(MaximumSSNLength));
+        return Result.Success(new Employee(
+            personEmployed: hiredPerson,
+            roleAssignments: roleAssignments,
+            ssn: ssn,
+            hired: hired,
+            notes: notes,
+            certificationNumber: certificationNumber,
+            active: active,
+            printedName: printedName,
+            expenseCategory: expenseCategory,
+            benefitLoad: benefitLoad));
     }
 
     private static Result ValidateCertificationNumber(string? certificationNumber)
@@ -180,52 +181,47 @@ public class Employee : Entity
     public Result<SSN> SetSSN(SSN ssn) =>
         Result.Success(SSN = ssn);
 
-    public Result<string> SetCertificationNumber(string certificationNumber)
+    public Result SetCertificationNumber(string? certificationNumber)
     {
-        if (string.IsNullOrWhiteSpace(certificationNumber))
-        {
-            return Result.Success(CertificationNumber = string.Empty);
-        }
+        certificationNumber = certificationNumber?.Trim() ?? string.Empty;
 
-        return certificationNumber.Length <= MaximumCertificationNumberLength
-            ? Result.Success(CertificationNumber = certificationNumber)
-            : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumCertificationNumberLength));
+        return certificationNumber.Length > MaximumCertificationNumberLength
+            ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
+            : Result.Success(CertificationNumber = certificationNumber);
     }
 
-    public Result<bool> SetActive(bool active = true)
-    {
-        return Result.Success(Active = active);
-    }
+    public Result<bool> SetActive(bool active = true) =>
+        Result.Success(Active = active);
 
     public Result<string> SetPrintedName(string printedName)
     {
-        if (string.IsNullOrWhiteSpace(printedName))
-        {
-            return Result.Success(PrintedName = string.Empty);
-        }
+        printedName = printedName?.Trim() ?? string.Empty;
 
         return printedName.Length <= MaximumPrintedNameLength
             ? Result.Success(PrintedName = printedName)
             : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
     }
 
-    public Result<EmployeeExpenseCategory> SetExpenseCategory(EmployeeExpenseCategory expenseCategory)
-    {
-        return Enum.IsDefined(typeof(EmployeeExpenseCategory), expenseCategory)
+    public Result<EmployeeExpenseCategory> SetExpenseCategory(EmployeeExpenseCategory expenseCategory) =>
+        Enum.IsDefined(expenseCategory)
             ? Result.Success(ExpenseCategory = expenseCategory)
             : Result.Failure<EmployeeExpenseCategory>(InvalidExpenseCategoryMessage);
-    }
 
-    public Result<double> SetBenefitLoad(double benefitLoad)
-    {
-        return benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
+    public Result<double> SetBenefitLoad(double benefitLoad) =>
+        benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
             ? Result.Success(BenefitLoad = benefitLoad)
             : Result.Failure<double>(BenefitLoadMessage);
-    }
 
     // EF requires a parameterless constructor
-    protected Employee()
+    private Employee()
     {
         roleAssignments = [];
+        var personName = PersonName.Create("LastName", "FirstName").Value;
+        PersonEmployed = Person.Create(personName, string.Empty).Value;
+        SSN = SSN.Create(string.Empty).Value;
+        Hired = DateTime.Today;
+        Notes = string.Empty;
+        CertificationNumber = string.Empty;
+        PrintedName = string.Empty;
     }
 }

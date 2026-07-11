@@ -11,5 +11,21 @@ public enum EmploymentRole
     Technician,
 
     [Display(Name = "Inspector")]
-    Inspector
+    Inspector,
+
+    [Display(Name = "Parts Specialist")]
+    PartsSpecialist,
+
+    [Display(Name = "Service Manager")]
+    ServiceManager,
+
+    [Display(Name = "Service Director")]
+    ServiceDirector,
+
+    [Display(Name = "General Manager")]
+    GeneralManager,
+    
+    [Display(Name = "Other")]
+    Other
+
 }

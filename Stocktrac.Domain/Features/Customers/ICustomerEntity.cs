@@ -1,6 +1,6 @@
 ﻿using Stocktrac.Domain.Features.Contact;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Customers;
 
 public interface ICustomerEntity : IContactable
 {

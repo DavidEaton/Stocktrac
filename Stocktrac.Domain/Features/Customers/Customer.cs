@@ -2,42 +2,45 @@
 using Stocktrac.Domain.Features.Contact;
 using Stocktrac.Domain.Features.Persons;
 
-namespace Stocktrac.Domain.Features;
+namespace Stocktrac.Domain.Features.Customers;
 
 public class Customer : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly int MaximumCodeLength = 20;
     public static readonly string DuplicateItemMessagePrefix = $"Customer already has this ";
     public static readonly string UnknownEntityTypeMessage = $"Unknown entity type.";
     public static readonly string UnknownCustomerTypeMessage = $"Unknown type.";
     public static readonly string RequiredMessage = "Please include all required items.";
-    public static readonly string InvalidCodeLengthMessage = $"Code must be {MaximumCodeLength} characters or less.";
     public static readonly string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
 
     public CustomerType CustomerType { get; private set; }
-    public string Code { get; private set; } //optional
+    public CustomerCode? Code { get; private set; }
     public ContactPreferences ContactPreferences { get; private set; }
     public ICustomerEntity CustomerEntity { get; private set; }
     public EntityType EntityType => CustomerEntity.EntityType;
     public string DisplayName => CustomerEntity.DisplayName;
-    public string Notes => CustomerEntity.Notes;
-    public Address Address => CustomerEntity.Address;
+    public string? Notes => CustomerEntity.Notes;
+    public Address? Address => CustomerEntity.Address;
     public string? Name => CustomerEntity?.ToString();
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
     public IReadOnlyList<Phone> Phones => CustomerEntity.Phones;
     public IReadOnlyList<Email> Emails => CustomerEntity.Emails;
 
-    private Customer(ICustomerEntity entity, CustomerType customerType, string code)
+    private Customer(
+        ICustomerEntity entity,
+        CustomerType customerType,
+        CustomerCode? code,
+        ContactPreferences contactPreferences)
     {
         CustomerEntity = entity;
         CustomerType = customerType;
         Code = code;
+        ContactPreferences = contactPreferences;
     }
 
-    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, string code)
+    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, CustomerCode? code)
     {
         if (entity is null)
             return Result.Failure<Customer>(RequiredMessage);
@@ -45,10 +48,14 @@ public class Customer : Entity
         if (!Enum.IsDefined(customerType))
             return Result.Failure<Customer>(UnknownCustomerTypeMessage);
 
-        code = code?.Trim() ?? string.Empty;
-        return code.Length > MaximumCodeLength
-            ? Result.Failure<Customer>(InvalidCodeLengthMessage)
-            : Result.Success(new Customer(entity, customerType, code));
+        return Result.Success(
+            new Customer(
+                entity: entity,
+                customerType: customerType,
+                code: code,
+                contactPreferences: ContactPreferences.Create(
+                    true, true, true).Value
+        ));
     }
 
     public Result SetAddress(Address address) =>
@@ -143,13 +150,8 @@ public class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result<string> SetCode(string code)
-    {
-        code = code?.Trim() ?? string.Empty;
-        return code.Length <= MaximumCodeLength
-            ? Result.Success(Code = code)
-            : Result.Failure<string>(InvalidCodeLengthMessage);
-    }
+    public Result<CustomerCode> SetCode(CustomerCode code) =>
+        Result.Success(Code = code);
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {
@@ -170,6 +172,22 @@ public class Customer : Entity
     }
 
     // EF requires a parameterless constructor
-    protected Customer() =>
+    private Customer()
+    {
         vehicles = [];
+        CustomerEntity = Person.Create(
+            PersonName.Create(
+                lastName: "First",
+                firstName: "Last").Value,
+            notes: null,
+            birthday: null,
+            emails: null,
+            phones: null,
+            address: null).Value;
+        ContactPreferences = ContactPreferences.Create(
+            allowMail: true,
+            allowEmail: true,
+            allowSms: true).Value;
+        CustomerType = CustomerType.Retail;
+    }
 }

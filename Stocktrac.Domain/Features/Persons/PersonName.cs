@@ -101,9 +101,14 @@ public class PersonName : ValueObject
     {
         yield return LastName;
         yield return FirstName;
-        yield return MiddleName;
+        yield return MiddleName ?? string.Empty;
     }
 
     // EF requires an empty constructor
-    protected PersonName() { }
+    private PersonName()
+    {
+        LastName = string.Empty;
+        FirstName = string.Empty;
+        MiddleName = string.Empty;
+    }
 }
