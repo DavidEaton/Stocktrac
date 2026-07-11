@@ -2,4 +2,5 @@
   <Project Path="Stocktrac.Api/Stocktrac.Api.csproj" />
   <Project Path="Stocktrac.Contracts/Stocktrac.Contracts.csproj" />
   <Project Path="Stocktrac.Domain/Stocktrac.Domain.csproj" />
+  <Project Path="Stocktrac.Tests/Stocktrac.Tests.csproj" />
 </Solution>
