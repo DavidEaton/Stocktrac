@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public class Address : ValueObject
 {
@@ -22,12 +22,17 @@ public class Address : ValueObject
     public static readonly string PostalCodeInvalidMessage = "Please enter a valid Postal Code";
 
     public string AddressLine1 { get; private set; }
-    public string AddressLine2 { get; private set; }
+    public string? AddressLine2 { get; private set; }
     public string City { get; private set; }
     public State State { get; private set; }
     public string PostalCode { get; private set; }
 
-    private Address(string addressLine1, string city, State state, string postalCode, string addressLine2 = null)
+    private Address(
+        string addressLine1,
+        string city,
+        State state,
+        string postalCode,
+        string? addressLine2 = null)
     {
         AddressLine1 = addressLine1;
         AddressLine2 = addressLine2;
@@ -36,7 +41,12 @@ public class Address : ValueObject
         PostalCode = postalCode;
     }
 
-    public static Result<Address> Create(string addressLine1, string city, State state, string postalCode, string addressLine2 = null)
+    public static Result<Address> Create(
+        string addressLine1,
+        string city,
+        State state,
+        string postalCode,
+        string? addressLine2 = null)
     {
         if (string.IsNullOrWhiteSpace(addressLine1))
             return Result.Failure<Address>(AddressRequiredMessage);
@@ -44,7 +54,7 @@ public class Address : ValueObject
         if (string.IsNullOrWhiteSpace(city))
             return Result.Failure<Address>(CityRequiredMessage);
 
-        if (!Enum.IsDefined(typeof(State), state))
+        if (!Enum.IsDefined(state))
             return Result.Failure<Address>(StateInvalidMessage);
 
         if (string.IsNullOrWhiteSpace(postalCode))
@@ -53,7 +63,7 @@ public class Address : ValueObject
         addressLine1 = (addressLine1 ?? string.Empty).Trim();
         addressLine2 = addressLine2 is null || addressLine2 == string.Empty ? null : addressLine2.Trim();
         city = (city ?? string.Empty).Trim();
-        postalCode = postalCode?.Trim();
+        postalCode = (postalCode ?? string.Empty).Trim();
 
         if (!IsPostalCodeValid(postalCode))
             return Result.Failure<Address>(PostalCodeInvalidMessage);
@@ -70,7 +80,13 @@ public class Address : ValueObject
         if (city.Length > CityMaximumLength)
             return Result.Failure<Address>(CityLengthMessage);
 
-        return Result.Success(new Address(addressLine1, city, state, postalCode, addressLine2));
+        return Result.Success(
+            new Address(
+                addressLine1: addressLine1,
+                city: city,
+                state: state,
+                postalCode: postalCode,
+                addressLine2: addressLine2));
     }
 
     public Result<Address> NewAddressLine1(string newAddressLine)
@@ -83,7 +99,13 @@ public class Address : ValueObject
         if (newAddressLine.Length > AddressMaximumLength)
             return Result.Failure<Address>(AddressLengthMessage);
 
-        return Result.Success(new Address(newAddressLine, City, State, PostalCode, AddressLine2));
+        return Result.Success(
+            new Address(
+                addressLine1: newAddressLine,
+                city: City,
+                state: State,
+                postalCode: PostalCode,
+                addressLine2: AddressLine2));
     }
 
     public Result<Address> NewCity(string newCity)
@@ -93,30 +115,44 @@ public class Address : ValueObject
 
         newCity = (newCity ?? string.Empty).Trim();
 
-        if (newCity.Length < CityMinimumLength)
+        if (newCity.Length < CityMinimumLength || newCity.Length > CityMaximumLength)
             return Result.Failure<Address>(CityLengthMessage);
 
-        if (newCity.Length > CityMaximumLength)
-            return Result.Failure<Address>(CityLengthMessage);
-
-        return Result.Success(new Address(AddressLine1, newCity, State, PostalCode, AddressLine2));
+        return Result.Success(
+            new Address(
+                addressLine1: AddressLine1,
+                city: newCity,
+                state: State,
+                postalCode: PostalCode,
+                addressLine2: AddressLine2));
     }
 
     public Result<Address> NewState(State newState) =>
         !Enum.IsDefined(newState)
             ? Result.Failure<Address>(StateInvalidMessage)
-            : Result.Success(new Address(AddressLine1, City, newState, PostalCode, AddressLine2));
+            : Result.Success(
+                new Address(
+                    addressLine1: AddressLine1,
+                    city: City,
+                    state: newState,
+                    postalCode: PostalCode,
+                    addressLine2: AddressLine2));
 
     public Result<Address> NewPostalCode(string newPostalCode)
     {
         if (string.IsNullOrWhiteSpace(newPostalCode))
             return Result.Failure<Address>(PostalCodeRequiredMessage);
 
-        newPostalCode = newPostalCode?.Trim();
-
+        newPostalCode = (newPostalCode ?? string.Empty).Trim();
         return !IsPostalCodeValid(newPostalCode)
             ? Result.Failure<Address>(PostalCodeInvalidMessage)
-            : Result.Success(new Address(AddressLine1, City, State, newPostalCode, AddressLine2));
+            : Result.Success(
+                new Address(
+                    addressLine1: AddressLine1,
+                    city: City,
+                    state: State,
+                    postalCode: newPostalCode,
+                    addressLine2: AddressLine2));
     }
 
     public Result<Address> NewAddressLine2(string newAddressLine2)
@@ -125,13 +161,17 @@ public class Address : ValueObject
 
         return newAddressLine2.Length > AddressMaximumLength
             ? Result.Failure<Address>(AddressLengthMessage)
-            : Result.Success(new Address(AddressLine1, City, State, PostalCode, newAddressLine2));
+            : Result.Success(
+                    new Address(
+                    addressLine1: AddressLine1,
+                    city: City,
+                    state: State,
+                    postalCode: PostalCode,
+                    addressLine2: newAddressLine2));
     }
 
-    public override string ToString()
-    {
-        return AddressFull;
-    }
+    public override string ToString() =>
+        AddressFull;
 
     protected override IEnumerable<IComparable> GetEqualityComponents()
     {
@@ -155,5 +195,11 @@ public class Address : ValueObject
         postalCode.All(char.IsDigit);
 
     // EF requires an empty constructor
-    protected Address() { }
+    protected Address()
+    {
+        AddressLine1 = string.Empty;
+        City = string.Empty;
+        State = State.AB;
+        PostalCode = string.Empty;
+    }
 }

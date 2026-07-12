@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using Stocktrac.Domain.Features.Contact;
 using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Employees;
@@ -30,11 +29,11 @@ public class Employee : Entity
     private readonly List<RoleAssignment> roleAssignments = [];
     public string? Notes { get; private set; }
     public SSN SSN { get; private set; }
-    public string? CertificationNumber { get; private set; } // This should be defined and probably a value object 
-    public bool Active { get; private set; } = true; // This should be a derived value, read only
-    public string? PrintedName { get; private set; } // This should be defined and probably a value object
+    public string? CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object 
+    public bool Active { get; private set; } = true; // TODO: This should be a derived value, read only
+    public string? PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
-    public double BenefitLoad { get; private set; } = 0.0; // This should be defined and probably a value object 
+    public double BenefitLoad { get; private set; } = 0.0; // TODO: This should be defined and probably a value object 
 
     private Employee(Person personEmployed,
         List<RoleAssignment> roleAssignments,
@@ -68,7 +67,6 @@ public class Employee : Entity
             return Result.Failure<RoleAssignment>(RequiredMessage);
 
         roleAssignments.Add(assignment);
-
         return Result.Success(assignment);
     }
 

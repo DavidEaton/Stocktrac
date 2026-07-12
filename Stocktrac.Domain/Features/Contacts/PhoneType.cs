@@ -1,4 +1,4 @@
-﻿namespace Stocktrac.Domain.Features.Contact;
+﻿namespace Stocktrac.Domain.Features.Contacts;
 
 public enum PhoneType
 {

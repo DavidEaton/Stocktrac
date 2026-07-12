@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public class BusinessName : ValueObject
 {

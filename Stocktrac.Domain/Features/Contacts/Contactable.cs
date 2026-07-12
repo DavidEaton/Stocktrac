@@ -1,18 +1,18 @@
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public abstract class Contactable : Entity, IContactable
 {
     // Targeting tests at the abstract base class binds them to the code’s implementation details.
     // Always test only concrete classes; don’t test abstract classes directly
     public static readonly int NoteMaximumLength = 10000;
-    public static readonly string NoteMaximumLengthMessage = $"Notes cannot be over {NoteMaximumLength} characters in length.";
-    public static readonly string RequiredMessage = "Please include all required items.";
-    public static readonly string NonuniqueMessage = $"Item has already been entered; each item must be unique.";
-    public static readonly string PrimaryExistsMessage = $"Primary has already been entered.";
-    public static readonly string InvalidValueMessage = $"Value was invalid";
-    public static readonly string NotFoundMessage = $"Item was not found";
+    public static readonly string NoteMaximumLengthMessage = $"Notes must be {NoteMaximumLength} or fewer characters in length.";
+    public static readonly string RequiredMessage = "Please make all required entries.";
+    public static readonly string NonuniqueMessage = " Duplicate entry; each entry must be unique.";
+    public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
+    public static readonly string InvalidValueMessage = "Invalid value";
+    public static readonly string NotFoundMessage = "Entry not found";
     public string? Notes { get; private set; }
     public Address? Address { get; private set; }
 
@@ -21,7 +21,11 @@ public abstract class Contactable : Entity, IContactable
     private readonly List<Email> emails = [];
     public IReadOnlyList<Email> Emails => [.. emails];
 
-    internal Contactable(string? notes, Address? address, IReadOnlyList<Phone>? phones, IReadOnlyList<Email>? emails)
+    internal Contactable(
+        string? notes,
+        Address? address,
+        IReadOnlyList<Phone>? phones,
+        IReadOnlyList<Email>? emails)
     {
         Notes = notes?
             .Trim()
@@ -44,14 +48,13 @@ public abstract class Contactable : Entity, IContactable
         if (email is null)
             return Result.Failure<Email>(RequiredMessage);
 
-        if (HasEmail(email))
+        if (!IsUniqueContactableEmail(email))
             return Result.Failure<Email>(NonuniqueMessage);
 
         if (HasPrimaryEmail() && email.IsPrimary)
             return Result.Failure<Email>(PrimaryExistsMessage);
 
         emails.Add(email);
-
         return Result.Success(email);
     }
 
@@ -64,7 +67,6 @@ public abstract class Contactable : Entity, IContactable
             return Result.Failure<Email>(NotFoundMessage);
 
         emails.Remove(email);
-
         return Result.Success(email);
     }
 
@@ -80,7 +82,6 @@ public abstract class Contactable : Entity, IContactable
             return Result.Failure<Phone>(PrimaryExistsMessage);
 
         phones.Add(phone);
-
         return Result.Success(phone);
     }
 
@@ -93,57 +94,65 @@ public abstract class Contactable : Entity, IContactable
             return Result.Failure<Phone>(NotFoundMessage);
 
         phones.Remove(phone);
-
         return Result.Success(phone);
     }
 
     public Result<string> SetNotes(string note) =>
         Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
 
-    public Result SetAddress(Address address)
-    {
-        if (address is null)
-            return Result.Failure<Address>(RequiredMessage);
-
-        // Address (if present) is guaranteed to be valid;
-        // it was validated on creation.
-        return Result.Success(Address = address);
-    }
+    public Result SetAddress(Address address) =>
+        address is null
+            ? Result.Failure<Address>(RequiredMessage)
+            : Result.Success(Address = address);
 
     public Result ClearAddress() =>
         Result.Success(Address = null);
 
     public bool HasPhone(Phone phone) =>
-        Phones.Any(existingPhone => existingPhone.Number == phone.Number);
+        Phones.Any(existingPhone =>
+            existingPhone.Number == phone.Number);
 
     public bool HasPrimaryPhone() =>
-        Phones.Any(existingPhone => existingPhone.IsPrimary);
+        Phones.Any(existingPhone =>
+            existingPhone.IsPrimary);
 
-    public bool HasEmail(Email email) =>
-        Emails.Any(existingEmail => existingEmail.Address == email.Address);
+    public bool IsUniqueContactableEmail(Email email) =>
+        !Emails.Any(existingEmail =>
+            existingEmail.Address == email.Address);
 
     public bool HasPrimaryEmail() =>
-        Emails.Any(email => email.IsPrimary);
+        Emails.Any(email =>
+            email.IsPrimary);
 
     public void UpdateContactDetails(ContactDetails contactDetails)
     {
-        UpdatePhones(contactDetails.Phones);
-        UpdateEmails(contactDetails.Emails);
-        Address = contactDetails.Address.GetValueOrDefault();
+        UpdatePhones(contactDetails?.Phones);
+        UpdateEmails(contactDetails?.Emails);
+        Address = contactDetails?.Address.GetValueOrDefault().Value;
     }
 
-    private void UpdatePhones(IReadOnlyList<Phone> phones)
+    private void UpdatePhones(IReadOnlyList<Phone>? phones)
     {
+        if (phones is null)
+            return;
+
+        if (phones.Count < 1)
+            return;
+
         var toAdd = phones
             .Where(phone => phone.Id == 0)
             .ToArray();
 
-        var toDelete = Phones
-            .Where(phone => !phones.Any(callerPhone => callerPhone.Id == phone.Id))
+        var toDelete = phones
+            .Where(phone =>
+                !phones.Any(callerPhone =>
+                    callerPhone.Id == phone.Id))
             .ToArray();
 
-        var toModify = Phones
-            .Where(phone => phones.Any(callerPhone => callerPhone.Id == phone.Id))
+        var toModify = phones
+            .Where(phone =>
+                phones.Any(callerPhone =>
+                    callerPhone.Id == phone.Id))
             .ToArray();
 
         toModify.ToList()
@@ -173,18 +182,29 @@ public abstract class Contactable : Entity, IContactable
             });
     }
 
-    private void UpdateEmails(IReadOnlyList<Email> emails)
+    private void UpdateEmails(IReadOnlyList<Email>? emails)
     {
+        if (emails is null)
+            return;
+
+        if (emails.Count < 1)
+            return;
+
         var toAdd = emails
-            .Where(email => email.Id == 0)
+            .Where(email =>
+                email.Id == 0)
             .ToArray();
 
         var toDelete = Emails
-            .Where(email => !emails.Any(callerEmail => callerEmail.Id == email.Id))
+            .Where(email =>
+                !emails.Any(callerEmail =>
+                    callerEmail.Id == email.Id))
             .ToArray();
 
         var toModify = Emails
-            .Where(email => emails.Any(callerEmail => callerEmail.Id == email.Id))
+            .Where(email =>
+                emails.Any(callerEmail =>
+                    callerEmail.Id == email.Id))
             .ToArray();
 
         toModify.ToList()
@@ -209,6 +229,11 @@ public abstract class Contactable : Entity, IContactable
                 if (result.IsFailure)
                     throw new Exception(result.Error);
             });
+    }
+
+    public bool HasEmail(Email email)
+    {
+        throw new NotImplementedException();
     }
 
     // EF requires a parameterless constructor

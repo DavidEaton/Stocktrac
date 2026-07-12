@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Customers;
@@ -19,10 +19,9 @@ public class Customer : Entity
     public ContactPreferences ContactPreferences { get; private set; }
     public ICustomerEntity CustomerEntity { get; private set; }
     public EntityType EntityType => CustomerEntity.EntityType;
-    public string DisplayName => CustomerEntity.DisplayName;
-    public string? Notes => CustomerEntity.Notes;
-    public Address? Address => CustomerEntity.Address;
     public string? Name => CustomerEntity?.ToString();
+    public string? Notes => CustomerEntity?.Notes;
+    public Address? Address => CustomerEntity.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
     public IReadOnlyList<Phone> Phones => CustomerEntity.Phones;

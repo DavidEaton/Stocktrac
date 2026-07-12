@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public class Email : Entity, IHasPrimary
 {
@@ -14,7 +14,7 @@ public class Email : Entity, IHasPrimary
     public static readonly string DuplicateMessage = $"Email address already in use. Please enter a unique email address.";
 
     public string Address { get; private set; }
-    public bool IsPrimary { get; private set; }
+    public bool IsPrimary { get; private set; } = true;
 
     private Email(string address, bool isPrimary)
     {
@@ -72,5 +72,6 @@ public class Email : Entity, IHasPrimary
         Address;
 
     // EF requires a parameterless constructor
-    protected Email() { }
+    protected Email() =>
+        Address = string.Empty;
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public enum State
 {

@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Customers;
@@ -13,7 +13,6 @@ public class Business : Contactable, ICustomerEntity
     public BusinessName Name { get; private set; }
     public Person? Contact { get; private set; }
     public override string ToString() => Name.Name;
-    public string DisplayName => Name.ToString();
     public EntityType EntityType => EntityType.Business;
 
     private Business(

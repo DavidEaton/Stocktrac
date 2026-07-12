@@ -1,5 +1,5 @@
 ﻿using Shouldly;
-using Stocktrac.Domain.Features.Contact;
+using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Unit.Features;
 

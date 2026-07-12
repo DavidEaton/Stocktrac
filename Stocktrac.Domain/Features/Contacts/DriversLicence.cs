@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contact;
+namespace Stocktrac.Domain.Features.Contacts;
 
 public class DriversLicense : ValueObject
 {
@@ -12,18 +12,24 @@ public class DriversLicense : ValueObject
     public static readonly string RequiredMessage = $"Drivers License number is required.";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
 
-    public string Number { get; private set; }
+    public string? Number { get; private set; }
     public DateTimeRange ValidDateRange { get; private set; }
     public State State { get; private set; }
 
-    private DriversLicense(string number, State state, DateTimeRange validDateRange)
+    private DriversLicense(
+        string number,
+        State state,
+        DateTimeRange validDateRange)
     {
         Number = number;
         State = state;
         ValidDateRange = validDateRange;
     }
 
-    public static Result<DriversLicense> Create(string number, State state, DateTimeRange validRange)
+    public static Result<DriversLicense> Create(
+        string number,
+        State state,
+        DateTimeRange validRange)
     {
         if (string.IsNullOrWhiteSpace(number))
             return Result.Failure<DriversLicense>(RequiredMessage);
@@ -42,25 +48,64 @@ public class DriversLicense : ValueObject
         if (number.Length > MaximumLength)
             return Result.Failure<DriversLicense>(OverMaximumLengthMessage);
 
-        return Result.Success(new DriversLicense(number, state, validRange));
+        return Result.Success(
+            new DriversLicense(
+                number: number,
+                state: state,
+                validDateRange: validRange));
     }
 
     public Result<DriversLicense> NewNumber(string newNumber) =>
-        Result.Success(new DriversLicense(newNumber, State, ValidDateRange));
-    
-    public Result<DriversLicense> NewState(State newState) =>
-        Result.Success(new DriversLicense(Number, newState, ValidDateRange));
+        Result.Success(
+            new DriversLicense(
+                number: newNumber,
+                state: State,
+                validDateRange: ValidDateRange));
 
-    public Result<DriversLicense> NewValidRange(DateTime start, DateTime end) =>
-        Result.Success(Create(Number, State, DateTimeRange.Create(start, end).Value).Value);
+    public Result<DriversLicense> NewState(State newState)
+    {
+        if (Number is null)
+            return Result.Failure<DriversLicense>(RequiredMessage);
+
+        return Result.Success(
+            new DriversLicense(
+                number: Number,
+                state: newState,
+                validDateRange: ValidDateRange));
+    }
+
+    public Result<DriversLicense> NewValidRange(DateTime start, DateTime end)
+    {
+        if (Number is null)
+            return Result.Failure<DriversLicense>(RequiredMessage);
+
+        return Result.Success(
+            Create(
+                number: Number,
+                state: State,
+                validRange: DateTimeRange.Create(
+                    start: start,
+                    end: end).Value)
+                .Value);
+    }
 
     protected override IEnumerable<IComparable> GetEqualityComponents()
     {
-        yield return Number;
         yield return State;
         yield return (IComparable)ValidDateRange;
+
+        if (Number is null)
+            yield break;
+
     }
 
     // EF requires an empty constructor
-    protected DriversLicense() { }
+    protected DriversLicense()
+    {
+        Number = string.Empty;
+        State = State.AL;
+        ValidDateRange = DateTimeRange.Create(
+            start: DateTime.Today,
+            end: DateTime.Today.AddYears(1)).Value;
+    }
 }
