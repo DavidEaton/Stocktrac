@@ -16,7 +16,7 @@ public interface IContactable
     Result<Email> AddEmail(Email email);
     Result<Email> RemoveEmail(Email email);
     bool HasPhone(Phone phone);
-    bool HasEmail(Email email);
+    bool IsUniqueContactableEmail(Email email);
     bool HasPrimaryPhone();
     bool HasPrimaryEmail();
     void UpdateContactDetails(ContactDetails contactDetails);

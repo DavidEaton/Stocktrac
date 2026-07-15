@@ -8,8 +8,8 @@ public abstract class Contactable : Entity, IContactable
     // Always test only concrete classes; don’t test abstract classes directly
     public static readonly int NoteMaximumLength = 10000;
     public static readonly string NoteMaximumLengthMessage = $"Notes must be {NoteMaximumLength} or fewer characters in length.";
-    public static readonly string RequiredMessage = "Please make all required entries.";
-    public static readonly string NonuniqueMessage = " Duplicate entry; each entry must be unique.";
+    public static readonly string RequiredMessage = "Please complete all required entries.";
+    public static readonly string NonuniqueMessage = "Duplicate entry; each must be unique.";
     public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
     public static readonly string InvalidValueMessage = "Invalid value";
     public static readonly string NotFoundMessage = "Entry not found";
@@ -131,25 +131,34 @@ public abstract class Contactable : Entity, IContactable
         Address = contactDetails?.Address.GetValueOrDefault().Value;
     }
 
-    private void UpdatePhones(IReadOnlyList<Phone>? phones)
+    private void UpdatePhones(IReadOnlyList<Phone>? requestedPhones)
     {
-        if (phones is null)
+        if (requestedPhones is null)
             return;
 
-        if (phones.Count < 1)
+        ValidateContactDetails(
+            contacts: requestedPhones,
+            getId: phone => phone.Id,
+            getValue: phone => phone.Number,
+            isPrimary: phone => phone.IsPrimary);
+
+        if (requestedPhones is null)
             return;
 
-        var toAdd = phones
+        if (requestedPhones.Count < 1)
+            return;
+
+        var toAdd = requestedPhones
             .Where(phone => phone.Id == 0)
             .ToArray();
 
-        var toDelete = phones
+        var toDelete = requestedPhones
             .Where(phone =>
                 !phones.Any(callerPhone =>
                     callerPhone.Id == phone.Id))
             .ToArray();
 
-        var toModify = phones
+        var toModify = requestedPhones
             .Where(phone =>
                 phones.Any(callerPhone =>
                     callerPhone.Id == phone.Id))
@@ -157,83 +166,123 @@ public abstract class Contactable : Entity, IContactable
 
         toModify.ToList()
             .ForEach(phone =>
+                UpdatePhone(
+                    existingPhone: phones.First(callerPhone =>
+                        callerPhone.Id == phone.Id),
+                    requestedPhone: phone));
+
+        var requestedPhonesById = requestedPhones
+            .Where(phone => phone.Id != 0)
+            .ToDictionary(phone => phone.Id);
+
+        foreach (var existingPhone in phones.ToArray())
+        {
+            if (!requestedPhonesById.TryGetValue(existingPhone.Id, out var requestedPhone))
             {
-                var phoneFromCaller = phones.Single(callerPhone => callerPhone.Id == phone.Id);
+                RemovePhone(existingPhone);
+                continue;
+            }
 
-                if (phone.Number != phoneFromCaller.Number)
-                    phone.SetNumber(phoneFromCaller.Number);
+            UpdatePhone(existingPhone, requestedPhone);
+        }
 
-                if (phone.PhoneType != phoneFromCaller.PhoneType)
-                    phone.SetPhoneType(phoneFromCaller.PhoneType);
-
-                if (phone.IsPrimary != phoneFromCaller.IsPrimary)
-                    phone.SetIsPrimary(phoneFromCaller.IsPrimary);
-            });
-
-        toDelete.ToList()
-            .ForEach(phone => RemovePhone(phone));
-
-        toAdd.ToList()
-            .ForEach(phone =>
-            {
-                var result = AddPhone(phone);
-                if (result.IsFailure)
-                    throw new Exception(result.Error);
-            });
+        foreach (var requestedPhone in requestedPhones.Where(phone => phone.Id == 0))
+            AddPhoneOrThrow(requestedPhone);
     }
 
-    private void UpdateEmails(IReadOnlyList<Email>? emails)
+    private static void UpdatePhone(Phone existingPhone, Phone requestedPhone)
     {
-        if (emails is null)
-            return;
+        if (existingPhone.Number != requestedPhone.Number)
+            existingPhone.SetNumber(requestedPhone.Number);
 
-        if (emails.Count < 1)
-            return;
+        if (existingPhone.PhoneType != requestedPhone.PhoneType)
+            existingPhone.SetPhoneType(requestedPhone.PhoneType);
 
-        var toAdd = emails
-            .Where(email =>
-                email.Id == 0)
-            .ToArray();
-
-        var toDelete = Emails
-            .Where(email =>
-                !emails.Any(callerEmail =>
-                    callerEmail.Id == email.Id))
-            .ToArray();
-
-        var toModify = Emails
-            .Where(email =>
-                emails.Any(callerEmail =>
-                    callerEmail.Id == email.Id))
-            .ToArray();
-
-        toModify.ToList()
-            .ForEach(email =>
-            {
-                var emailFromCaller = emails.Single(callerEmail => callerEmail.Id == email.Id);
-
-                if (email.Address != emailFromCaller.Address)
-                    email.SetAddress(emailFromCaller.Address);
-
-                if (email.IsPrimary != emailFromCaller.IsPrimary)
-                    email.SetIsPrimary(emailFromCaller.IsPrimary);
-            });
-
-        toDelete.ToList()
-            .ForEach(email => RemoveEmail(email));
-
-        toAdd.ToList()
-            .ForEach(email =>
-            {
-                Result result = AddEmail(email);
-                if (result.IsFailure)
-                    throw new Exception(result.Error);
-            });
+        if (existingPhone.IsPrimary != requestedPhone.IsPrimary)
+            existingPhone.SetIsPrimary(requestedPhone.IsPrimary);
     }
 
-    public bool HasEmail(Email email)
+    private void AddPhoneOrThrow(Phone phone)
     {
-        throw new NotImplementedException();
+        var result = AddPhone(phone);
+        if (result.IsFailure)
+            throw new Exception(result.Error);
+    }
+
+    private void UpdateEmails(IReadOnlyList<Email>? requestedEmails)
+    {
+        if (requestedEmails is null)
+            return;
+
+        ValidateContactDetails(
+            contacts: requestedEmails,
+            getId: email => email.Id,
+            getValue: email => email.Address,
+            isPrimary: email => email.IsPrimary);
+
+        var requestedEmailsById = requestedEmails
+            .Where(email => email.Id != 0)
+            .ToDictionary(email => email.Id);
+
+        foreach (var existingEmail in emails.ToArray())
+        {
+            if (!requestedEmailsById.TryGetValue(existingEmail.Id, out var requestedEmail))
+            {
+                RemoveEmail(existingEmail);
+                continue;
+            }
+
+            UpdateEmail(existingEmail, requestedEmail);
+        }
+
+        foreach (var requestedEmail in requestedEmails.Where(email =>
+            email.Id == 0))
+            AddEmailOrThrow(requestedEmail);
+    }
+
+    private static void UpdateEmail(Email existingEmail, Email requestedEmail)
+    {
+        if (existingEmail.Address != requestedEmail.Address)
+            existingEmail.SetAddress(requestedEmail.Address);
+
+        if (existingEmail.IsPrimary != requestedEmail.IsPrimary)
+            existingEmail.SetIsPrimary(requestedEmail.IsPrimary);
+    }
+
+    private void AddEmailOrThrow(Email email)
+    {
+        var result = AddEmail(email);
+        if (result.IsFailure)
+            throw new Exception(result.Error);
+    }
+
+    private static void ValidateContactDetails<TContact, TValue>(
+        IReadOnlyList<TContact>? contacts,
+        Func<TContact, long> getId,
+        Func<TContact, TValue> getValue,
+        Func<TContact, bool> isPrimary)
+        where TContact : class
+    {
+        if (contacts is null)
+        {
+            // Log warning: "Contacts list is null. No validation performed."
+            return;
+        }
+
+        if (contacts.Any(contact => contact is null))
+            throw new Exception(RequiredMessage);
+
+        if (contacts.Where(contact =>
+            getId(contact) != 0)
+            .GroupBy(getId)
+            .Any(group => group.Count() > 1))
+            throw new Exception(NonuniqueMessage);
+
+        if (contacts.GroupBy(getValue).Any(group => group.Count() > 1))
+            throw new Exception(NonuniqueMessage);
+
+        if (contacts.Count(isPrimary) > 1)
+            throw new Exception(PrimaryExistsMessage);
     }
 
     // EF requires a parameterless constructor

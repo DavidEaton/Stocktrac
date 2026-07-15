@@ -7,12 +7,12 @@ namespace Stocktrac.Api.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    private readonly IConfiguration Configuration;
-    private readonly IWebHostEnvironment Environment;
-    private readonly UserContext UserContext;
+    private readonly IConfiguration? Configuration;
+    private readonly IWebHostEnvironment? Environment;
+    private readonly UserContext? UserContext;
     private readonly bool _useConsoleLogger;
     private string Connection = string.Empty;
-    readonly ILogger<ApplicationDbContext> Logger;
+    readonly ILogger<ApplicationDbContext>? Logger;
     public ApplicationDbContext() { }
 
     public ApplicationDbContext(string connection, bool useConsoleLogger = false)
@@ -26,16 +26,20 @@ public class ApplicationDbContext : DbContext
         : base(options) { } // tests pass in options
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
-        IConfiguration configuration,
-        IWebHostEnvironment environment,
-        UserContext userContext,
-        ILogger<ApplicationDbContext> logger)
+        IConfiguration? configuration,
+        IWebHostEnvironment? environment,
+        UserContext? userContext,
+        ILogger<ApplicationDbContext>? logger)
         : base(options)
     {
-        Environment = environment;
-        Configuration = configuration;
-        UserContext = userContext;
-        Logger = logger;
+        Configuration = configuration
+            ?? throw new ArgumentNullException(nameof(configuration));
+        Environment = environment
+            ?? throw new ArgumentNullException(nameof(environment));
+        UserContext = userContext
+            ?? throw new ArgumentNullException(nameof(userContext));
+        Logger = logger
+            ?? throw new ArgumentNullException(nameof(logger));
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -45,11 +49,13 @@ public class ApplicationDbContext : DbContext
             Connection = GetTenantConnection();
 
         if (!options.IsConfigured) // Unit tests will configure context with test provider
+        {
             options
                 .UseSqlServer(Connection)
                 .UseLoggerFactory(_useConsoleLogger ? CreateLoggerFactory() : null)
                 .EnableSensitiveDataLogging(_useConsoleLogger); // TODO: Conditionally set this option: 
-                                               // if (Environment.IsEnvironment("Testing"))
+        }
+        // TODO: if (Environment.IsEnvironment("Testing"))
 
         base.OnConfiguring(options);
     }
@@ -62,7 +68,9 @@ public class ApplicationDbContext : DbContext
     private static ILoggerFactory CreateLoggerFactory()
     {
         return LoggerFactory.Create(builder => builder
-            .AddFilter((category, level) => category == DbLoggerCategory.Database.Command.Name && level == LogLevel.Information)
+            .AddFilter((category, level) =>
+                category == DbLoggerCategory.Database.Command.Name
+                && level == LogLevel.Information)
             .AddConsole());
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -134,23 +142,32 @@ public class ApplicationDbContext : DbContext
 
         if (!string.IsNullOrWhiteSpace(tenantName))
         {
-            var connectionOptions = new DatabaseConnectionOptions
+            switch (Configuration)
             {
-                DatabaseName = tenantName,
-                Server = Configuration["DatabaseSettings:Server:Name"],
-                IntegratedSecurity = Environment.EnvironmentName == "Development",
-                Password = Configuration["DatabaseSettings:Server:Password"],
-                UserId = Configuration["DatabaseSettings:Server:UserName"],
-                TrustServerCertificate = Environment.EnvironmentName == "Development"
-            };
+                case not null:
+                    {
+                        var connectionOptions = new DatabaseConnectionOptions
+                        {
+                            DatabaseName = tenantName,
+                            Server = Configuration["DatabaseSettings:Server:Name"]!,
+                            IntegratedSecurity = Environment?.EnvironmentName == "Development",
+                            Password = Configuration["DatabaseSettings:Server:Password"]!,
+                            UserId = Configuration["DatabaseSettings:Server:UserName"]!,
+                            TrustServerCertificate = Environment?.EnvironmentName == "Development"
+                        };
 
-            return BuildConnectionString(connectionOptions);
+                        return BuildConnectionString(connectionOptions);
+                    }
+
+                default:
+                    return string.Empty;
+            }
         }
 
         return string.Empty;
     }
 
-    private string BuildConnectionString(DatabaseConnectionOptions options)
+    private static string BuildConnectionString(DatabaseConnectionOptions options)
     {
         var builder = new SqlConnectionStringBuilder
         {
@@ -169,28 +186,38 @@ public class ApplicationDbContext : DbContext
         return builder.ConnectionString;
     }
 
-    private string GetTenantName(UserContext userContext)
+    private string GetTenantName(UserContext? userContext)
     {
-        if (userContext is null)
-            return Configuration["DatabaseSettings:Tenant:Name"];
-
-        var claims = userContext?.Claims;
-        var tenantName = Configuration["DatabaseSettings:Tenant:Name"];
-
-        try
+        if (userContext is not null)
         {
-            tenantName = claims?.First(claim => claim?.Type == "tenantName").Value;
+            var claims = userContext?.Claims;
+            var tenantName = GetTenantNameFromConfigurationOrEmpty();
+            try
+            {
+                tenantName = claims?.First(claim =>
+                    claim?.Type == "tenantName").Value;
+                return tenantName!;
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "Error retrieving tenant name from user claims. Using configuration value instead.");
+                return tenantName!;
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Logger.LogError($"Exception message from GetTenantName(): {ex.Message}");
-            return "menominee-staging";
+            return GetTenantNameFromConfigurationOrEmpty();
         }
 
-        return tenantName;
+        string GetTenantNameFromConfigurationOrEmpty()
+        {
+            if (Configuration is null)
+                return string.Empty;
+            else
+                return Configuration["DatabaseSettings:Tenant:Name"]!;
+        }
     }
 
-    #region -------------------- DbSets -----------------------------
     // public DbSet<Company> Companies { get; set; }
     // public DbSet<Person> Persons { get; set; }
     // public DbSet<Employee> Employees { get; set; }
@@ -237,6 +264,4 @@ public class ApplicationDbContext : DbContext
     // non-root entities requiring uniqueness checks
     // public DbSet<Email> Emails { get; set; }
     // public DbSet<Phone> Phones { get; set; }
-
-    #endregion
 }
