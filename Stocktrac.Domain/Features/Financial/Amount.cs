@@ -1,5 +1,3 @@
-using CSharpFunctionalExtensions;
-
 namespace Stocktrac.Domain.Features.Financial;
 
 /// <summary>
@@ -22,45 +20,6 @@ public readonly record struct Amount
 
     public static Amount FromDecimal(decimal value) =>
         new(value);
-
-    public Result<Amount> Add(Amount other) =>
-        Calculate(Value, other.Value, static (left, right) => left + right);
-
-    public Result<Amount> Subtract(Amount other) =>
-        Calculate(Value, other.Value, static (left, right) => left - right);
-
-    public Result<Amount> Multiply(decimal multiplier) =>
-        Calculate(Value, multiplier, static (amount, factor) => amount * factor);
-
-    public Result<Amount> Negate() =>
-        Calculate(Value, static amount => -amount);
-
-    private static Result<Amount> Calculate(
-        decimal left,
-        decimal right,
-        Func<decimal, decimal, decimal> calculation)
-    {
-        try
-        {
-            return Result.Success(FromDecimal(calculation(left, right)));
-        }
-        catch (OverflowException)
-        {
-            return Result.Failure<Amount>(OverflowMessage);
-        }
-    }
-
-    private static Result<Amount> Calculate(decimal value, Func<decimal, decimal> calculation)
-    {
-        try
-        {
-            return Result.Success(FromDecimal(calculation(value)));
-        }
-        catch (OverflowException)
-        {
-            return Result.Failure<Amount>(OverflowMessage);
-        }
-    }
 
     public override string ToString() =>
         Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
