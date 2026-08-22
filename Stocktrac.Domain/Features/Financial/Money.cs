@@ -25,36 +25,6 @@ public readonly record struct Money
         CurrencyCode.Create(currencyCode).Map(
             code => Create(Amount.FromDecimal(amount), code));
 
-    public Result<Money> Add(Money other) =>
-        Combine(other, static (left, right) => left.Add(right));
-
-    public Result<Money> Subtract(Money other) =>
-        Combine(other, static (left, right) => left.Subtract(right));
-
-    public Result<Money> Multiply(decimal multiplier) =>
-        WithCurrency(Amount.Multiply(multiplier), CurrencyCode);
-
-    public Result<Money> Negate() =>
-        WithCurrency(Amount.Negate(), CurrencyCode);
-
-    private Result<Money> Combine(
-        Money other,
-        Func<Amount, Amount, Result<Amount>> operation)
-    {
-        if (CurrencyCode != other.CurrencyCode)
-            return Result.Failure<Money>(CurrencyMismatchMessage);
-
-        return WithCurrency(operation(Amount, other.Amount), CurrencyCode);
-    }
-
-    private static Result<Money> WithCurrency(Result<Amount> result, CurrencyCode currencyCode)
-    {
-        if (result.IsFailure)
-            return Result.Failure<Money>(result.Error);
-
-        return Result.Success(Create(result.Value, currencyCode));
-    }
-
     public override string ToString() =>
         $"{Amount} {CurrencyCode}";
 }
