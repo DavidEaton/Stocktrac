@@ -21,7 +21,7 @@ public class Customer : Entity
     public EntityType EntityType => CustomerEntity.EntityType;
     public string? Name => CustomerEntity?.ToString();
     public string? Notes => CustomerEntity?.Notes;
-    public Address? Address => CustomerEntity.Address;
+    public Maybe<Address> Address => CustomerEntity.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
     public IReadOnlyList<Phone> Phones => CustomerEntity.Phones;

@@ -7,30 +7,28 @@ public class Employee : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly DateTime StartDateMinimum = DateTime.Today.AddYears(-50);
-    public static readonly DateTime EndDateMaximum = DateTime.Today.AddYears(1);
+    public static DateTime StartDateMinimum => DateTime.Today.AddYears(-50);
+    public static DateTime EndDateMaximum => DateTime.Today.AddYears(1);
     public static readonly int MaximumNoteLength = 10000;
     public static readonly int MaximumSSNLength = 12;
     public static readonly int MaximumCertificationNumberLength = 20;
     public static readonly int MaximumPrintedNameLength = 50;
     public static readonly double MinimumBenefitLoad = 0.0;
     public static readonly double MaximumBenefitLoad = 100.0;
-
     public static readonly string RequiredMessage = $"Please include all required items.";
     public static readonly string DateRangeMessage = $"Employment date(s) invalid.";
     public static readonly string InvalidExpenseCategoryMessage = $"Expense category is invalid.";
     public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length";
-
     public Person PersonEmployed { get; private set; }
-    public DateTime? Hired { get; private set; } = null;
-    public DateTime? Exited { get; private set; }
     public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
     private readonly List<RoleAssignment> roleAssignments = [];
     public string? Notes { get; private set; }
     public SSN SSN { get; private set; }
     public string? CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object 
-    public bool Active { get; private set; } = true; // TODO: This should be a derived value, read only
+    public DateTime? Hired { get; private set; } = null;
+    public DateTime? Exited { get; private set; }
+    public bool Active => Hired.HasValue && !Exited.HasValue;
     public string? PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
     public double BenefitLoad { get; private set; } = 0.0; // TODO: This should be defined and probably a value object 
@@ -41,7 +39,6 @@ public class Employee : Entity
         DateTime hired,
         string? notes,
         string? certificationNumber,
-        bool active,
         string? printedName,
         EmployeeExpenseCategory expenseCategory,
         double benefitLoad)
@@ -51,7 +48,6 @@ public class Employee : Entity
         Hired = hired;
         Notes = notes;
         CertificationNumber = certificationNumber;
-        Active = active;
         PrintedName = printedName;
         ExpenseCategory = expenseCategory;
         BenefitLoad = benefitLoad;
@@ -77,7 +73,6 @@ public class Employee : Entity
         DateTime hired,
         string? notes = null,
         string? certificationNumber = null,
-        bool active = true,
         string? printedName = null,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
@@ -117,7 +112,6 @@ public class Employee : Entity
             hired: hired,
             notes: notes,
             certificationNumber: certificationNumber,
-            active: active,
             printedName: printedName,
             expenseCategory: expenseCategory,
             benefitLoad: benefitLoad));
@@ -159,17 +153,39 @@ public class Employee : Entity
 
     public Result<DateTime> SetHired(DateTime hired)
     {
-        return hired < StartDateMinimum
-            ? Result.Failure<DateTime>(DateRangeMessage)
-            : Result.Success((DateTime)(Hired = hired));
+        if (!IsEmploymentDateWithinAllowedRange(hired))
+        {
+            return Result.Failure<DateTime>(DateRangeMessage);
+        }
+
+        if (Exited.HasValue && hired > Exited.Value)
+        {
+            return Result.Failure<DateTime>(DateRangeMessage);
+        }
+
+        Hired = hired;
+        return Result.Success(hired);
     }
 
     public Result<DateTime> SetExited(DateTime exited)
     {
-        return exited > EndDateMaximum
-            ? Result.Failure<DateTime>(DateRangeMessage)
-            : Result.Success((DateTime)(Hired = exited));
+        if (!IsEmploymentDateWithinAllowedRange(exited))
+        {
+            return Result.Failure<DateTime>(DateRangeMessage);
+        }
+
+        if (!Hired.HasValue || exited < Hired.Value)
+        {
+            return Result.Failure<DateTime>(DateRangeMessage);
+        }
+
+        Exited = exited;
+        return Result.Success(exited);
     }
+
+    private static bool IsEmploymentDateWithinAllowedRange(DateTime date) =>
+        date >= StartDateMinimum &&
+        date <= EndDateMaximum;
 
     public Result<string> SetNotes(string notes) =>
         Result.Success(Notes = notes
@@ -187,9 +203,6 @@ public class Employee : Entity
             ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
             : Result.Success(CertificationNumber = certificationNumber);
     }
-
-    public Result<bool> SetActive(bool active = true) =>
-        Result.Success(Active = active);
 
     public Result<string> SetPrintedName(string printedName)
     {

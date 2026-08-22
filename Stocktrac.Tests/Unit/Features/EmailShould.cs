@@ -29,7 +29,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Failure_Result_With_Null_Address()
+    public void Return_Failure_Result_On_Create_With_Null_Address()
     {
         var result = Email.Create(
             address: null,

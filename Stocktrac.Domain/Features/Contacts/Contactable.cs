@@ -14,7 +14,7 @@ public abstract class Contactable : Entity, IContactable
     public static readonly string InvalidValueMessage = "Invalid value";
     public static readonly string NotFoundMessage = "Entry not found";
     public string? Notes { get; private set; }
-    public Address? Address { get; private set; }
+    public Maybe<Address> Address { get; private set; }
 
     private readonly List<Phone> phones = [];
     public IReadOnlyList<Phone> Phones => [.. phones];
@@ -128,12 +128,15 @@ public abstract class Contactable : Entity, IContactable
     {
         UpdatePhones(contactDetails?.Phones);
         UpdateEmails(contactDetails?.Emails);
-        Address = contactDetails?.Address.GetValueOrDefault().Value;
+        UpdateAddress(contactDetails?.Address);
     }
+
+    private void UpdateAddress(Maybe<Address>? address) =>
+        Address = address ?? Maybe<Address>.None;
 
     private void UpdatePhones(IReadOnlyList<Phone>? requestedPhones)
     {
-        if (requestedPhones is null)
+        if (requestedPhones is null || requestedPhones.Count < 1)
             return;
 
         ValidateContactDetails(
@@ -142,52 +145,27 @@ public abstract class Contactable : Entity, IContactable
             getValue: phone => phone.Number,
             isPrimary: phone => phone.IsPrimary);
 
-        if (requestedPhones is null)
-            return;
-
-        if (requestedPhones.Count < 1)
+        if (requestedPhones is null || requestedPhones.Count < 1)
             return;
 
         var toAdd = requestedPhones
-            .Where(phone => phone.Id == 0)
-            .ToArray();
+            .Where(phone => phone.Id == 0);
 
-        var toDelete = requestedPhones
-            .Where(phone =>
-                !phones.Any(callerPhone =>
-                    callerPhone.Id == phone.Id))
-            .ToArray();
+        toAdd.ToList()
+            .ForEach(phone =>
+                AddPhoneOrThrow(phone));
 
-        var toModify = requestedPhones
+        var toUpdate = requestedPhones
             .Where(phone =>
                 phones.Any(callerPhone =>
-                    callerPhone.Id == phone.Id))
-            .ToArray();
+                    callerPhone.Id == phone.Id));
 
-        toModify.ToList()
+        toUpdate.ToList()
             .ForEach(phone =>
                 UpdatePhone(
                     existingPhone: phones.First(callerPhone =>
                         callerPhone.Id == phone.Id),
                     requestedPhone: phone));
-
-        var requestedPhonesById = requestedPhones
-            .Where(phone => phone.Id != 0)
-            .ToDictionary(phone => phone.Id);
-
-        foreach (var existingPhone in phones.ToArray())
-        {
-            if (!requestedPhonesById.TryGetValue(existingPhone.Id, out var requestedPhone))
-            {
-                RemovePhone(existingPhone);
-                continue;
-            }
-
-            UpdatePhone(existingPhone, requestedPhone);
-        }
-
-        foreach (var requestedPhone in requestedPhones.Where(phone => phone.Id == 0))
-            AddPhoneOrThrow(requestedPhone);
     }
 
     private static void UpdatePhone(Phone existingPhone, Phone requestedPhone)
@@ -211,7 +189,7 @@ public abstract class Contactable : Entity, IContactable
 
     private void UpdateEmails(IReadOnlyList<Email>? requestedEmails)
     {
-        if (requestedEmails is null)
+        if (requestedEmails is null || requestedEmails.Count < 1)
             return;
 
         ValidateContactDetails(
@@ -220,24 +198,11 @@ public abstract class Contactable : Entity, IContactable
             getValue: email => email.Address,
             isPrimary: email => email.IsPrimary);
 
-        var requestedEmailsById = requestedEmails
-            .Where(email => email.Id != 0)
-            .ToDictionary(email => email.Id);
+        if (requestedEmails is null || requestedEmails.Count < 1)
+            return;
 
-        foreach (var existingEmail in emails.ToArray())
-        {
-            if (!requestedEmailsById.TryGetValue(existingEmail.Id, out var requestedEmail))
-            {
-                RemoveEmail(existingEmail);
-                continue;
-            }
-
-            UpdateEmail(existingEmail, requestedEmail);
-        }
-
-        foreach (var requestedEmail in requestedEmails.Where(email =>
-            email.Id == 0))
-            AddEmailOrThrow(requestedEmail);
+        var toAdd = requestedEmails
+            .Where(email => email.Id == 0);
     }
 
     private static void UpdateEmail(Email existingEmail, Email requestedEmail)

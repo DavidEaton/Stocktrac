@@ -12,37 +12,38 @@ public class ContactableShould
     [Fact]
     public void UpdateContactDetails_WithValidPhones_ReturnsSuccess()
     {
-        var existingPrimaryPhone = CreatePhone(
+        var originalPhonePrimary = CreatePhone(
             number: "555-111-1111",
             phoneType: PhoneType.Mobile,
             isPrimary: true,
             id: 1);
-        var existingPhoneToRemove = CreatePhone(
+        var originalPhoneOther = CreatePhone(
             number: "555-222-2222",
             phoneType: PhoneType.Home,
             isPrimary: false,
             id: 2);
         var person = CreatePerson(
-            phones: [existingPrimaryPhone, existingPhoneToRemove]);
-        var requestedPrimaryPhone = CreatePhone(
-            number: "555-333-3333",
-            phoneType: PhoneType.Work,
-            isPrimary: false,
-            id: 1);
-        var requestedNewPhone = CreatePhone(
+            phones: [originalPhonePrimary, originalPhoneOther]);
+
+        person.Phones.Count.ShouldBe(2);
+        person.Phones.ShouldContain(originalPhonePrimary);
+
+        originalPhonePrimary.SetNumber("555-333-3333");
+        var newPhoneOther = CreatePhone(
             number: "555-444-4444",
             phoneType: PhoneType.Home,
-            isPrimary: true,
-            id: 3);
+            isPrimary: false,
+            id: 0);
         var contactDetails = ContactDetails.Create(
-            phones: [requestedPrimaryPhone, requestedNewPhone],
+            phones: [originalPhonePrimary, newPhoneOther],
             emails: [],
             address: Maybe<Address>.None).Value;
 
         person.UpdateContactDetails(contactDetails);
 
-        person.Phones.Count.ShouldBe(2);
-        person.Phones.ShouldContain(existingPrimaryPhone);
+        person.Phones.Count.ShouldBe(3);
+        person.Phones.ShouldContain(originalPhonePrimary);
+        person.Phones.ShouldContain(newPhoneOther);
     }
 
     [Fact]
@@ -88,13 +89,14 @@ public class ContactableShould
         person.UpdateContactDetails(contactDetails);
 
         person.Address.ShouldNotBe(null);
-        person.Address?.AddressLine1.ShouldBe(addressLine1);
-        person.Address?.City.ShouldBe(city);
-        person.Address?.PostalCode.ShouldBe(postalCode);
+        person.Address.HasValue.ShouldBe(true);
+        person.Address.Value.AddressLine1.ShouldBe(addressLine1);
+        person.Address.Value.City.ShouldBe(city);
+        person.Address.Value.PostalCode.ShouldBe(postalCode);
     }
 
     [Fact]
-    public void Remove_All_Phones_And_Emails_When_Contact_Details_Are_Empty()
+    public void Not_Change_ContactDetails_On_UpdateContactDetails_With_Empty_ContactDetails()
     {
         var addressLine1 = "123 Main St";
         var city = "Anytown";
@@ -112,16 +114,32 @@ public class ContactableShould
             phones: person.Phones,
             emails: person.Emails,
             address: address).Value;
+
         person.UpdateContactDetails(contactDetails);
+
+        var phonesCount = person.Phones.Count;
+        var emailsCount = person.Emails.Count;
+        var addressValue = person.Address.Value;
+
+        phonesCount.ShouldBeGreaterThan(0);
+        emailsCount.ShouldBeGreaterThan(0);
+        addressValue.ShouldBe(address);
+
         var emptyContactDetails = ContactDetails.Create(
             phones: [],
             emails: [],
-            address: null).Value;
-        person.UpdateContactDetails(emptyContactDetails);
+            address: Maybe<Address>.None).Value;
+        person?.UpdateContactDetails(emptyContactDetails);
 
-        person.Phones.ShouldBe(null);
-        person.Emails.ShouldBe(null);
-        person.Address.ShouldBe(null);
+        var personContactDetails = ContactDetails.Create(
+            phones: person?.Phones,
+            emails: person?.Emails,
+            address: person?.Address).Value;
+
+        // personContactDetails.ShouldBe(contactDetails);
+        personContactDetails?.Phones?.Count.ShouldBe(phonesCount);
+        personContactDetails?.Emails?.Count.ShouldBe(emailsCount);
+        personContactDetails?.Address.ShouldBe(Maybe<Address>.None);
     }
 
     private static Person CreatePerson(

@@ -4,7 +4,7 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public interface IContactable
 {
-    Address? Address { get; }
+    Maybe<Address> Address { get; }
     Result SetAddress(Address address);
     Result ClearAddress();
     IReadOnlyList<Phone> Phones { get; }

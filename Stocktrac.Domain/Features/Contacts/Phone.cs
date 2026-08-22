@@ -10,9 +10,9 @@ public class Phone : Entity, IHasPrimary
     public static readonly string EmptyMessage = "Phone number cannot be empty";
     public static readonly string PhoneTypeInvalidMessage = $"Please enter a valid Phone Type";
 
-    public string Number { get; private set; }
-    public PhoneType PhoneType { get; private set; }
-    public bool IsPrimary { get; private set; }
+    public string Number { get; private set; } = string.Empty;
+    public PhoneType PhoneType { get; private set; } = PhoneType.Unknown;
+    public bool IsPrimary { get; private set; } = false;
 
     private Phone(string number, PhoneType phoneType, bool isPrimary)
     {
