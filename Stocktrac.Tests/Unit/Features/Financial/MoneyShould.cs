@@ -36,6 +36,24 @@ public class MoneyShould
         CurrencyCode.Create(input).IsFailure.ShouldBe(true);
     }
 
+    [Theory]
+    [InlineData("XCG")]
+    [InlineData("ZWG")]
+    [InlineData("XAU")]
+    public void Accept_Codes_From_The_Embedded_Iso_4217_List(string input)
+    {
+        CurrencyCode.Create(input).IsSuccess.ShouldBe(true);
+    }
+
+    [Fact]
+    public void Reject_A_Well_Formed_Code_That_Is_Not_In_The_Iso_4217_List()
+    {
+        var result = CurrencyCode.Create("ZZZ");
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(CurrencyCode.UnsupportedMessage);
+    }
+
     [Fact]
     public void Create_A_Strongly_Typed_Value()
     {

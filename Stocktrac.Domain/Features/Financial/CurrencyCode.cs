@@ -12,6 +12,8 @@ public readonly record struct CurrencyCode
     public const string RequiredMessage = "Currency code is required.";
     public const string InvalidMessage =
         "Currency code must be three alphabetic characters.";
+    public const string UnsupportedMessage =
+        "Currency code is not an active ISO 4217 code.";
 
     // null internally means DefaultCode.
     private readonly string? _nonDefaultCode;
@@ -38,6 +40,9 @@ public readonly record struct CurrencyCode
         {
             return Result.Failure<CurrencyCode>(InvalidMessage);
         }
+
+        if (!Iso4217CurrencyCodes.Contains(normalizedCode))
+            return Result.Failure<CurrencyCode>(UnsupportedMessage);
 
         return Result.Success(new CurrencyCode(normalizedCode));
     }

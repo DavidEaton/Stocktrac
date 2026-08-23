@@ -1,11 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
- <ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Features/Financial/ReferenceData/list-one.xml"
+                      LogicalName="Stocktrac.Domain.Features.Financial.ReferenceData.list-one.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.7.0" />
  </ItemGroup>   
 </Project>
