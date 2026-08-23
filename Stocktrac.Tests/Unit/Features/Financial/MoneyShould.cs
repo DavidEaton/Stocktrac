@@ -1,5 +1,6 @@
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
+using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Tests.Unit.Features.Financial;
 
@@ -100,5 +101,25 @@ public class MoneyShould
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(Amount.OverflowMessage);
+    }
+
+    [Fact]
+    public void Create_Usd_Default_Value()
+    {
+        default(CurrencyCode).ShouldBe(CurrencyCode.Usd);
+        default(CurrencyCode).Value.ShouldBe("USD");
+    }
+
+    [Fact]
+    public void Create_Usd_With_Parameterless_Constructor()
+    {
+        new CurrencyCode().ShouldBe(CurrencyCode.Usd);
+    }
+
+    [Fact]
+    public void Create_Explicit_Usd_Default_Value()
+    {
+        CurrencyCode.Create("usd").Value
+            .ShouldBe(default);
     }
 }

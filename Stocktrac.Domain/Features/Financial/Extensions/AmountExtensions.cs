@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Financial;
+namespace Stocktrac.Domain.Features.Financial.Extensions;
 
 /// <summary>
 /// Pure arithmetic operations for <see cref="Amount"/> values.
