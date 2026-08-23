@@ -47,7 +47,7 @@ public static class ApplicationValidators
             if (HasOnlyOnePrimary(list))
             {
                 context.AddFailure(
-                    context.PropertyName,
+                    context.PropertyPath,
                     $"Only one Primary item allowed in list");
             }
         });
