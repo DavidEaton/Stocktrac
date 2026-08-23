@@ -6,11 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features/Financial/ReferenceData/list-one.xml"
-                      LogicalName="Stocktrac.Domain.Features.Financial.ReferenceData.list-one.xml" />
+    <EmbeddedResource Include="Features/Financial/ReferenceData/iso-4217-country-codes.xml"
+      LogicalName="Stocktrac.Domain.Features.Financial.ReferenceData.iso-4217-country-codes.xml" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.7.0" />
- </ItemGroup>   
+  </ItemGroup>
 </Project>

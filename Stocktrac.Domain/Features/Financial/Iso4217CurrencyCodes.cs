@@ -9,7 +9,7 @@ namespace Stocktrac.Domain.Features.Financial;
 internal static class Iso4217CurrencyCodes
 {
     private const string ResourceName =
-        "Stocktrac.Domain.Features.Financial.ReferenceData.list-one.xml";
+        "Stocktrac.Domain.Features.Financial.ReferenceData.iso-4217-country-codes.xml";
 
     private static readonly IReadOnlySet<string> Codes = LoadCodes();
 
