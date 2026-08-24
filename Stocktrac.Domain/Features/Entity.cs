@@ -4,7 +4,7 @@
 public abstract class Entity
 {
     public virtual long Id { get; protected set; }
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is not Entity other)
             return false;

@@ -32,7 +32,7 @@ public class EmailShould
     public void Return_Failure_Result_On_Create_With_Null_Address()
     {
         var result = Email.Create(
-            address: null,
+            address: null!,
             isPrimary: true);
 
         result.IsFailure.ShouldBe(true);
@@ -97,7 +97,7 @@ public class EmailShould
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.SetAddress(null);
+        var result = email.SetAddress(null!);
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(Email.EmptyMessage);
