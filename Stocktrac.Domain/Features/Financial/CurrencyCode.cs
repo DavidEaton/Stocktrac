@@ -28,24 +28,17 @@ public readonly record struct CurrencyCode
     private CurrencyCode(string code) =>
         _nonDefaultCode = code == DefaultCode ? null : code;
 
-    public static Result<CurrencyCode> Create(string? code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-            return Result.Failure<CurrencyCode>(RequiredMessage);
+    public static Result<CurrencyCode> Create(string? code) =>
+        NormalizeCode(code).Length != CodeLength ||
+        NormalizeCode(code).Any(character => !char.IsAsciiLetter(character))
+        ? Result.Failure<CurrencyCode>(InvalidMessage)
+        : !Iso4217CountryCurrencyCodes.Contains(NormalizeCode(code))
+            ? Result.Failure<CurrencyCode>(UnsupportedMessage)
+            : Result.Success(new CurrencyCode(NormalizeCode(code)));
 
-        var normalizedCode = code.Trim().ToUpperInvariant();
-
-        if (normalizedCode.Length != CodeLength ||
-            normalizedCode.Any(character => !char.IsAsciiLetter(character)))
-        {
-            return Result.Failure<CurrencyCode>(InvalidMessage);
-        }
-
-        if (!Iso4217CountryCurrencyCodes.Contains(normalizedCode))
-            return Result.Failure<CurrencyCode>(UnsupportedMessage);
-
-        return Result.Success(new CurrencyCode(normalizedCode));
-    }
+    private static string NormalizeCode(string? code) =>
+        code?.Trim().ToUpperInvariant()
+        ?? string.Empty;
 
     public override string ToString() =>
         Value;

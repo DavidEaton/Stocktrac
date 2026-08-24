@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Financial;
 /// <summary>
 /// Provides the active ISO 4217 alphabetic codes supplied with the domain assembly.
 /// </summary>
-public static class Iso4217CountryCurrencyCodes
+internal static class Iso4217CountryCurrencyCodes
 {
     private const string ResourceName =
         "Stocktrac.Domain.Features.Financial.ReferenceData.iso-4217-country-currency-codes.xml";
