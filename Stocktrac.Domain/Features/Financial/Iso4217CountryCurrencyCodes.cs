@@ -1,4 +1,5 @@
 using System.Xml;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Financial;
 
@@ -16,7 +17,10 @@ internal static class Iso4217CountryCurrencyCodes
         Codes.Contains(code);
 
     private static HashSet<string> LoadCodes() =>
-        ReadCodes(CreateXmlReader(GetStream()));
+        GetStream()
+            .Map(CreateXmlReader)
+            .Map(ReadCodes)
+            .GetValueOrDefault(new HashSet<string>(StringComparer.Ordinal));
 
     private static HashSet<string> ReadCodes(XmlReader reader) =>
         ReadNodes(reader).Aggregate(
@@ -29,9 +33,10 @@ internal static class Iso4217CountryCurrencyCodes
             yield return reader;
     }
 
-    private static Stream GetStream() =>
-        typeof(Iso4217CountryCurrencyCodes).Assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"Embedded ISO 4217 resource '{ResourceName}' was not found.");
+    private static Maybe<Stream> GetStream() =>
+        Maybe<Stream>.From(
+            typeof(Iso4217CountryCurrencyCodes).Assembly.GetManifestResourceStream(ResourceName));
+
 
     private static XmlReader CreateXmlReader(Stream stream) =>
         XmlReader.Create(stream, new XmlReaderSettings
