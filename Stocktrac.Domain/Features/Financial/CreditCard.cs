@@ -29,38 +29,17 @@ public class CreditCard : Entity
     }
 
     public static Result<CreditCard> Create(
-        string name,
+        string? name,
         CreditCardFeeType feeType,
         double fee,
-        bool? isAddedToDeposit)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<CreditCard>(RequiredMessage);
+        bool? isAddedToDeposit) =>
+        ValidateName(name)
+            .Ensure(_ => Enum.IsDefined(feeType), RequiredMessage)
+            .Map(validName => new CreditCard(validName, feeType, fee, isAddedToDeposit));
 
-        name = (name ?? string.Empty).Trim();
-
-        if (name.Length is < MinimumLength or > MaximumLength)
-            return Result.Failure<CreditCard>(InvalidLengthMessage);
-
-        if (!Enum.IsDefined(feeType))
-            return Result.Failure<CreditCard>(RequiredMessage);
-
-        return Result.Success(new CreditCard(name, feeType, fee, isAddedToDeposit));
-    }
-
-    public Result<string> SetName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<string>(RequiredMessage);
-
-        name = (name ?? string.Empty).Trim();
-
-        if (name.Length < MinimumLength ||
-            name.Length > MaximumLength)
-            return Result.Failure<string>(InvalidLengthMessage);
-
-        return Result.Success(Name = name);
-    }
+    public Result<string> SetName(string? name) =>
+        ValidateName(name)
+            .Tap(validName => Name = validName);
 
     public Result<CreditCardFeeType> SetFeeType(CreditCardFeeType feeType) =>
         !Enum.IsDefined(feeType)
@@ -72,6 +51,13 @@ public class CreditCard : Entity
 
     public Result<bool?> SetIsAddedToDeposit(bool? isAddedToDeposit) =>
         Result.Success(IsAddedToDeposit = isAddedToDeposit);
+
+    private static Result<string> ValidateName(string? name) =>
+        Result.Success(name?.Trim() ?? string.Empty)
+            .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
+            .Ensure(
+                value => value.Length is >= MinimumLength and <= MaximumLength,
+                InvalidLengthMessage);
 
     // EF requires a parameterless constructor
     private CreditCard()
