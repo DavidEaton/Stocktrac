@@ -18,12 +18,15 @@ public static class Iso4217CountryCurrencyCodes
     private static HashSet<string> LoadCodes() =>
         ReadCodes(CreateXmlReader(GetStream()));
 
-    private static HashSet<string> ReadCodes(XmlReader reader)
+    private static HashSet<string> ReadCodes(XmlReader reader) =>
+        ReadNodes(reader).Aggregate(
+            new HashSet<string>(StringComparer.Ordinal),
+            AddCurrencyCodeIfPresent);
+
+    private static IEnumerable<XmlReader> ReadNodes(XmlReader reader)
     {
-        var codes = new HashSet<string>(StringComparer.Ordinal);
         while (reader.Read())
-            codes = AddCurrencyCodeIfPresent(codes, reader);
-        return codes;
+            yield return reader;
     }
 
     private static Stream GetStream() =>
@@ -37,14 +40,12 @@ public static class Iso4217CountryCurrencyCodes
             XmlResolver = null
         });
 
-    private static HashSet<string> AddCurrencyCodeIfPresent(
-        HashSet<string> codes,
-        XmlReader reader) =>
+    private static HashSet<string> AddCurrencyCodeIfPresent(HashSet<string> codes, XmlReader reader) =>
         reader.NodeType == XmlNodeType.Element && reader.LocalName == "Ccy"
-            ? AddIfValid(codes, reader.ReadElementContentAsString().Trim())
+            ? AddCodeIfValid(codes, reader.ReadElementContentAsString().Trim())
             : codes;
 
-    private static HashSet<string> AddIfValid(HashSet<string> codes, string code) =>
+    private static HashSet<string> AddCodeIfValid(HashSet<string> codes, string code) =>
         code.Length == CurrencyCode.CodeLength && code.All(char.IsAsciiLetterUpper)
             ? codes.Append(code).ToHashSet(codes.Comparer)
             : codes;
