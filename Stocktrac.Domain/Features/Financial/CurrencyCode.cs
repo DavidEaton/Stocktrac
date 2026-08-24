@@ -41,7 +41,7 @@ public readonly record struct CurrencyCode
             return Result.Failure<CurrencyCode>(InvalidMessage);
         }
 
-        if (!Iso4217CurrencyCodes.Contains(normalizedCode))
+        if (!Iso4217CountryCurrencyCodes.Contains(normalizedCode))
             return Result.Failure<CurrencyCode>(UnsupportedMessage);
 
         return Result.Success(new CurrencyCode(normalizedCode));

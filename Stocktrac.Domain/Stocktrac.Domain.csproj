@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features/Financial/ReferenceData/iso-4217-country-codes.xml"
-      LogicalName="Stocktrac.Domain.Features.Financial.ReferenceData.iso-4217-country-codes.xml" />
+    <EmbeddedResource Include="Features/Financial/ReferenceData/iso-4217-country-currency-codes.xml"
+      LogicalName="Stocktrac.Domain.Features.Financial.ReferenceData.iso-4217-country-currency-codes.xml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.7.0" />
