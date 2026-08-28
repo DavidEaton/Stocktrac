@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
+using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Tests.Unit.Features.Financial;
 
@@ -12,7 +13,7 @@ public class CreditCardShould
         var result = CreateCreditCard("  Visa  ");
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.Name.ShouldBe("Visa");
+        result.Value.Name.Value.ShouldBe("Visa");
     }
 
     [Theory]
@@ -47,7 +48,7 @@ public class CreditCardShould
 
         result.IsSuccess.ShouldBe(true);
         result.Value.ShouldBe("Mastercard");
-        creditCard.Name.ShouldBe("Mastercard");
+        creditCard.Name.Value.ShouldBe("Mastercard");
     }
 
     [Fact]
@@ -59,9 +60,19 @@ public class CreditCardShould
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(CreditCard.RequiredMessage);
-        creditCard.Name.ShouldBe("Visa");
+        creditCard.Name.Value.ShouldBe("Visa");
     }
 
-    private static Result<CreditCard> CreateCreditCard(string? name) =>
-        CreditCard.Create(name, CreditCardFeeType.Flat, 0, false);
+    private static Result<CreditCard> CreateCreditCard(string? name)
+    {
+        var cardNameResult = CreditCardName.Create(name);
+
+        return cardNameResult.IsFailure
+            ? Result.Failure<CreditCard>(cardNameResult.Error)
+            : CreditCard.Create(
+                cardNameResult.Value,
+                CreditCardFeeType.Flat,
+                Fee.Default,
+                DateTime.MinValue);
+    }
 }
