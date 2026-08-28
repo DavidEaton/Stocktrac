@@ -36,7 +36,7 @@ static async Task WriteHealthCheckResponse(HttpContext context, HealthReport rep
 {
     context.Response.ContentType = "application/json";
 
-    var response = new
+    await context.Response.WriteAsync(JsonSerializer.Serialize(new
     {
         status = report.Status.ToString(),
         totalDuration = report.TotalDuration.TotalMilliseconds,
@@ -48,8 +48,6 @@ static async Task WriteHealthCheckResponse(HttpContext context, HealthReport rep
             description = entry.Value.Description,
             error = entry.Value.Exception?.Message
         })
-    };
-
-    await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }));
 }
 app.Run();

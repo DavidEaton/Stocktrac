@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Domain.Features.Financial;
 
@@ -11,60 +12,55 @@ public class CreditCard : Entity
     public const string RequiredMessage = "A valid value is required.";
     public const string InvalidLengthMessage = "Value must be between 2 and 50 characters.";
 
-    public string Name { get; private set; }
+    public CreditCardName Name { get; internal set; }
     public CreditCardFeeType FeeType { get; private set; }
-    public double Fee { get; private set; }
-    public bool? IsAddedToDeposit { get; private set; }
+    public Fee Fee { get; private set; }
+    public DateTime? AddedToDeposit { get; private set; }
+    public bool IsAddedToDeposit => AddedToDeposit.HasValue;
 
     private CreditCard(
-        string name,
+        CreditCardName name,
         CreditCardFeeType feeType,
-        double fee,
-        bool? isAddedToDeposit)
+        Fee fee,
+        DateTime? addedToDeposit)
     {
         Name = name;
         FeeType = feeType;
         Fee = fee;
-        IsAddedToDeposit = isAddedToDeposit;
+        AddedToDeposit = addedToDeposit;
     }
 
     public static Result<CreditCard> Create(
-        string? name,
+        CreditCardName name,
         CreditCardFeeType feeType,
-        double fee,
-        bool? isAddedToDeposit) =>
-        ValidateName(name)
-            .Ensure(_ => Enum.IsDefined(feeType), RequiredMessage)
-            .Map(validName => new CreditCard(validName, feeType, fee, isAddedToDeposit));
+        Fee fee,
+        DateTime addedToDeposit) =>
+            Result.Success(new CreditCard(name, feeType, fee, addedToDeposit));
 
     public Result<string> SetName(string? name) =>
-        ValidateName(name)
-            .Tap(validName => Name = validName);
+       CreditCardExtensions.ValidateName(name)
+            .Tap(validName => Name = CreditCardName.Create(validName).Value);
+
+    public Result<CreditCardName> SetName(CreditCardName name) =>
+        Result.Success(Name = name);
 
     public Result<CreditCardFeeType> SetFeeType(CreditCardFeeType feeType) =>
         !Enum.IsDefined(feeType)
             ? Result.Failure<CreditCardFeeType>(RequiredMessage)
             : Result.Success(FeeType = feeType);
 
-    public Result<double> SetFee(double fee) =>
+    public Result<Fee> SetFee(Fee fee) =>
         Result.Success(Fee = fee);
 
-    public Result<bool?> SetIsAddedToDeposit(bool? isAddedToDeposit) =>
-        Result.Success(IsAddedToDeposit = isAddedToDeposit);
-
-    private static Result<string> ValidateName(string? name) =>
-        Result.Success(name?.Trim() ?? string.Empty)
-            .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
-            .Ensure(
-                value => value.Length is >= MinimumLength and <= MaximumLength,
-                InvalidLengthMessage);
+    public Result<DateTime?> SetAddedToDeposit(DateTime addedToDeposit) =>
+        Result.Success(AddedToDeposit = addedToDeposit);
 
     // EF requires a parameterless constructor
     private CreditCard()
     {
-        Name = string.Empty;
+        Name = CreditCardName.Create(string.Empty).Value;
         FeeType = CreditCardFeeType.Flat;
-        Fee = 0;
-        IsAddedToDeposit = false;
+        Fee = Fee.Default;
+        AddedToDeposit = DateTime.MinValue;
     }
 }
