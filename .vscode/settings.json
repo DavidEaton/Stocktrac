@@ -1,0 +1,8 @@
+{
+  "coverwatch.autoStart": true,
+  "coverwatch.runOnSave": true,
+  "coverwatch.runOnChange": false,
+  "coverwatch.maxParallelRuns": 2,
+  "coverwatch.showGutterMarkers": true,
+  "coverwatch.showCodeLens": true
+}

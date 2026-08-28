@@ -48,6 +48,7 @@ public class CreditCardShould
 
         result.IsSuccess.ShouldBe(true);
         result.Value.ShouldBe("Mastercard");
+        creditCard.Name.ShouldBeOfType<CreditCardName>();
         creditCard.Name.Value.ShouldBe("Mastercard");
     }
 

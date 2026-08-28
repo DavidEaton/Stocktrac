@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Financial;
 
 public readonly record struct CreditCardName
 {
-    private string Value { get; init; }
+    public string Value { get; init; }
 
     public static Result<CreditCardName> Create(string? name) =>
         CreditCardExtensions.ValidateName(name)
