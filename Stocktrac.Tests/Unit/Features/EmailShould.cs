@@ -41,6 +41,9 @@ public class EmailShould
     [Theory]
     [InlineData("a@b", "Email address cannot be less than 5 character(s) in length.")]
     [InlineData("invalid-email-address.com", "Email address and/or its format is invalid")]
+    [InlineData("", "Email address and/or its format is invalid")]
+    [InlineData("lorem ipsum dolor sit amet consectetur adipiscing elit non qui ad dolores cillum non nam qui est in est dolorum laborum vel imperdiet cupiditate sit facilis minim consequat est do et dolor lorem nulla pariatur id vero est velit est dolorem laborum aut tempor", "Email address cannot be greater than 254 characters in length.")]
+    
     public void Return_Specific_Error_For_Invalid_Address(string address, string expectedError)
     {
         var result = Email.Create(address, true);
