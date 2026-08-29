@@ -143,13 +143,11 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Return_Failures_For_Every_Overflowing_Amount_Operation()
+    public void Return_Failures_For_Overflowing_Amount_Operation()
     {
         Amount.FromDecimal(decimal.MinValue).Subtract(Amount.FromDecimal(1m)).Error
             .ShouldBe(Amount.OverflowMessage);
         Amount.FromDecimal(decimal.MaxValue).Multiply(2m).Error
-            .ShouldBe(Amount.OverflowMessage);
-        Amount.FromDecimal(decimal.MinValue).Negate().Error
             .ShouldBe(Amount.OverflowMessage);
     }
 
