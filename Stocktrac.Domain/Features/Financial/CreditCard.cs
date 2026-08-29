@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Domain.Features.Financial;
 
@@ -13,52 +12,27 @@ public class CreditCard : Entity
     public const string InvalidLengthMessage = "Value must be between 2 and 50 characters.";
 
     public CreditCardName Name { get; internal set; }
-    public CreditCardFeeType FeeType { get; private set; }
-    public Fee Fee { get; private set; }
-    public DateTime? AddedToDeposit { get; private set; }
-    public bool IsAddedToDeposit => AddedToDeposit.HasValue;
-
-    private CreditCard(
-        CreditCardName name,
-        CreditCardFeeType feeType,
-        Fee fee,
-        DateTime? addedToDeposit)
-    {
-        Name = name;
-        FeeType = feeType;
-        Fee = fee;
-        AddedToDeposit = addedToDeposit;
-    }
+    public CreditCardFeeType FeeType { get; internal set; }
+    public Fee Fee { get; internal set; }
+    public DateTime? AddedToDeposit { get; internal set; }
 
     public static Result<CreditCard> Create(
         CreditCardName name,
         CreditCardFeeType feeType,
         Fee fee,
         DateTime addedToDeposit) =>
-            Result.Success(new CreditCard(name, feeType, fee, addedToDeposit));
-
-    public Result<string> SetName(string? name) =>
-       CreditCardExtensions.ValidateName(name)
-            .Tap(validName => Name = CreditCardName.Create(validName).Value);
-
-    public Result<CreditCardName> SetName(CreditCardName name) =>
-        Result.Success(Name = name);
-
-    public Result<CreditCardFeeType> SetFeeType(CreditCardFeeType feeType) =>
-        !Enum.IsDefined(feeType)
-            ? Result.Failure<CreditCardFeeType>(RequiredMessage)
-            : Result.Success(FeeType = feeType);
-
-    public Result<Fee> SetFee(Fee fee) =>
-        Result.Success(Fee = fee);
-
-    public Result<DateTime?> SetAddedToDeposit(DateTime addedToDeposit) =>
-        Result.Success(AddedToDeposit = addedToDeposit);
+            Result.Success(new CreditCard
+            {
+                Name = name,
+                FeeType = feeType,
+                Fee = fee,
+                AddedToDeposit = addedToDeposit
+            });
 
     // EF requires a parameterless constructor
     private CreditCard()
     {
-        Name = CreditCardName.Create(string.Empty).Value;
+        Name = CreditCardName.Create("VISA").Value;
         FeeType = CreditCardFeeType.Flat;
         Fee = Fee.Default;
         AddedToDeposit = DateTime.MinValue;
