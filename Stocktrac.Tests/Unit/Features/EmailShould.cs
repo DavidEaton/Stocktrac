@@ -29,6 +29,36 @@ public class EmailShould
     }
 
     [Fact]
+    public void Trim_Address_When_Created()
+    {
+        var result = Email.Create("  john@doe.com  ", true);
+
+        result.IsSuccess.ShouldBe(true);
+        result.Value.Address.ShouldBe("john@doe.com");
+        result.Value.ToString().ShouldBe("john@doe.com");
+    }
+
+    [Theory]
+    [InlineData("a@b", Email.MinimumLengthMessage)]
+    [InlineData("invalid-email-address.com", Email.InvalidMessage)]
+    public void Return_Specific_Error_For_Invalid_Address(string address, string expectedError)
+    {
+        var result = Email.Create(address, true);
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(expectedError);
+    }
+
+    [Fact]
+    public void Return_Maximum_Length_Error_For_An_Oversized_Address()
+    {
+        var result = Email.Create($"{new string('a', Email.MaximumLength)}@x.com", true);
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(Email.MaximumLengthMessage);
+    }
+
+    [Fact]
     public void Return_Failure_Result_On_Create_With_Null_Address()
     {
         var result = Email.Create(
@@ -116,16 +146,29 @@ public class EmailShould
         email.Address.ShouldBe(updatedAddress);
     }
 
+    [Fact]
+    public void Trim_Address_When_SetAddress_Succeeds()
+    {
+        var email = Create_Valid_Primary_Email();
+
+        var result = email.SetAddress("  updated@address.com  ");
+
+        result.IsSuccess.ShouldBe(true);
+        result.Value.ShouldBe("updated@address.com");
+        email.Address.ShouldBe("updated@address.com");
+    }
+
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
     public void Not_SetAddress_With_Invalid_Parameter(string address)
     {
         var email = Create_Valid_Primary_Email();
+        var originalAddress = email.Address;
 
         var result = email.SetAddress(address);
 
         result.IsFailure.ShouldBe(true);
-        email.Address.ShouldNotBe(address);
+        email.Address.ShouldBe(originalAddress);
     }
 
     [Fact]
