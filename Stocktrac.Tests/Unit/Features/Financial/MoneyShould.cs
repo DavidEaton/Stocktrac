@@ -147,6 +147,8 @@ public class MoneyShould
     {
         Amount.FromDecimal(decimal.MinValue).Subtract(Amount.FromDecimal(1m)).Error
             .ShouldBe(Amount.OverflowMessage);
+        Amount.FromDecimal(decimal.MaxValue).Add(Amount.FromDecimal(1m)).Error
+            .ShouldBe(Amount.OverflowMessage);
         Amount.FromDecimal(decimal.MaxValue).Multiply(2m).Error
             .ShouldBe(Amount.OverflowMessage);
     }
