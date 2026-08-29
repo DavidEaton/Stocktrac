@@ -10,6 +10,139 @@ namespace Stocktrac.Tests.Unit.Features;
 public class ContactableShould
 {
     [Fact]
+    public void Add_And_Remove_Valid_Contact_Methods()
+    {
+        var person = CreatePerson();
+        var phone = CreatePhone("555-111-1111", PhoneType.Mobile, true);
+        var email = CreateEmail("primary@example.com", true);
+
+        person.AddPhone(phone).IsSuccess.ShouldBe(true);
+        person.AddEmail(email).IsSuccess.ShouldBe(true);
+        person.Phones.ShouldContain(phone);
+        person.Emails.ShouldContain(email);
+
+        person.RemovePhone(phone).IsSuccess.ShouldBe(true);
+        person.RemoveEmail(email).IsSuccess.ShouldBe(true);
+        person.Phones.ShouldBeEmpty();
+        person.Emails.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Reject_Null_Contacts()
+    {
+        var person = CreatePerson();
+
+        person.AddPhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.RemovePhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.AddEmail(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.RemoveEmail(null!).Error.ShouldBe(Contactable.RequiredMessage);
+    }
+
+    [Fact]
+    public void Reject_Duplicate_Contact_Values()
+    {
+        var person = CreatePerson(
+            emails: [CreateEmail("same@example.com", false)],
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)]);
+
+        person.AddEmail(CreateEmail("same@example.com", false)).Error
+            .ShouldBe(Contactable.NonuniqueMessage);
+        person.AddPhone(CreatePhone("555-111-1111", PhoneType.Home, false)).Error
+            .ShouldBe(Contactable.NonuniqueMessage);
+        person.Emails.Count.ShouldBe(1);
+        person.Phones.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Reject_A_Second_Primary_Contact()
+    {
+        var person = CreatePerson(
+            emails: [CreateEmail("first@example.com", true)],
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)]);
+
+        person.AddEmail(CreateEmail("second@example.com", true)).Error
+            .ShouldBe(Contactable.PrimaryExistsMessage);
+        person.AddPhone(CreatePhone("555-222-2222", PhoneType.Home, true)).Error
+            .ShouldBe(Contactable.PrimaryExistsMessage);
+    }
+
+    [Fact]
+    public void Reject_Removing_Contacts_That_Are_Not_Present()
+    {
+        var person = CreatePerson();
+
+        person.RemoveEmail(CreateEmail("missing@example.com", false)).Error
+            .ShouldBe(Contactable.NotFoundMessage);
+        person.RemovePhone(CreatePhone("555-111-1111", PhoneType.Mobile, false)).Error
+            .ShouldBe(Contactable.NotFoundMessage);
+    }
+
+    [Fact]
+    public void Normalize_And_Truncate_Notes()
+    {
+        var person = CreatePerson();
+        var note = $"  {new string('n', Contactable.NoteMaximumLength + 1)}  ";
+
+        var result = person.SetNotes(note);
+
+        result.IsSuccess.ShouldBe(true);
+        person.Notes!.Length.ShouldBe(Contactable.NoteMaximumLength);
+        person.Notes.ShouldNotStartWith(" ");
+    }
+
+    [Fact]
+    public void Set_And_Clear_Address_While_Rejecting_Null()
+    {
+        var person = CreatePerson();
+        var address = Address.Create("123 Main St", "Anytown", State.NY, "12345").Value;
+
+        person.SetAddress(address).IsSuccess.ShouldBe(true);
+        person.Address.ShouldBe(address);
+        person.SetAddress(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.Address.ShouldBe(address);
+        person.ClearAddress().IsSuccess.ShouldBe(true);
+        person.Address.HasValue.ShouldBe(false);
+    }
+
+    [Fact]
+    public void Reject_Duplicate_Values_In_A_Contact_Details_Update()
+    {
+        var person = CreatePerson();
+        var contactDetails = ContactDetails.Create(
+            phones:
+            [
+                CreatePhone("555-111-1111", PhoneType.Mobile, false),
+                CreatePhone("555-111-1111", PhoneType.Home, false)
+            ],
+            emails: [],
+            address: Maybe<Address>.None).Value;
+
+        var exception = Should.Throw<Exception>(() => person.UpdateContactDetails(contactDetails));
+
+        exception.Message.ShouldBe(Contactable.NonuniqueMessage);
+        person.Phones.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Reject_Multiple_Primaries_In_A_Contact_Details_Update()
+    {
+        var person = CreatePerson();
+        var contactDetails = ContactDetails.Create(
+            phones: [],
+            emails:
+            [
+                CreateEmail("first@example.com", true),
+                CreateEmail("second@example.com", true)
+            ],
+            address: Maybe<Address>.None).Value;
+
+        var exception = Should.Throw<Exception>(() => person.UpdateContactDetails(contactDetails));
+
+        exception.Message.ShouldBe(Contactable.PrimaryExistsMessage);
+        person.Emails.ShouldBeEmpty();
+    }
+
+    [Fact]
     public void UpdateContactDetails_WithValidPhones_ReturnsSuccess()
     {
         var originalPhonePrimary = CreatePhone(

@@ -40,6 +40,13 @@ public class CreditCardShould
     }
 
     [Fact]
+    public void Accept_Names_At_Both_Length_Boundaries()
+    {
+        CreateCreditCard(new string('a', CreditCard.MinimumLength)).IsSuccess.ShouldBe(true);
+        CreateCreditCard(new string('a', CreditCard.MaximumLength)).IsSuccess.ShouldBe(true);
+    }
+
+    [Fact]
     public void Normalize_A_Valid_Name_When_Changed()
     {
         var creditCard = CreateCreditCard("Visa").Value;
@@ -62,6 +69,71 @@ public class CreditCardShould
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(CreditCard.RequiredMessage);
         creditCard.Name.Value.ShouldBe("Visa");
+    }
+
+    [Fact]
+    public void Create_With_All_Requested_Values()
+    {
+        var name = CreditCardName.Create("Visa").Value;
+        var fee = Fee.Create(2.5m, "USD");
+        var depositedAt = new DateTime(2026, 8, 29, 12, 30, 0, DateTimeKind.Utc);
+
+        var card = CreditCard.Create(name, CreditCardFeeType.Percentage, fee, depositedAt).Value;
+
+        card.Name.ShouldBe(name);
+        card.FeeType.ShouldBe(CreditCardFeeType.Percentage);
+        card.Fee.ShouldBe(fee);
+        card.AddedToDeposit.ShouldBe(depositedAt);
+        card.IsAddedToDeposit().ShouldBe(true);
+    }
+
+    [Theory]
+    [InlineData(CreditCardFeeType.None)]
+    [InlineData(CreditCardFeeType.Percentage)]
+    [InlineData(CreditCardFeeType.Flat)]
+    public void Set_Defined_Fee_Types(CreditCardFeeType feeType)
+    {
+        var card = CreateCreditCard("Visa").Value;
+
+        var result = card.SetFeeType(feeType);
+
+        result.IsSuccess.ShouldBe(true);
+        card.FeeType.ShouldBe(feeType);
+    }
+
+    [Fact]
+    public void Preserve_Fee_Type_When_An_Undefined_Value_Is_Set()
+    {
+        var card = CreateCreditCard("Visa").Value;
+
+        var result = card.SetFeeType((CreditCardFeeType)999);
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(CreditCard.RequiredMessage);
+        card.FeeType.ShouldBe(CreditCardFeeType.Flat);
+    }
+
+    [Fact]
+    public void Set_Fee_And_Deposit_Date()
+    {
+        var card = CreateCreditCard("Visa").Value;
+        var fee = Fee.Create(3m, "CAD");
+        var depositedAt = new DateTime(2026, 8, 29);
+
+        card.SetFee(fee).Value.ShouldBe(fee);
+        card.SetAddedToDeposit(depositedAt).Value.ShouldBe(depositedAt);
+        card.Fee.ShouldBe(fee);
+        card.IsAddedToDeposit().ShouldBe(true);
+    }
+
+    [Fact]
+    public void Replace_Name_With_A_Validated_Value_Object()
+    {
+        var card = CreateCreditCard("Visa").Value;
+        var name = CreditCardName.Create("Mastercard").Value;
+
+        card.SetName(name).Value.ShouldBe(name);
+        card.Name.ShouldBe(name);
     }
 
     private static Result<CreditCard> CreateCreditCard(string? name)

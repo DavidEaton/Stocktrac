@@ -90,12 +90,33 @@ public class MoneyShould
     }
 
     [Fact]
+    public void Subtract_Values_With_The_Same_Currency()
+    {
+        var left = Money.Create(10.25m, "USD").Value;
+        var right = Money.Create(2.75m, "USD").Value;
+
+        left.Subtract(right).Value.ShouldBe(Money.Create(7.50m, "USD").Value);
+    }
+
+    [Fact]
     public void Reject_Arithmetic_Between_Different_Currencies()
     {
         var dollars = Money.Create(10m, "USD").Value;
         var euros = Money.Create(10m, "EUR").Value;
 
         var result = dollars.Subtract(euros);
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(MoneyExtensions.CurrencyMismatchMessage);
+    }
+
+    [Fact]
+    public void Reject_Addition_Between_Different_Currencies()
+    {
+        var dollars = Money.Create(10m, "USD").Value;
+        var euros = Money.Create(10m, "EUR").Value;
+
+        var result = dollars.Add(euros);
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(MoneyExtensions.CurrencyMismatchMessage);
@@ -119,6 +140,57 @@ public class MoneyShould
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(Amount.OverflowMessage);
+    }
+
+    [Fact]
+    public void Return_Failures_For_Every_Overflowing_Amount_Operation()
+    {
+        Amount.FromDecimal(decimal.MinValue).Subtract(Amount.FromDecimal(1m)).Error
+            .ShouldBe(Amount.OverflowMessage);
+        Amount.FromDecimal(decimal.MaxValue).Multiply(2m).Error
+            .ShouldBe(Amount.OverflowMessage);
+        Amount.FromDecimal(decimal.MinValue).Negate().Error
+            .ShouldBe(Amount.OverflowMessage);
+    }
+
+    [Fact]
+    public void Propagate_Overflow_Failures_Through_Money_Operations()
+    {
+        var maximum = Money.Create(decimal.MaxValue, "USD").Value;
+
+        maximum.Add(Money.Create(1m, "USD").Value).Error
+            .ShouldBe(Amount.OverflowMessage);
+        maximum.Multiply(2m).Error.ShouldBe(Amount.OverflowMessage);
+    }
+
+    [Theory]
+    [InlineData(null, CurrencyCode.InvalidMessage)]
+    [InlineData("US1", CurrencyCode.InvalidMessage)]
+    [InlineData("ZZZ", CurrencyCode.UnsupportedMessage)]
+    public void Propagate_Currency_Errors_When_Creating_Money(string? code, string expectedError)
+    {
+        var result = Money.Create(1m, code);
+
+        result.IsFailure.ShouldBe(true);
+        result.Error.ShouldBe(expectedError);
+    }
+
+    [Fact]
+    public void Format_Amounts_Using_The_Invariant_Culture()
+    {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture =
+                System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+
+            Amount.FromDecimal(12.34m).ToString().ShouldBe("12.34");
+            Money.Create(12.34m, "USD").Value.ToDisplayString().ShouldBe("12.34 USD");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     [Fact]
