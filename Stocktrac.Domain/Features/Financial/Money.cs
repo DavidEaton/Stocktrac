@@ -7,8 +7,6 @@ namespace Stocktrac.Domain.Features.Financial;
 /// </summary>
 public readonly record struct Money
 {
-    public const string CurrencyMismatchMessage = "Money values must have the same currency.";
-
     public Amount Amount { get; }
     public CurrencyCode CurrencyCode { get; }
 
@@ -20,11 +18,8 @@ public readonly record struct Money
 
     public static Money Create(Amount amount, CurrencyCode currencyCode) =>
         new(amount, currencyCode);
-        
+
     public static Result<Money> Create(decimal amount, string? currencyCode) =>
         CurrencyCode.Create(currencyCode).Map(
             code => Create(Amount.FromDecimal(amount), code));
-
-    public override string ToString() =>
-        $"{Amount} {CurrencyCode}";
 }

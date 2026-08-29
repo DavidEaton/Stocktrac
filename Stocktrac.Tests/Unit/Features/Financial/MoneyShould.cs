@@ -65,7 +65,7 @@ public class MoneyShould
         result.ShouldBeOfType<Money>();
         result.Amount.ShouldBe(Amount.FromDecimal(12.34m));
         result.CurrencyCode.Value.ShouldBe("USD");
-        result.ToString().ShouldBe("12.34 USD");
+        result.ToDisplayString().ShouldBe("12.34 USD");
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class MoneyShould
         var result = dollars.Subtract(euros);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(Money.CurrencyMismatchMessage);
+        result.Error.ShouldBe(MoneyExtensions.CurrencyMismatchMessage);
     }
 
     [Fact]
