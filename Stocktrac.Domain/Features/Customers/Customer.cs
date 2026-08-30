@@ -170,7 +170,9 @@ public class Customer : Entity
         return Result.Success();
     }
 
-    // EF requires a parameterless constructor
+    // Confirm that EF is okay with modelBuilder.ApplyConfiguration(new CustomerConfiguration()); ...and can create a Customer instance WITHOUT a parameterless constructor (namespace Menominee.Api.Features.Customers)
+    // EF requires a parameterless constructor??????????
+    // 
     private Customer()
     {
         vehicles = [];
@@ -179,7 +181,7 @@ public class Customer : Entity
                 lastName: "First",
                 firstName: "Last").Value,
             notes: null,
-            birthday: Birthday.None,
+            birthday: Birthday.Create(DateTime.Today).Value,
             emails: null,
             phones: null,
             address: null).Value;
