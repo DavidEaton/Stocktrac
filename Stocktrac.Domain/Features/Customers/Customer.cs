@@ -179,7 +179,7 @@ public class Customer : Entity
                 lastName: "First",
                 firstName: "Last").Value,
             notes: null,
-            birthday: null,
+            birthday: Birthday.None,
             emails: null,
             phones: null,
             address: null).Value;

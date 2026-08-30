@@ -10,6 +10,15 @@ namespace Stocktrac.Tests.Unit.Features;
 public class ContactableShould
 {
     [Fact]
+    public void Address_None_Represents_No_Address()
+    {
+        var person = CreatePerson();
+
+        Address.Default.HasValue.ShouldBe(false);
+        person.Address.ShouldBe(Address.Default);
+    }
+
+    [Fact]
     public void Add_And_Remove_Valid_Contact_Methods()
     {
         var person = CreatePerson();

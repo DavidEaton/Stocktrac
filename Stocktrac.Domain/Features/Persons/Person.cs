@@ -9,7 +9,7 @@ public class Person : Contactable, ICustomerEntity
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public PersonName Name { get; private set; }
-    public DateTime? Birthday { get; private set; }
+    public Maybe<Birthday> Birthday { get; private set; }
     public DriversLicense? DriversLicense { get; private set; }
     public override string ToString() => Name.ToString();
     public EntityType EntityType => EntityType.Person;
@@ -17,11 +17,11 @@ public class Person : Contactable, ICustomerEntity
     internal Person(
         PersonName name,
         string notes,
-        Address? address,
+        Maybe<Address> address,
         IReadOnlyList<Email>? emails,
         IReadOnlyList<Phone>? phones,
         DriversLicense? driversLicense,
-        DateTime? birthday = null)
+        Maybe<Birthday> birthday)
         : base(notes, address, phones, emails)
     {
         Name = name;
@@ -32,10 +32,10 @@ public class Person : Contactable, ICustomerEntity
     public static Result<Person> Create(
         PersonName name,
         string? notes,
-        DateTime? birthday = null,
+        Maybe<Birthday> birthday = default,
         IReadOnlyList<Email>? emails = null,
         IReadOnlyList<Phone>? phones = null,
-        Address? address = null,
+        Maybe<Address> address = default,
         DriversLicense? driversLicense = null)
     {
         if (name is null)
@@ -44,8 +44,7 @@ public class Person : Contactable, ICustomerEntity
         notes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
 
         if (birthday.HasValue)
-            if (!IsValidAgeOn(birthday))
-                return Result.Failure<Person>(InvalidValueMessage);
+            return Result.Failure<Person>(InvalidValueMessage);
 
         return Result.Success(new Person(
             name: name,
@@ -62,10 +61,8 @@ public class Person : Contactable, ICustomerEntity
             ? Result.Failure<PersonName>(RequiredMessage)
             : Result.Success(Name = name);
 
-    public Result<DateTime?> SetBirthday(DateTime? birthday) =>
-        !IsValidAgeOn(birthday)
-            ? Result.Failure<DateTime?>(InvalidValueMessage)
-            : Result.Success(Birthday = birthday);
+    public Maybe<Birthday> SetBirthday(Birthday date) =>
+        Birthday = date;
 
     public Result<DriversLicense> SetDriversLicense(DriversLicense driversLicense) =>
         driversLicense switch
@@ -74,31 +71,11 @@ public class Person : Contactable, ICustomerEntity
             _ => Result.Success(DriversLicense = driversLicense)
         };
 
-    public static bool IsValidAgeOn(DateTime? birthDate)
-    {
-        if (birthDate is null)
-            return false;
-
-        if (!birthDate.HasValue)
-            return false;
-
-        if (birthDate >= DateTime.Today)
-            return false;
-
-        int thisYear = DateTime.Today.Year;
-        int birthYear = birthDate.Value.Year;
-
-        if (birthYear <= thisYear && birthYear > (thisYear - 120))
-            return true;
-
-        return false;
-    }
-
     // EF requires a parameterless constructor
     private Person()
     {
         Name = PersonName.Create(string.Empty, string.Empty).Value;
-        Birthday = DateTime.MinValue;
+        Birthday = default;
         DriversLicense = DriversLicense.Create(
             string.Empty,
             State.MI,

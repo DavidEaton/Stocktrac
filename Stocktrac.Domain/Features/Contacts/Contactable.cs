@@ -23,7 +23,7 @@ public abstract class Contactable : Entity, IContactable
 
     internal Contactable(
         string? notes,
-        Address? address,
+        Maybe<Address> address,
         IReadOnlyList<Phone>? phones,
         IReadOnlyList<Email>? emails)
     {
@@ -31,8 +31,7 @@ public abstract class Contactable : Entity, IContactable
             .Trim()
             .Truncate(NoteMaximumLength);
 
-        if (address is not null)
-            SetAddress(address);
+        SetAddress(address.GetValueOrDefault()!);
 
         if (phones is not null)
             foreach (var phone in phones)
@@ -106,7 +105,7 @@ public abstract class Contactable : Entity, IContactable
             : Result.Success(Address = address);
 
     public Result ClearAddress() =>
-        Result.Success(Address = null);
+        Result.Success(Address = Maybe<Address>.None);
 
     public bool HasPhone(Phone phone) =>
         Phones.Any(existingPhone =>
@@ -187,7 +186,7 @@ public abstract class Contactable : Entity, IContactable
             throw new Exception(result.Error);
     }
 
-    private void UpdateEmails(IReadOnlyList<Email>? requestedEmails)
+    private static void UpdateEmails(IReadOnlyList<Email>? requestedEmails)
     {
         if (requestedEmails is null || requestedEmails.Count < 1)
             return;

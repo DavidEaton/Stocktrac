@@ -20,7 +20,7 @@ public class Address : ValueObject
     public static readonly int PostalCodeMaximumLength = 9;
     public static readonly string PostalCodeRequiredMessage = $"Postal Code is required";
     public static readonly string PostalCodeInvalidMessage = "Please enter a valid Postal Code";
-
+    public static Maybe<Address> Default => Maybe<Address>.None;
     public string AddressLine1 { get; private set; }
     public string? AddressLine2 { get; private set; }
     public string City { get; private set; }
