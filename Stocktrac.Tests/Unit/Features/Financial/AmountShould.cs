@@ -13,7 +13,7 @@ public class AmountShould
     [InlineData("0")]
     [InlineData("12.34")]
     [InlineData("79228162514264337593543950335")]
-    public void FromDecimal_WhenGivenAnyDecimal_ReturnsAmountContainingExactValue(string input)
+    public void ContainExactValue_On_FromDecimal_WhenGivenAnyDecimal(string input)
     {
         var value = decimal.Parse(input, CultureInfo.InvariantCulture);
 
@@ -23,13 +23,13 @@ public class AmountShould
     }
 
     [Fact]
-    public void Default_WhenCreated_ReturnsZeroAmount()
+    public void ContainZeroValue_WhenDefault()
     {
         default(Amount).Value.ShouldBe(0m);
     }
 
     [Fact]
-    public void Equality_WhenValuesAreEqual_ReturnsTrueAndMatchingHashCodes()
+    public void BeEqualAndHaveMatchingHashCodes_WhenValuesAreEqual()
     {
         var first = Amount.FromDecimal(12.340m);
         var second = Amount.FromDecimal(12.34m);
@@ -40,7 +40,7 @@ public class AmountShould
     }
 
     [Fact]
-    public void Equality_WhenValuesDiffer_ReturnsFalse()
+    public void NotBeEqual_WhenValuesDiffer()
     {
         var first = Amount.FromDecimal(12.34m);
         var second = Amount.FromDecimal(12.35m);
@@ -50,7 +50,7 @@ public class AmountShould
     }
 
     [Fact]
-    public void ToString_WhenCurrentCultureUsesComma_ReturnsInvariantRepresentation()
+    public void ReturnInvariantRepresentation_On_ToString_WhenCurrentCultureUsesComma()
     {
         var originalCulture = CultureInfo.CurrentCulture;
 
@@ -72,7 +72,7 @@ public class AmountShould
     [InlineData("-10", "-3", "-13")]
     [InlineData("0", "0", "0")]
     [InlineData("79228162514264337593543950335", "0", "79228162514264337593543950335")]
-    public void Add_WhenResultIsRepresentable_ReturnsSuccessfulSum(
+    public void ReturnSuccessfulSum_On_Add_WhenResultIsRepresentable(
         string leftInput,
         string rightInput,
         string expectedInput)
@@ -89,7 +89,7 @@ public class AmountShould
     [Theory]
     [InlineData("79228162514264337593543950335", "1")]
     [InlineData("-79228162514264337593543950335", "-1")]
-    public void Add_WhenResultExceedsDecimalRange_ReturnsOverflowFailure(
+    public void ReturnOverflowFailure_On_Add_WhenResultExceedsDecimalRange(
         string leftInput,
         string rightInput)
     {
@@ -104,7 +104,7 @@ public class AmountShould
     [InlineData("-10", "-3", "-7")]
     [InlineData("0", "0", "0")]
     [InlineData("-79228162514264337593543950335", "0", "-79228162514264337593543950335")]
-    public void Subtract_WhenResultIsRepresentable_ReturnsSuccessfulDifference(
+    public void ReturnSuccessfulDifference_On_Subtract_WhenResultIsRepresentable(
         string leftInput,
         string rightInput,
         string expectedInput)
@@ -118,7 +118,7 @@ public class AmountShould
     [Theory]
     [InlineData("79228162514264337593543950335", "-1")]
     [InlineData("-79228162514264337593543950335", "1")]
-    public void Subtract_WhenResultExceedsDecimalRange_ReturnsOverflowFailure(
+    public void ReturnOverflowFailure_On_Subtract_WhenResultExceedsDecimalRange(
         string leftInput,
         string rightInput)
     {
@@ -134,7 +134,7 @@ public class AmountShould
     [InlineData("79228162514264337593543950335", "0", "0")]
     [InlineData("79228162514264337593543950335", "1", "79228162514264337593543950335")]
     [InlineData("0.0000000000000000000000000001", "0.1", "0")]
-    public void Multiply_WhenResultIsRepresentable_ReturnsSuccessfulProduct(
+    public void ReturnSuccessfulProduct_On_Multiply_WhenResultIsRepresentable(
         string amountInput,
         string multiplierInput,
         string expectedInput)
@@ -150,7 +150,7 @@ public class AmountShould
     [Theory]
     [InlineData("79228162514264337593543950335", "2")]
     [InlineData("-79228162514264337593543950335", "2")]
-    public void Multiply_WhenResultExceedsDecimalRange_ReturnsOverflowFailure(
+    public void ReturnOverflowFailure_On_Multiply_WhenResultExceedsDecimalRange(
         string amountInput,
         string multiplierInput)
     {
@@ -166,7 +166,7 @@ public class AmountShould
     [InlineData("-12.34", "12.34")]
     [InlineData("0", "0")]
     [InlineData("79228162514264337593543950335", "-79228162514264337593543950335")]
-    public void Negate_WhenResultIsRepresentable_ReturnsSuccessfulOpposite(
+    public void ReturnSuccessfulOpposite_On_Negate_WhenResultIsRepresentable(
         string input,
         string expectedInput)
     {
@@ -177,7 +177,7 @@ public class AmountShould
     }
 
     [Fact]
-    public void Negate_WhenAmountIsDecimalMinimum_ReturnsNegatedAmount()
+    public void ReturnNegatedAmount_On_Negate_WhenAmountIsDecimalMinimum()
     {
         var result = Amount.FromDecimal(decimal.MinValue).Negate();
 

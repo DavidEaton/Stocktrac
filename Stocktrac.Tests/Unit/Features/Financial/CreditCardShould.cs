@@ -8,7 +8,7 @@ namespace Stocktrac.Tests.Unit.Features.Financial;
 public class CreditCardShould
 {
     [Fact]
-    public void Normalize_Valid_Names_When_Created()
+    public void NormalizeName_On_Create_WhenNameIsValid()
     {
         var result = CreateCreditCard("  Visa  ");
 
@@ -20,7 +20,7 @@ public class CreditCardShould
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Reject_Missing_Names_When_Created(string? name)
+    public void RejectName_On_Create_WhenNameIsMissing(string? name)
     {
         var result = CreateCreditCard(name);
 
@@ -31,7 +31,7 @@ public class CreditCardShould
     [Theory]
     [InlineData("V")]
     [InlineData("123456789012345678901234567890123456789012345678901")]
-    public void Reject_Names_Outside_The_Allowed_Length(string name)
+    public void RejectName_On_Create_WhenNameIsOutsideAllowedLength(string name)
     {
         var result = CreateCreditCard(name);
 
@@ -40,14 +40,14 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Accept_Names_At_Both_Length_Boundaries()
+    public void AcceptName_On_Create_WhenNameIsAtLengthBoundary()
     {
         CreateCreditCard(new string('a', CreditCard.MinimumLength)).IsSuccess.ShouldBe(true);
         CreateCreditCard(new string('a', CreditCard.MaximumLength)).IsSuccess.ShouldBe(true);
     }
 
     [Fact]
-    public void Normalize_A_Valid_Name_When_Changed()
+    public void NormalizeName_On_SetName_WhenNameIsValid()
     {
         var creditCard = CreateCreditCard("Visa").Value;
 
@@ -60,7 +60,7 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Preserve_The_Name_When_A_Change_Is_Invalid()
+    public void PreserveName_On_SetName_WhenNameIsInvalid()
     {
         var creditCard = CreateCreditCard("Visa").Value;
 
@@ -72,7 +72,7 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Create_With_All_Requested_Values()
+    public void SetAllRequestedValues_On_Create_WhenValuesAreValid()
     {
         var name = CreditCardName.Create("Visa").Value;
         var fee = Fee.Create(2.5m, "USD");
@@ -91,7 +91,7 @@ public class CreditCardShould
     [InlineData(CreditCardFeeType.None)]
     [InlineData(CreditCardFeeType.Percentage)]
     [InlineData(CreditCardFeeType.Flat)]
-    public void Set_Defined_Fee_Types(CreditCardFeeType feeType)
+    public void SetFeeType_On_SetFeeType_WhenFeeTypeIsDefined(CreditCardFeeType feeType)
     {
         var card = CreateCreditCard("Visa").Value;
 
@@ -102,7 +102,7 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Preserve_Fee_Type_When_An_Undefined_Value_Is_Set()
+    public void PreserveFeeType_On_SetFeeType_WhenFeeTypeIsUndefined()
     {
         var card = CreateCreditCard("Visa").Value;
 
@@ -114,7 +114,7 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Set_Fee_And_Deposit_Date()
+    public void SetFeeAndDepositDate_On_SetFeeAndDepositDate_WhenValuesAreValid()
     {
         var card = CreateCreditCard("Visa").Value;
         var fee = Fee.Create(3m, "CAD");
@@ -127,7 +127,7 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void Replace_Name_With_A_Validated_Value_Object()
+    public void ReplaceName_On_SetName_WhenGivenValidatedName()
     {
         var card = CreateCreditCard("Visa").Value;
         var name = CreditCardName.Create("Mastercard").Value;

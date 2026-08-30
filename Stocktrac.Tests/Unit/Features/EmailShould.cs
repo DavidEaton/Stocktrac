@@ -16,7 +16,7 @@ public class EmailShould
     ];
 
     [Fact]
-    public void Create_Email()
+    public void ReturnEmail_On_Create_WhenAddressIsValid()
     {
         var address = "john@doe.com";
         var primary = true;
@@ -29,7 +29,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Trim_Address_When_Created()
+    public void TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace()
     {
         var result = Email.Create("  john@doe.com  ", true);
 
@@ -43,7 +43,7 @@ public class EmailShould
     [InlineData("invalid-email-address.com", "Email address and/or its format is invalid")]
     [InlineData("", "Email address cannot be empty.")]
     [InlineData("lorem ipsum dolor sit amet consectetur adipiscing elit non qui ad dolores cillum non nam qui est in est dolorum laborum vel imperdiet cupiditate sit facilis minim consequat est do et dolor lorem nulla pariatur id vero est velit est dolorem laborum aut tempor", "Email address cannot be greater than 254 characters in length.")]
-    public void Return_Specific_Error_For_Invalid_Address(string address, string expectedError)
+    public void ReturnSpecificError_On_Create_WhenAddressIsInvalid(string address, string expectedError)
     {
         var result = Email.Create(address, true);
 
@@ -52,7 +52,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Maximum_Length_Error_For_An_Oversized_Address()
+    public void ReturnMaximumLengthError_On_Create_WhenAddressIsOversized()
     {
         var result = Email.Create($"{new string('a', Email.MaximumLength)}@x.com", true);
 
@@ -61,7 +61,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Failure_Result_On_Create_With_Null_Address()
+    public void ReturnFailureResult_On_Create_WhenAddressIsNull()
     {
         var result = Email.Create(
             address: null!,
@@ -72,7 +72,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Failure_Result_With_Empty_Address()
+    public void ReturnFailureResult_On_Create_WhenAddressIsEmpty()
     {
         var result = Email.Create(
             address: string.Empty,
@@ -84,7 +84,7 @@ public class EmailShould
 
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
-    public void Return_Failure_Result_On_Create_With_Invalid_Address(string address)
+    public void ReturnFailureResult_On_Create_WhenAddressIsInvalid(string address)
     {
         var result = Email.Create(address, true);
 
@@ -92,7 +92,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Not_Equate_Email_Instances_Having_Same_Values()
+    public void NotEquateDistinctInstances_WhenValuesAreTheSame()
     {
         var primaryAddress = "john@doe.com";
         var primaryEmail = Email.Create(
@@ -108,7 +108,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Not_Equate_Email_Instances_Having_Differing_Values()
+    public void HaveDifferingProperties_WhenValuesDiffer()
     {
         var primaryAddress = "john@doe.com";
         var primaryEmail = Email.Create(
@@ -125,7 +125,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Failure_Result_On_SetAddress_With_Null_Address()
+    public void ReturnFailureResult_On_SetAddress_WhenAddressIsNull()
     {
         var email = Create_Valid_Primary_Email();
 
@@ -136,7 +136,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Return_Success_And_Update_Email_On_SetAddress()
+    public void ReturnSuccessAndUpdateAddress_On_SetAddress_WhenAddressIsValid()
     {
         var email = Create_Valid_Primary_Email();
         var updatedAddress = "updated@address.com";
@@ -149,7 +149,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Trim_Address_When_SetAddress_Succeeds()
+    public void TrimAddress_On_SetAddress_WhenAddressContainsSurroundingWhitespace()
     {
         var email = Create_Valid_Primary_Email();
 
@@ -162,7 +162,7 @@ public class EmailShould
 
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
-    public void Not_SetAddress_With_Invalid_Parameter(string address)
+    public void PreserveAddress_On_SetAddress_WhenAddressIsInvalid(string address)
     {
         var email = Create_Valid_Primary_Email();
         var originalAddress = email.Address;
@@ -174,7 +174,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void Update_Email_On_SetIsPrimary()
+    public void UpdatePrimaryStatus_On_SetIsPrimary_WhenValueChanges()
     {
         var email = Create_Valid_Primary_Email();
 
