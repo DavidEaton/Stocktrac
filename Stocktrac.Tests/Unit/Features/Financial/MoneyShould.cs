@@ -8,7 +8,7 @@ namespace Stocktrac.Tests.Unit.Features.Financial;
 public class MoneyShould
 {
     [Fact]
-    public void Create_WhenGivenAmountAndCurrencyCode_SetsBothProperties()
+    public void SetAmountAndCurrency_On_Create_WhenGivenAmountAndCurrencyCode()
     {
         var amount = Amount.FromDecimal(12.34m);
         var currencyCode = CurrencyCode.Create("CAD").Value;
@@ -23,7 +23,7 @@ public class MoneyShould
     [InlineData("usd", "USD")]
     [InlineData(" EUR ", "EUR")]
     [InlineData("XAU", "XAU")]
-    public void Create_WhenGivenValidCurrencyText_ReturnsMoneyWithNormalizedCurrency(
+    public void ReturnMoneyWithNormalizedCurrency_On_Create_WhenGivenValidCurrencyText(
         string currencyCode,
         string expectedCurrencyCode)
     {
@@ -42,7 +42,7 @@ public class MoneyShould
     [InlineData("US1", CurrencyCode.InvalidMessage)]
     [InlineData("USDD", CurrencyCode.InvalidMessage)]
     [InlineData("ZZZ", CurrencyCode.UnsupportedMessage)]
-    public void Create_WhenGivenInvalidCurrencyText_ReturnsCurrencyFailure(
+    public void ReturnCurrencyFailure_On_Create_WhenGivenInvalidCurrencyText(
         string? currencyCode,
         string expectedError)
     {
@@ -58,7 +58,7 @@ public class MoneyShould
     [InlineData("0")]
     [InlineData("1")]
     [InlineData("79228162514264337593543950335")]
-    public void Create_WhenGivenAnyDecimalAmount_ReturnsMoney(string amountText)
+    public void ReturnMoney_On_Create_WhenGivenAnyDecimalAmount(string amountText)
     {
         var amount = decimal.Parse(amountText, CultureInfo.InvariantCulture);
 
@@ -69,7 +69,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Default_WhenUsed_ReturnsZeroUsd()
+    public void ReturnZeroUsd_WhenDefault()
     {
         var money = default(Money);
 
@@ -78,7 +78,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Equality_WhenAmountAndNormalizedCurrencyAreEqual_ReturnsTrue()
+    public void BeEqual_WhenAmountAndNormalizedCurrencyAreEqual()
     {
         var first = Money.Create(10m, "USD").Value;
         var second = Money.Create(10m, " usd ").Value;
@@ -91,7 +91,7 @@ public class MoneyShould
     [Theory]
     [InlineData(10, 11, "USD", "USD")]
     [InlineData(10, 10, "USD", "EUR")]
-    public void Equality_WhenAmountOrCurrencyDiffers_ReturnsFalse(
+    public void NotBeEqual_WhenAmountOrCurrencyDiffers(
         decimal firstAmount,
         decimal secondAmount,
         string firstCurrency,
@@ -109,7 +109,7 @@ public class MoneyShould
     [InlineData(-10, 3, -7)]
     [InlineData(10, -3, 7)]
     [InlineData(0, 0, 0)]
-    public void Add_WhenCurrenciesMatch_ReturnsSumAndPreservesCurrency(
+    public void ReturnSumAndPreserveCurrency_On_Add_WhenCurrenciesMatch(
         decimal leftAmount,
         decimal rightAmount,
         decimal expectedAmount)
@@ -128,7 +128,7 @@ public class MoneyShould
     [InlineData(-10, 3, -13)]
     [InlineData(10, -3, 13)]
     [InlineData(0, 0, 0)]
-    public void Subtract_WhenCurrenciesMatch_ReturnsDifferenceAndPreservesCurrency(
+    public void ReturnDifferenceAndPreserveCurrency_On_Subtract_WhenCurrenciesMatch(
         decimal leftAmount,
         decimal rightAmount,
         decimal expectedAmount)
@@ -143,7 +143,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Add_WhenCurrenciesDiffer_ReturnsCurrencyMismatchFailure()
+    public void ReturnCurrencyMismatchFailure_On_Add_WhenCurrenciesDiffer()
     {
         var dollars = Money.Create(10m, "USD").Value;
         var euros = Money.Create(10m, "EUR").Value;
@@ -155,7 +155,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Subtract_WhenCurrenciesDiffer_ReturnsCurrencyMismatchFailure()
+    public void ReturnCurrencyMismatchFailure_On_Subtract_WhenCurrenciesDiffer()
     {
         var dollars = Money.Create(10m, "USD").Value;
         var euros = Money.Create(10m, "EUR").Value;
@@ -167,7 +167,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Add_WhenResultExceedsDecimalRange_ReturnsOverflowFailure()
+    public void ReturnOverflowFailure_On_Add_WhenResultExceedsDecimalRange()
     {
         var maximum = Money.Create(decimal.MaxValue, "USD").Value;
 
@@ -178,7 +178,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Add_WhenResultFallsBelowDecimalRange_ReturnsOverflowFailure()
+    public void ReturnOverflowFailure_On_Add_WhenResultFallsBelowDecimalRange()
     {
         var minimum = Money.Create(decimal.MinValue, "USD").Value;
 
@@ -189,7 +189,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Subtract_WhenResultExceedsDecimalRange_ReturnsOverflowFailure()
+    public void ReturnOverflowFailure_On_Subtract_WhenResultExceedsDecimalRange()
     {
         var maximum = Money.Create(decimal.MaxValue, "USD").Value;
 
@@ -200,7 +200,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Subtract_WhenResultFallsBelowDecimalRange_ReturnsOverflowFailure()
+    public void ReturnOverflowFailure_On_Subtract_WhenResultFallsBelowDecimalRange()
     {
         var minimum = Money.Create(decimal.MinValue, "USD").Value;
 
@@ -216,7 +216,7 @@ public class MoneyShould
     [InlineData(-4.5, -2, 9)]
     [InlineData(4.5, 0, 0)]
     [InlineData(5, 0.5, 2.5)]
-    public void Multiply_WhenResultIsInRange_ReturnsProductAndPreservesCurrency(
+    public void ReturnProductAndPreserveCurrency_On_Multiply_WhenResultIsInRange(
         decimal amount,
         decimal multiplier,
         decimal expectedAmount)
@@ -234,7 +234,7 @@ public class MoneyShould
     [InlineData(false, 2)]
     [InlineData(true, -2)]
     [InlineData(false, -2)]
-    public void Multiply_WhenProductIsOutsideDecimalRange_ReturnsOverflowFailure(
+    public void ReturnOverflowFailure_On_Multiply_WhenProductIsOutsideDecimalRange(
         bool useMaximum,
         decimal multiplier)
     {
@@ -251,7 +251,7 @@ public class MoneyShould
     [InlineData(4.5, -4.5)]
     [InlineData(-4.5, 4.5)]
     [InlineData(0, 0)]
-    public void Negate_WhenAmountIsAboveDecimalMinimum_ReturnsOppositeAndPreservesCurrency(
+    public void ReturnOppositeAndPreserveCurrency_On_Negate_WhenAmountIsAboveDecimalMinimum(
         decimal amount,
         decimal expectedAmount)
     {
@@ -264,7 +264,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void Negate_WhenAmountIsDecimalMinimum_ReturnsOverflowFailure()
+    public void ReturnOverflowFailure_On_Negate_WhenAmountIsDecimalMinimum()
     {
         var minimum = Money.Create(decimal.MinValue, "USD").Value;
 
@@ -275,7 +275,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void ToDisplayString_WhenCalled_UsesInvariantAmountAndCurrencyCode()
+    public void UseInvariantAmountAndCurrencyCode_On_ToDisplayString()
     {
         var originalCulture = CultureInfo.CurrentCulture;
 
@@ -293,7 +293,7 @@ public class MoneyShould
     }
 
     [Fact]
-    public void CurrencyMismatchMessage_WhenRead_DescribesSameCurrencyRequirement()
+    public void DescribeSameCurrencyRequirement_In_CurrencyMismatchMessage()
     {
         MoneyExtensions.CurrencyMismatchMessage.ShouldBe(
             "Money values must have the same currency.");

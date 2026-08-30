@@ -5,12 +5,10 @@ using Stocktrac.Domain.Features.Persons;
 using Entity = Stocktrac.Domain.Features.Entity;
 
 namespace Stocktrac.Tests.Unit.Features;
-// Test naming convention: SystemUnderTest_Scenario_Result/ExpectedBehavior
-// For example: AddEmail_WhenEmailIsNull_ReturnsFailure
 public class ContactableShould
 {
     [Fact]
-    public void Address_None_Represents_No_Address()
+    public void HaveNoAddress_WhenAddressIsDefault()
     {
         var person = CreatePerson();
 
@@ -19,7 +17,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Add_And_Remove_Valid_Contact_Methods()
+    public void AddAndRemoveContacts_WhenContactsAreValid()
     {
         var person = CreatePerson();
         var phone = CreatePhone("555-111-1111", PhoneType.Mobile, true);
@@ -37,7 +35,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Reject_Null_Contacts()
+    public void ReturnRequiredError_WhenContactIsNull()
     {
         var person = CreatePerson();
 
@@ -48,7 +46,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Reject_Duplicate_Contact_Values()
+    public void RejectDuplicateValues_On_AddContact_WhenValueAlreadyExists()
     {
         var person = CreatePerson(
             emails: [CreateEmail("same@example.com", false)],
@@ -63,7 +61,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Reject_A_Second_Primary_Contact()
+    public void RejectSecondPrimary_On_AddContact_WhenPrimaryAlreadyExists()
     {
         var person = CreatePerson(
             emails: [CreateEmail("first@example.com", true)],
@@ -76,7 +74,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Reject_Removing_Contacts_That_Are_Not_Present()
+    public void ReturnNotFoundError_On_RemoveContact_WhenContactIsAbsent()
     {
         var person = CreatePerson();
 
@@ -87,7 +85,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Normalize_And_Truncate_Notes()
+    public void NormalizeAndTruncateNotes_On_SetNotes_WhenNotesExceedMaximumLength()
     {
         var person = CreatePerson();
         var note = $"  {new string('n', Contactable.NoteMaximumLength + 1)}  ";
@@ -100,7 +98,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Set_And_Clear_Address_While_Rejecting_Null()
+    public void SetAndClearAddress_WhenAddressIsValidAndRejectNullAddress()
     {
         var person = CreatePerson();
         var address = Address.Create("123 Main St", "Anytown", State.NY, "12345").Value;
@@ -114,7 +112,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Reject_Duplicate_Values_In_A_Contact_Details_Update()
+    public void RejectDuplicateValues_On_UpdateContactDetails_WhenValuesAreDuplicated()
     {
         var person = CreatePerson();
         var contactDetails = ContactDetails.Create(
@@ -133,7 +131,7 @@ public class ContactableShould
     }
 
     [Fact(Skip = "Skipping test due to known bug in UpdateContactDetails method.")]
-    public void Reject_Multiple_Primaries_In_A_Contact_Details_Update()
+    public void RejectMultiplePrimaries_On_UpdateContactDetails_WhenMultiplePrimariesExist()
     {
         var person = CreatePerson();
         var contactDetails = ContactDetails.Create(
@@ -152,7 +150,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void UpdateContactDetails_WithValidPhones_ReturnsSuccess()
+    public void UpdatePhones_On_UpdateContactDetails_WhenPhonesAreValid()
     {
         var originalPhonePrimary = CreatePhone(
             number: "555-111-1111",
@@ -189,7 +187,7 @@ public class ContactableShould
     }
 
     [Fact(Skip = "Skipping test due to known bug in UpdateContactDetails method.")]
-    public void UpdateContactDetails_WithValidEmails_ReturnsSuccess()
+    public void UpdateEmails_On_UpdateContactDetails_WhenEmailsAreValid()
     {
         var existingPrimaryEmail = CreateEmail("primary@example.com", true, 1);
         var existingEmailToRemove = CreateEmail("remove@example.com", false, 2);
@@ -209,7 +207,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void UpdateContactDetails_WithValidAddress_ReturnsSuccess()
+    public void UpdateAddress_On_UpdateContactDetails_WhenAddressIsValid()
     {
         var addressLine1 = "123 Main St";
         var city = "Anytown";
@@ -238,7 +236,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void Not_Change_ContactDetails_On_UpdateContactDetails_With_Empty_ContactDetails()
+    public void PreserveContactDetails_On_UpdateContactDetails_WhenContactDetailsAreEmpty()
     {
         var addressLine1 = "123 Main St";
         var city = "Anytown";
