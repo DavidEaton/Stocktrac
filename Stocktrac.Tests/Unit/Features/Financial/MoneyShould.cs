@@ -264,14 +264,14 @@ public class MoneyShould
     }
 
     [Fact]
-    public void ReturnOverflowFailure_On_Negate_WhenAmountIsDecimalMinimum()
+    public void ReturnDecimalMaxValue_On_Negate_WhenAmountIsDecimalMinimum()
     {
         var minimum = Money.Create(decimal.MinValue, "USD").Value;
 
         var result = minimum.Negate();
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(Amount.OverflowMessage);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(Money.Create(decimal.MaxValue, "USD").Value);
     }
 
     [Fact]
