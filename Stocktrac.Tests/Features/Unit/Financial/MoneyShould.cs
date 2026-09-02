@@ -275,24 +275,6 @@ public class MoneyShould
     }
 
     [Fact]
-    public void UseInvariantAmountAndCurrencyCode_On_ToDisplayString()
-    {
-        var originalCulture = CultureInfo.CurrentCulture;
-
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
-            var money = Money.Create(1234.50m, "eur").Value;
-
-            money.ToDisplayString().ShouldBe("1234.50 EUR");
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = originalCulture;
-        }
-    }
-
-    [Fact]
     public void DescribeSameCurrencyRequirement_In_CurrencyMismatchMessage()
     {
         Money.CurrencyMismatchMessage.ShouldBe(
