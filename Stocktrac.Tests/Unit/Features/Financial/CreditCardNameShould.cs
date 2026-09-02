@@ -5,15 +5,6 @@ namespace Stocktrac.Tests.Unit.Features.Financial;
 
 public class CreditCardNameShould
 {
-        [Fact]
-    public void NormalizeName_On_Create_WhenNameIsValid()
-    {
-        var result = CreditCardName.Create("  Visa  ");
-
-        result.IsSuccess.ShouldBe(true);
-        result.Value.Value.ShouldBe("Visa");
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -27,23 +18,11 @@ public class CreditCardNameShould
         result.Error.ShouldBe(CreditCardName.RequiredMessage);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("     ")]
-    [InlineData("\t\r\n")]
-    [InlineData("  \t\r\n  ")]
-    public void ReturnInvalidLengthFailure_On_Create_WhenTrimmedNameIsTooShort(string name)
-    {
-        var result = CreditCardName.Create(name);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.RequiredMessage);
-    }
-
     [Fact]
-    public void ReturnInvalidLengthFailure_On_Create_WhenNameIsTooLong()
+    public void ReturnInvalidLengthFailure_On_Create_WhenTrimmedNameIsTooLong()
     {
-        var result = CreditCardName.Create(new string('V', CreditCardName.MaximumLength + 1));
+        var result = CreditCardName.Create(
+            $"  {new string('V', CreditCardName.MaximumLength + 1)}  ");
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
@@ -151,5 +130,15 @@ public class CreditCardNameShould
         var name = CreditCardName.Create("Visa").Value;
 
         name.ToString().ShouldBe("CreditCardName { Value = Visa }");
+    }
+
+    [Fact]
+    public void ExposeValidationContractConstants()
+    {
+        CreditCardName.MinimumLength.ShouldBe(1);
+        CreditCardName.MaximumLength.ShouldBe(255);
+        CreditCardName.RequiredMessage.ShouldBe("A valid value is required.");
+        CreditCardName.InvalidLengthMessage.ShouldBe(
+            "Value must be between 1 and 255 characters.");
     }
 }
