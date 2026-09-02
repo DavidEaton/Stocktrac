@@ -1,7 +1,6 @@
 using System.Globalization;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
-using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Tests.Unit.Features.Financial;
 

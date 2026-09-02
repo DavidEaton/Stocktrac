@@ -1,6 +1,5 @@
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
-using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Tests.Unit.Features.Financial;
 
@@ -27,6 +26,19 @@ public class CreditCardShould
     }
 
     [Fact]
+    public void RejectUndefinedFeeType_On_Create()
+    {
+        var result = CreditCard.Create(
+            CreateName("Visa"),
+            (CreditCardFeeType)999,
+            Fee.Default,
+            null);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(CreditCard.InvalidFeeTypeMessage);
+    }
+
+    [Fact]
     public void TrimAndSetName_On_SetName_WhenStringIsValid()
     {
         var card = CreateCreditCard();
@@ -34,8 +46,8 @@ public class CreditCardShould
         var result = card.SetName("  Mastercard  ");
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe("Mastercard");
-        card.Name.ShouldBe(CreateName("Mastercard"));
+        result.Value.Name.ShouldBe(CreateName("Mastercard"));
+        card.Name.ShouldBe(CreateName("Visa"));
     }
 
     [Theory]
@@ -49,7 +61,7 @@ public class CreditCardShould
         var result = card.SetName(name);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        result.Error.ShouldBe(CreditCardName.RequiredMessage);
         card.Name.ShouldBe(CreateName("Visa"));
     }
 
@@ -76,8 +88,8 @@ public class CreditCardShould
         var result = card.SetName(name);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(name);
-        card.Name.Value.ShouldBe(name);
+        result.Value.Name.Value.ShouldBe(name);
+        card.Name.Value.ShouldBe("Visa");
     }
 
     [Fact]
@@ -89,8 +101,8 @@ public class CreditCardShould
         var result = card.SetName(name);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(name);
-        card.Name.ShouldBe(name);
+        result.Value.Name.ShouldBe(name);
+        card.Name.ShouldBe(CreateName("Visa"));
     }
 
     [Theory]
@@ -104,8 +116,8 @@ public class CreditCardShould
         var result = card.SetFeeType(feeType);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(feeType);
-        card.FeeType.ShouldBe(feeType);
+        result.Value.FeeType.ShouldBe(feeType);
+        card.FeeType.ShouldBe(CreditCardFeeType.Flat);
     }
 
     [Fact]
@@ -116,7 +128,7 @@ public class CreditCardShould
         var result = card.SetFeeType((CreditCardFeeType)999);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        result.Error.ShouldBe(CreditCard.InvalidFeeTypeMessage);
         card.FeeType.ShouldBe(CreditCardFeeType.Flat);
     }
 
@@ -129,8 +141,8 @@ public class CreditCardShould
         var result = card.SetFee(fee);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(fee);
-        card.Fee.ShouldBe(fee);
+        result.Value.Fee.ShouldBe(fee);
+        card.Fee.ShouldBe(Fee.Default);
     }
 
     [Fact]
@@ -142,15 +154,19 @@ public class CreditCardShould
         var result = card.SetAddedToDeposit(depositedAt);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(depositedAt);
-        card.AddedToDeposit.ShouldBe(depositedAt);
+        result.Value.AddedToDeposit.ShouldBe(depositedAt);
+        card.AddedToDeposit.ShouldBe(DateTime.MinValue);
     }
 
     [Fact]
     public void ReportWhetherItHasBeenAddedToDeposit_On_IsAddedToDeposit()
     {
-        new CreditCard().IsAddedToDeposit().ShouldBeFalse();
-        CreateCreditCard().IsAddedToDeposit().ShouldBeTrue();
+        CreditCard.Create(
+            CreateName("Visa"),
+            CreditCardFeeType.Flat,
+            Fee.Default,
+            null).Value.IsAddedToDeposit.ShouldBeFalse();
+        CreateCreditCard().IsAddedToDeposit.ShouldBeTrue();
     }
 
     private static CreditCard CreateCreditCard() =>
