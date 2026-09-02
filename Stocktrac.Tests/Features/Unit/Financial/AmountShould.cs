@@ -2,7 +2,7 @@ using System.Globalization;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
 
-namespace Stocktrac.Tests.Unit.Features.Financial;
+namespace Stocktrac.Tests.Features.Unit.Financial;
 
 public class AmountShould
 {

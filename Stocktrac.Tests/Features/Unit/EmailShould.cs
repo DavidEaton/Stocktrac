@@ -1,7 +1,7 @@
 ﻿using Shouldly;
 using Stocktrac.Domain.Features.Contacts;
 
-namespace Stocktrac.Tests.Unit.Features;
+namespace Stocktrac.Tests.Features.Unit;
 
 public class EmailShould
 {
