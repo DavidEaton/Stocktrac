@@ -1,5 +1,4 @@
 using CSharpFunctionalExtensions;
-using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Domain.Features.Financial;
 
