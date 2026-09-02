@@ -106,15 +106,16 @@ public class CreditCardShould
     }
 
     [Theory]
-    [InlineData(CreditCardFeeType.None)]
-    [InlineData(CreditCardFeeType.Percentage)]
-    [InlineData(CreditCardFeeType.Flat)]
-    public void SetFeeType_On_SetFeeType_WhenFeeTypeIsDefined(CreditCardFeeType feeType)
+    [InlineData((int)CreditCardFeeType.None)]
+    [InlineData((int)CreditCardFeeType.Percentage)]
+    [InlineData((int)CreditCardFeeType.Flat)]
+    public void SetFeeType_On_SetFeeType_WhenFeeTypeIsDefined(int feeTypeValue)
     {
         var card = CreateCreditCard();
-
+        var feeType = (CreditCardFeeType)feeTypeValue;
+        
         var result = card.SetFeeType(feeType);
-
+        
         result.IsSuccess.ShouldBeTrue();
         result.Value.FeeType.ShouldBe(feeType);
         card.FeeType.ShouldBe(CreditCardFeeType.Flat);
