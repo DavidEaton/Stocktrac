@@ -16,24 +16,21 @@ public class BusinessName : ValueObject
         Name = name;
     }
 
-    public static Result<BusinessName> Create(string name)
+    public static Result<BusinessName> Create(string name) =>
+        CreateNormalized(name);
+
+    public static Result<BusinessName> NewBusinessName(string name) =>
+        CreateNormalized(name);
+
+    private static Result<BusinessName> CreateNormalized(string? name)
     {
-        name = (name ?? string.Empty).Trim();
+        var normalizedName = name?.Trim() ?? string.Empty;
 
-        if (name.Length < MinimumLength || name.Length > MaximumLength)
-            return Result.Failure<BusinessName>($"{InvalidLengthMessage} You entered {name.Length} character(s).");
-
-        return Result.Success(new BusinessName(name));
-    }
-
-    public static Result<BusinessName> NewBusinessName(string name)
-    {
-        name = (name ?? string.Empty).Trim();
-
-        if (name.Length < MinimumLength || name.Length > MaximumLength)
-            return Result.Failure<BusinessName>($"{InvalidLengthMessage} You entered {name.Length} character(s).");
-
-        return Result.Success(new BusinessName(name));
+        return Result.Success(normalizedName)
+            .Ensure(
+                value => value.Length is >= MinimumLength and <= MaximumLength,
+                $"{InvalidLengthMessage} You entered {normalizedName.Length} character(s).")
+            .Map(value => new BusinessName(value));
     }
 
     public override string ToString() =>

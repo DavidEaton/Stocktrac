@@ -29,12 +29,15 @@ public readonly record struct CurrencyCode
         _nonDefaultCode = code == DefaultCode ? null : code;
 
     public static Result<CurrencyCode> Create(string? code) =>
-        NormalizeCode(code).Length != CodeLength ||
-        NormalizeCode(code).Any(character => !char.IsAsciiLetter(character))
-        ? Result.Failure<CurrencyCode>(InvalidMessage)
-        : !Iso4217CountryCurrencyCodes.Contains(NormalizeCode(code))
-            ? Result.Failure<CurrencyCode>(UnsupportedMessage)
-            : Result.Success(new CurrencyCode(NormalizeCode(code)));
+        Result.Success(NormalizeCode(code))
+            .Ensure(
+                value => value.Length == CodeLength &&
+                         value.All(char.IsAsciiLetter),
+                InvalidMessage)
+            .Ensure(
+                Iso4217CountryCurrencyCodes.Contains,
+                UnsupportedMessage)
+            .Map(value => new CurrencyCode(value));
 
     private static string NormalizeCode(string? code) =>
         code?.Trim().ToUpperInvariant()

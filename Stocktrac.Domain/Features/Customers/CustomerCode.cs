@@ -11,13 +11,12 @@ public class CustomerCode : ValueObject
     private CustomerCode(string value) =>
         Value = value;
 
-    public static Result<CustomerCode> Create(string? value)
-    {
-        value = value?.Trim() ?? string.Empty;
-        return value.Length > MaximumLength
-            ? Result.Failure<CustomerCode>(InvalidLengthMessage)
-            : Result.Success(new CustomerCode(value));
-    }
+    public static Result<CustomerCode> Create(string? value) =>
+        Result.Success(value?.Trim() ?? string.Empty)
+            .Ensure(
+                code => code.Length <= MaximumLength,
+                InvalidLengthMessage)
+            .Map(code => new CustomerCode(code));
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
