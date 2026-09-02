@@ -151,7 +151,7 @@ public class MoneyShould
         var result = dollars.Add(euros);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(MoneyExtensions.CurrencyMismatchMessage);
+        result.Error.ShouldBe(Money.CurrencyMismatchMessage);
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public class MoneyShould
         var result = dollars.Subtract(euros);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(MoneyExtensions.CurrencyMismatchMessage);
+        result.Error.ShouldBe(Money.CurrencyMismatchMessage);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public class MoneyShould
     [Fact]
     public void DescribeSameCurrencyRequirement_In_CurrencyMismatchMessage()
     {
-        MoneyExtensions.CurrencyMismatchMessage.ShouldBe(
+        Money.CurrencyMismatchMessage.ShouldBe(
             "Money values must have the same currency.");
     }
 }
