@@ -4,8 +4,8 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public class BusinessName : ValueObject
 {
-    public static readonly int MinimumLength = 2;
-    public static readonly int MaximumLength = 255;
+    public const int MinimumLength = 2;
+    public const int MaximumLength = 255;
     public static readonly string InvalidLengthMessage = $"Business Name must be between {MinimumLength} and {MaximumLength} character(s) in length.";
     public static readonly string RequiredMessage = $"Business Name is required.";
 
