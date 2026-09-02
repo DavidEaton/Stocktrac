@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
 using Stocktrac.Domain.Features.Financial.Extensions;
@@ -7,75 +6,91 @@ namespace Stocktrac.Tests.Unit.Features.Financial;
 
 public class CreditCardShould
 {
+    [Fact]
+    public void SetAllRequestedValues_On_Create()
+    {
+        var name = CreateName("Visa");
+        var fee = Fee.Create(2.5m, "USD");
+        var depositedAt = new DateTime(2026, 8, 29, 12, 30, 0, DateTimeKind.Utc);
+
+        var result = CreditCard.Create(
+            name,
+            CreditCardFeeType.Percentage,
+            fee,
+            depositedAt);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Name.ShouldBe(name);
+        result.Value.FeeType.ShouldBe(CreditCardFeeType.Percentage);
+        result.Value.Fee.ShouldBe(fee);
+        result.Value.AddedToDeposit.ShouldBe(depositedAt);
+    }
+
+    [Fact]
+    public void TrimAndSetName_On_SetName_WhenStringIsValid()
+    {
+        var card = CreateCreditCard();
+
+        var result = card.SetName("  Mastercard  ");
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe("Mastercard");
+        card.Name.ShouldBe(CreateName("Mastercard"));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void RejectName_On_Create_WhenNameIsMissing(string? name)
+    public void PreserveName_On_SetName_WhenStringIsMissing(string? name)
     {
-        var result = CreateCreditCard(name);
+        var card = CreateCreditCard();
 
-        result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCardName.RequiredMessage);
+        var result = card.SetName(name);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        card.Name.ShouldBe(CreateName("Visa"));
+    }
+
+    [Fact]
+    public void PreserveName_On_SetName_WhenStringIsTooLong()
+    {
+        var card = CreateCreditCard();
+
+        var result = card.SetName(new string('a', CreditCardName.MaximumLength + 1));
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        card.Name.ShouldBe(CreateName("Visa"));
     }
 
     [Theory]
-    [InlineData("1234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011")]
-    [InlineData("12345678901234567890123456789012345678901234567890112345678901234567890123456789012345678901234567890112345678901234567890123456789012345678901234567890112345678901234567890123456789012345678901234567890112345678901234567890123456789012345678901234567890111234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011")]
-    public void RejectName_On_Create_WhenNameIsOutsideAllowedLength(string name)
+    [InlineData(CreditCardName.MinimumLength)]
+    [InlineData(CreditCardName.MaximumLength)]
+    public void SetName_On_SetName_WhenStringIsAtLengthBoundary(int length)
     {
-        var result = CreateCreditCard(name);
+        var card = CreateCreditCard();
+        var name = new string('a', length);
 
-        result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        var result = card.SetName(name);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(name);
+        card.Name.Value.ShouldBe(name);
     }
 
     [Fact]
-    public void AcceptName_On_Create_WhenNameIsAtLengthBoundary()
+    public void ReplaceName_On_SetName_WhenGivenCreditCardName()
     {
-        CreateCreditCard(new string('a', CreditCardName.MinimumLength)).IsSuccess.ShouldBe(true);
-        CreateCreditCard(new string('a', CreditCardName.MaximumLength)).IsSuccess.ShouldBe(true);
-    }
+        var card = CreateCreditCard();
+        var name = CreateName("Mastercard");
 
-    [Fact]
-    public void NormalizeName_On_SetName_WhenNameIsValid()
-    {
-        var creditCard = CreateCreditCard("Visa").Value;
+        var result = card.SetName(name);
 
-        var result = creditCard.SetName("  Mastercard  ");
-
-        result.IsSuccess.ShouldBe(true);
-        result.Value.ShouldBe("Mastercard");
-        creditCard.Name.ShouldBeOfType<CreditCardName>();
-        creditCard.Name.Value.ShouldBe("Mastercard");
-    }
-
-    [Fact]
-    public void PreserveName_On_SetName_WhenNameIsInvalid()
-    {
-        var creditCard = CreateCreditCard("Visa").Value;
-
-        var result = creditCard.SetName(null);
-
-        result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
-        creditCard.Name.Value.ShouldBe("Visa");
-    }
-
-    [Fact]
-    public void SetAllRequestedValues_On_Create_WhenValuesAreValid()
-    {
-        var name = CreditCardName.Create("Visa").Value;
-        var fee = Fee.Create(2.5m, "USD");
-        var depositedAt = new DateTime(2026, 8, 29, 12, 30, 0, DateTimeKind.Utc);
-
-        var card = CreditCard.Create(name, CreditCardFeeType.Percentage, fee, depositedAt).Value;
-
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(name);
         card.Name.ShouldBe(name);
-        card.FeeType.ShouldBe(CreditCardFeeType.Percentage);
-        card.Fee.ShouldBe(fee);
-        card.AddedToDeposit.ShouldBe(depositedAt);
-        card.IsAddedToDeposit().ShouldBe(true);
     }
 
     [Theory]
@@ -84,59 +99,67 @@ public class CreditCardShould
     [InlineData(CreditCardFeeType.Flat)]
     public void SetFeeType_On_SetFeeType_WhenFeeTypeIsDefined(CreditCardFeeType feeType)
     {
-        var card = CreateCreditCard("Visa").Value;
+        var card = CreateCreditCard();
 
         var result = card.SetFeeType(feeType);
 
-        result.IsSuccess.ShouldBe(true);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(feeType);
         card.FeeType.ShouldBe(feeType);
     }
 
     [Fact]
     public void PreserveFeeType_On_SetFeeType_WhenFeeTypeIsUndefined()
     {
-        var card = CreateCreditCard("Visa").Value;
+        var card = CreateCreditCard();
 
         var result = card.SetFeeType((CreditCardFeeType)999);
 
-        result.IsFailure.ShouldBe(true);
+        result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
         card.FeeType.ShouldBe(CreditCardFeeType.Flat);
     }
 
     [Fact]
-    public void SetFeeAndDepositDate_On_SetFeeAndDepositDate_WhenValuesAreValid()
+    public void ReplaceFee_On_SetFee()
     {
-        var card = CreateCreditCard("Visa").Value;
+        var card = CreateCreditCard();
         var fee = Fee.Create(3m, "CAD");
-        var depositedAt = new DateTime(2026, 8, 29);
 
-        card.SetFee(fee).Value.ShouldBe(fee);
-        card.SetAddedToDeposit(depositedAt).Value.ShouldBe(depositedAt);
+        var result = card.SetFee(fee);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(fee);
         card.Fee.ShouldBe(fee);
-        card.IsAddedToDeposit().ShouldBe(true);
     }
 
     [Fact]
-    public void ReplaceName_On_SetName_WhenGivenValidatedName()
+    public void ReplaceDepositDate_On_SetAddedToDeposit()
     {
-        var card = CreateCreditCard("Visa").Value;
-        var name = CreditCardName.Create("Mastercard").Value;
+        var card = CreateCreditCard();
+        var depositedAt = new DateTime(2026, 8, 30, 10, 15, 0, DateTimeKind.Utc);
 
-        card.SetName(name).Value.ShouldBe(name);
-        card.Name.ShouldBe(name);
+        var result = card.SetAddedToDeposit(depositedAt);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(depositedAt);
+        card.AddedToDeposit.ShouldBe(depositedAt);
     }
 
-    private static Result<CreditCard> CreateCreditCard(string? name)
+    [Fact]
+    public void ReportWhetherItHasBeenAddedToDeposit_On_IsAddedToDeposit()
     {
-        var cardNameResult = CreditCardName.Create(name);
-
-        return cardNameResult.IsFailure
-            ? Result.Failure<CreditCard>(cardNameResult.Error)
-            : CreditCard.Create(
-                cardNameResult.Value,
-                CreditCardFeeType.Flat,
-                Fee.Default,
-                DateTime.MinValue);
+        new CreditCard().IsAddedToDeposit().ShouldBeFalse();
+        CreateCreditCard().IsAddedToDeposit().ShouldBeTrue();
     }
+
+    private static CreditCard CreateCreditCard() =>
+        CreditCard.Create(
+            CreateName("Visa"),
+            CreditCardFeeType.Flat,
+            Fee.Default,
+            DateTime.MinValue).Value;
+
+    private static CreditCardName CreateName(string name) =>
+        CreditCardName.Create(name).Value;
 }
