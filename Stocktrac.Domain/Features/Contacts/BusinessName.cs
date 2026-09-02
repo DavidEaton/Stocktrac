@@ -27,6 +27,7 @@ public class BusinessName : ValueObject
         var normalizedName = name?.Trim() ?? string.Empty;
 
         return Result.Success(normalizedName)
+            .Ensure(value => value.Length > 0, RequiredMessage)
             .Ensure(
                 value => value.Length is >= MinimumLength and <= MaximumLength,
                 $"{InvalidLengthMessage} You entered {normalizedName.Length} character(s).")

@@ -9,7 +9,7 @@ public class CreditCardShould
     public void SetAllRequestedValues_On_Create()
     {
         var name = CreateName("Visa");
-        var fee = Fee.Create(2.5m, "USD");
+        var fee = Fee.Create(2.5m, "USD").Value;
         var depositedAt = new DateTime(2026, 8, 29, 12, 30, 0, DateTimeKind.Utc);
 
         var result = CreditCard.Create(
@@ -136,7 +136,7 @@ public class CreditCardShould
     public void ReplaceFee_On_SetFee()
     {
         var card = CreateCreditCard();
-        var fee = Fee.Create(3m, "CAD");
+        var fee = Fee.Create(3m, "CAD").Value;
 
         var result = card.SetFee(fee);
 

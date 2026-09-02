@@ -48,25 +48,28 @@ public class Phone : Entity, IHasPrimary
         };
     }
 
-    public Result<string> SetNumber(string number)
+    public Result<Phone> SetNumber(string number)
     {
         number = (number ?? string.Empty).Trim();
 
         var phoneAttribute = new PhoneAttribute();
 
         if (!phoneAttribute.IsValid(number))
-            return Result.Failure<string>(InvalidMessage);
+            return Result.Failure<Phone>(InvalidMessage);
 
-        return Result.Success(Number = number);
+        return Result.Success(Copy(number: number));
     }
 
-    public Result<PhoneType> SetPhoneType(PhoneType phoneType) =>
+    public Result<Phone> SetPhoneType(PhoneType phoneType) =>
         !Enum.IsDefined(phoneType)
-            ? Result.Failure<PhoneType>(InvalidMessage)
-            : Result.Success(PhoneType = phoneType);
+            ? Result.Failure<Phone>(PhoneTypeInvalidMessage)
+            : Result.Success(Copy(phoneType: phoneType));
 
-    public Result<bool> SetIsPrimary(bool isPrimary) =>
-        Result.Success(IsPrimary = isPrimary);
+    public Result<Phone> SetIsPrimary(bool isPrimary) =>
+        Result.Success(Copy(isPrimary: isPrimary));
+
+    private Phone Copy(string? number = null, PhoneType? phoneType = null, bool? isPrimary = null) =>
+        new(number ?? Number, phoneType ?? PhoneType, isPrimary ?? IsPrimary) { Id = Id };
 
     private static string RemoveNonNumericCharacters(string input) =>
         new(input.Where(char.IsDigit).ToArray());

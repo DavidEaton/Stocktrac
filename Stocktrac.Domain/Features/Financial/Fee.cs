@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+
 namespace Stocktrac.Domain.Features.Financial;
 
 public readonly record struct Fee
@@ -12,12 +14,6 @@ public readonly record struct Fee
     private Fee(Money amount) =>
         _amount = amount;
 
-    public static Fee Create(decimal amount, string? currencyCode)
-    {
-        var moneyResult = Money.Create(amount, currencyCode);
-
-        return moneyResult.IsFailure
-            ? throw new ArgumentException(moneyResult.Error, nameof(amount))
-            : new Fee(moneyResult.Value);
-    }
+    public static Result<Fee> Create(decimal amount, string? currencyCode) =>
+        Money.Create(amount, currencyCode).Map(money => new Fee(money));
 }

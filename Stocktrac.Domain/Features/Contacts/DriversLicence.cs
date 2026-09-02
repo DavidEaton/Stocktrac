@@ -56,22 +56,14 @@ public class DriversLicense : ValueObject
     }
 
     public Result<DriversLicense> NewNumber(string newNumber) =>
-        Result.Success(
-            new DriversLicense(
-                number: newNumber,
-                state: State,
-                validDateRange: ValidDateRange));
+        Create(newNumber, State, ValidDateRange);
 
     public Result<DriversLicense> NewState(State newState)
     {
         if (Number is null)
             return Result.Failure<DriversLicense>(RequiredMessage);
 
-        return Result.Success(
-            new DriversLicense(
-                number: Number,
-                state: newState,
-                validDateRange: ValidDateRange));
+        return Create(Number, newState, ValidDateRange);
     }
 
     public Result<DriversLicense> NewValidRange(DateTime start, DateTime end)
@@ -79,14 +71,8 @@ public class DriversLicense : ValueObject
         if (Number is null)
             return Result.Failure<DriversLicense>(RequiredMessage);
 
-        return Result.Success(
-            Create(
-                number: Number,
-                state: State,
-                validRange: DateTimeRange.Create(
-                    start: start,
-                    end: end).Value)
-                .Value);
+        return DateTimeRange.Create(start, end)
+            .Bind(range => Create(Number, State, range));
     }
 
     protected override IEnumerable<IComparable> GetEqualityComponents()
@@ -96,6 +82,8 @@ public class DriversLicense : ValueObject
 
         if (Number is null)
             yield break;
+
+        yield return Number;
 
     }
 

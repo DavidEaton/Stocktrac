@@ -61,7 +61,7 @@ public class Address : ValueObject
             return Result.Failure<Address>(PostalCodeRequiredMessage);
 
         addressLine1 = (addressLine1 ?? string.Empty).Trim();
-        addressLine2 = addressLine2 is null || addressLine2 == string.Empty ? null : addressLine2.Trim();
+        addressLine2 = string.IsNullOrWhiteSpace(addressLine2) ? null : addressLine2.Trim();
         city = (city ?? string.Empty).Trim();
         postalCode = (postalCode ?? string.Empty).Trim();
 
@@ -155,11 +155,11 @@ public class Address : ValueObject
                     addressLine2: AddressLine2));
     }
 
-    public Result<Address> NewAddressLine2(string newAddressLine2)
+    public Result<Address> NewAddressLine2(string? newAddressLine2)
     {
-        newAddressLine2 = (newAddressLine2 ?? string.Empty).Trim();
+        newAddressLine2 = string.IsNullOrWhiteSpace(newAddressLine2) ? null : newAddressLine2.Trim();
 
-        return newAddressLine2.Length > AddressMaximumLength
+        return newAddressLine2?.Length > AddressMaximumLength
             ? Result.Failure<Address>(AddressLengthMessage)
             : Result.Success(
                     new Address(
