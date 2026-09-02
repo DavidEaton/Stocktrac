@@ -4,7 +4,7 @@ using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 using Entity = Stocktrac.Domain.Features.Entity;
 
-namespace Stocktrac.Tests.Features.Unit;
+namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class ContactableShould
 {
     [Fact]
