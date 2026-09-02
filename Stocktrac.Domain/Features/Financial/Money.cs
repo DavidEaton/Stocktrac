@@ -48,6 +48,11 @@ public readonly record struct Money
         return WithCurrency(operation(Amount, other.Amount));
     }
 
-    private Result<Money> WithCurrency(Result<Amount> result) =>
-        result.Map(amount => Create(amount, CurrencyCode));
+    private Result<Money> WithCurrency(Result<Amount> result)
+    {
+        var currencyCode = CurrencyCode;
+
+        return result.Map(
+            amount => Create(amount, currencyCode));
+    }
 }
