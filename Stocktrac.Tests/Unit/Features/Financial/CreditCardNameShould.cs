@@ -24,7 +24,7 @@ public class CreditCardNameShould
         var result = CreditCardName.Create(name);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        result.Error.ShouldBe(CreditCardName.RequiredMessage);
     }
 
     [Theory]
@@ -37,7 +37,7 @@ public class CreditCardNameShould
         var result = CreditCardName.Create(name);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+        result.Error.ShouldBe(CreditCardName.RequiredMessage);
     }
 
     [Fact]

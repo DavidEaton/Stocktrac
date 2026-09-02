@@ -8,6 +8,7 @@ public readonly record struct CreditCardName
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public const int MinimumLength = 1;
     public const int MaximumLength = 255;
+    public const string RequiredMessage = "A valid value is required.";
     public static readonly string InvalidLengthMessage =
         $"Value must be between {MinimumLength} and {MaximumLength} characters.";
     public string Value { get; init; }
@@ -17,10 +18,12 @@ public readonly record struct CreditCardName
     }
 
     public static Result<CreditCardName> Create(string? name) =>
-        string.IsNullOrWhiteSpace(name)
-            ? Result.Failure<CreditCardName>(InvalidLengthMessage)
-            : name.Trim().Length < MinimumLength ||
-            name.Trim().Length > MaximumLength
-                ? Result.Failure<CreditCardName>(InvalidLengthMessage)
-                : Result.Success(new CreditCardName(name.Trim()));
+        Result.Success(name?.Trim() ?? string.Empty)
+            .Ensure(
+                value => !string.IsNullOrWhiteSpace(value),
+                RequiredMessage)
+            .Ensure(
+                value => value.Length is >= MinimumLength and <= MaximumLength,
+                InvalidLengthMessage)
+            .Map(value => new CreditCardName(value));
 }
