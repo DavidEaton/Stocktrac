@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Financial;
 
 namespace Stocktrac.Domain.Features.Financial.Extensions
 {
@@ -19,7 +20,7 @@ namespace Stocktrac.Domain.Features.Financial.Extensions
             this CreditCard creditCard,
             CreditCardFeeType feeType) =>
                 !Enum.IsDefined(feeType)
-                ? Result.Failure<CreditCardFeeType>(CreditCard.RequiredMessage)
+                ? Result.Failure<CreditCardFeeType>(CreditCardName.InvalidLengthMessage)
                 : Result.Success(creditCard.FeeType = feeType);
 
         public static Result<Fee> SetFee(this CreditCard creditCard, Fee fee) =>
@@ -34,9 +35,9 @@ namespace Stocktrac.Domain.Features.Financial.Extensions
             Result.Success(name?.Trim() ?? string.Empty)
                 .Ensure(
                     value => !string.IsNullOrWhiteSpace(value),
-                    CreditCard.RequiredMessage)
+                    CreditCardName.InvalidLengthMessage)
                 .Ensure(
-                    value => value.Length is >= CreditCard.MinimumLength and <= CreditCard.MaximumLength,
-                    CreditCard.InvalidLengthMessage);
+                    value => value.Length is >= CreditCardName.MinimumLength and <= CreditCardName.MaximumLength,
+                    CreditCardName.InvalidLengthMessage);
     }
 }

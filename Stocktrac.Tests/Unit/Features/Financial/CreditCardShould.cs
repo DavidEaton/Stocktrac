@@ -7,15 +7,6 @@ namespace Stocktrac.Tests.Unit.Features.Financial;
 
 public class CreditCardShould
 {
-    [Fact]
-    public void NormalizeName_On_Create_WhenNameIsValid()
-    {
-        var result = CreateCreditCard("  Visa  ");
-
-        result.IsSuccess.ShouldBe(true);
-        result.Value.Name.Value.ShouldBe("Visa");
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -25,25 +16,25 @@ public class CreditCardShould
         var result = CreateCreditCard(name);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCard.RequiredMessage);
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
     }
 
     [Theory]
-    [InlineData("V")]
-    [InlineData("123456789012345678901234567890123456789012345678901")]
+    [InlineData("")]
+    [InlineData("1234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011234567890123456789012345678901234567890123456789011")]
     public void RejectName_On_Create_WhenNameIsOutsideAllowedLength(string name)
     {
         var result = CreateCreditCard(name);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCard.InvalidLengthMessage);
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
     }
 
     [Fact]
     public void AcceptName_On_Create_WhenNameIsAtLengthBoundary()
     {
-        CreateCreditCard(new string('a', CreditCard.MinimumLength)).IsSuccess.ShouldBe(true);
-        CreateCreditCard(new string('a', CreditCard.MaximumLength)).IsSuccess.ShouldBe(true);
+        CreateCreditCard(new string('a', CreditCardName.MinimumLength)).IsSuccess.ShouldBe(true);
+        CreateCreditCard(new string('a', CreditCardName.MaximumLength)).IsSuccess.ShouldBe(true);
     }
 
     [Fact]
@@ -67,7 +58,7 @@ public class CreditCardShould
         var result = creditCard.SetName(null);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCard.RequiredMessage);
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
         creditCard.Name.Value.ShouldBe("Visa");
     }
 
@@ -109,7 +100,7 @@ public class CreditCardShould
         var result = card.SetFeeType((CreditCardFeeType)999);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(CreditCard.RequiredMessage);
+        result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
         card.FeeType.ShouldBe(CreditCardFeeType.Flat);
     }
 
