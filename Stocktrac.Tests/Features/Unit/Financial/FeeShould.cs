@@ -16,7 +16,7 @@ public class FeeShould
     [Fact]
     public void ReturnDefaultFee_On_Default()
     {
-        Fee.Default.ShouldBe(Fee.Create(0m, "USD"));
+        Fee.Default.ShouldBe(Fee.Create(0m, "USD").Value);
     }
 
     [Fact]
@@ -35,10 +35,10 @@ public class FeeShould
     {
         var amount = decimal.Parse(amountText, CultureInfo.InvariantCulture);
 
-        var fee = Fee.Create(amount, "CAD");
+        var fee = Fee.Create(amount, "CAD").Value;
 
-        fee.ShouldBe(Fee.Create(amount, "CAD"));
-        fee.ShouldNotBe(Fee.Create(amount == decimal.MaxValue ? amount - 1m : amount + 1m, "CAD"));
+        fee.ShouldBe(Fee.Create(amount, "CAD").Value);
+        fee.ShouldNotBe(Fee.Create(amount == decimal.MaxValue ? amount - 1m : amount + 1m, "CAD").Value);
     }
 
     [Theory]
@@ -47,9 +47,9 @@ public class FeeShould
     [InlineData("UsD")]
     public void NormalizeCurrency_On_Create_WhenCurrencyTextIsValid(string currencyCode)
     {
-        var fee = Fee.Create(12.34m, currencyCode);
+        var fee = Fee.Create(12.34m, currencyCode).Value;
 
-        fee.ShouldBe(Fee.Create(12.34m, "USD"));
+        fee.ShouldBe(Fee.Create(12.34m, "USD").Value);
     }
 
     [Theory]
@@ -60,21 +60,21 @@ public class FeeShould
     [InlineData("US1", CurrencyCode.InvalidMessage)]
     [InlineData("USDD", CurrencyCode.InvalidMessage)]
     [InlineData("ZZZ", CurrencyCode.UnsupportedMessage)]
-    public void ThrowArgumentException_On_Create_WhenCurrencyTextIsInvalid(
+    public void ReturnFailure_On_Create_WhenCurrencyTextIsInvalid(
         string? currencyCode,
         string expectedError)
     {
-        var exception = Should.Throw<ArgumentException>(() => Fee.Create(1m, currencyCode));
+        var result = Fee.Create(1m, currencyCode);
 
-        exception.ParamName.ShouldBe("amount");
-        exception.Message.ShouldContain(expectedError);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(expectedError);
     }
 
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenAmountAndNormalizedCurrencyAreEqual()
     {
-        var first = Fee.Create(2.5m, "EUR");
-        var second = Fee.Create(2.5m, " eur ");
+        var first = Fee.Create(2.5m, "EUR").Value;
+        var second = Fee.Create(2.5m, " eur ").Value;
 
         (first == second).ShouldBeTrue();
         (first != second).ShouldBeFalse();
@@ -92,8 +92,8 @@ public class FeeShould
         string firstCurrency,
         string secondCurrency)
     {
-        var first = Fee.Create(firstAmount, firstCurrency);
-        var second = Fee.Create(secondAmount, secondCurrency);
+        var first = Fee.Create(firstAmount, firstCurrency).Value;
+        var second = Fee.Create(secondAmount, secondCurrency).Value;
 
         (first == second).ShouldBeFalse();
         (first != second).ShouldBeTrue();

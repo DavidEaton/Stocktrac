@@ -4,14 +4,14 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public class ContactDetails : ValueObject
 {
-    public IReadOnlyList<Phone>? Phones { get; } = [];
-    public IReadOnlyList<Email>? Emails { get; } = [];
-    public Maybe<Address>? Address { get; } = Maybe<Address>.None;
+    public IReadOnlyList<Phone> Phones { get; } = [];
+    public IReadOnlyList<Email> Emails { get; } = [];
+    public Maybe<Address> Address { get; } = Maybe<Address>.None;
 
     private ContactDetails(
-        IReadOnlyList<Phone>? phones,
-        IReadOnlyList<Email>? emails,
-        Maybe<Address>? address)
+        IReadOnlyList<Phone> phones,
+        IReadOnlyList<Email> emails,
+        Maybe<Address> address)
     {
         Phones = phones;
         Emails = emails;
@@ -23,36 +23,39 @@ public class ContactDetails : ValueObject
         IReadOnlyList<Email>? emails,
         Maybe<Address>? address)
     {
-        phones ??= [];
-        emails ??= [];
+        var normalizedPhones = phones?.ToArray() ?? [];
+        var normalizedEmails = emails?.ToArray() ?? [];
 
-        if (phones?
-            .Count(phone => phone.IsPrimary) > 1)
+        if (normalizedPhones.Any(phone => phone is null) ||
+            normalizedEmails.Any(email => email is null))
+            return Result.Failure<ContactDetails>(Contactable.RequiredMessage);
+
+        if (normalizedPhones.Count(phone => phone.IsPrimary) > 1)
             return Result.Failure<ContactDetails>(Contactable.PrimaryExistsMessage);
 
-        if (emails?
-            .Count(email => email.IsPrimary) > 1)
+        if (normalizedEmails.Count(email => email.IsPrimary) > 1)
             return Result.Failure<ContactDetails>(Contactable.PrimaryExistsMessage);
+
+        if (normalizedPhones.GroupBy(phone => phone.Number).Any(group => group.Count() > 1) ||
+            normalizedEmails.GroupBy(email => email.Address).Any(group => group.Count() > 1))
+            return Result.Failure<ContactDetails>(Contactable.NonuniqueMessage);
 
         return Result.Success(
             new ContactDetails(
-                phones: phones,
-                emails: emails,
-                address: address));
+                phones: normalizedPhones,
+                emails: normalizedEmails,
+                address: address ?? Maybe<Address>.None));
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
-        if (Phones is not null)
-            foreach (var phone in Phones)
-                yield return phone;
+        foreach (var phone in Phones)
+            yield return phone;
 
-        if (Emails is not null)
-            foreach (var email in Emails)
-                yield return email;
+        foreach (var email in Emails)
+            yield return email;
 
-        if (Address is not null)
-            yield return Address;
+        yield return Address;
     }
 
     // EF requires a parameterless constructor

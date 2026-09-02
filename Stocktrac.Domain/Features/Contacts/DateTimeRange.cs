@@ -6,6 +6,7 @@ public class DateTimeRange : ValueObject
 {
     public static readonly string RequiredMessage = $"Please include all required items.";
     public static readonly string EndBeforeStartMessage = "End date cannot occur before Start date";
+    public static readonly string DateCalculationMessage = "The requested date range is outside the supported range.";
 
     public DateTime Start { get; private set; } = DateTime.Today;
     public DateTime End { get; private set; } = DateTime.MaxValue;
@@ -21,11 +22,17 @@ public class DateTimeRange : ValueObject
             ? Result.Failure<DateTimeRange>(EndBeforeStartMessage)
             : Result.Success(new DateTimeRange(start, end));
 
-    public DateTimeRange(DateTime start, TimeSpan duration)
-        : this(start, start.Add(duration)) { }
+    public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
+        CalculateEnd(start, () => start.Add(duration));
 
-    public Result<int> DurationInMinutes() =>
-        Result.Success((End - Start).Minutes);
+    public Result<int> DurationInMinutes()
+    {
+        var minutes = (End - Start).TotalMinutes;
+
+        return minutes is < int.MinValue or > int.MaxValue
+            ? Result.Failure<int>(DateCalculationMessage)
+            : Result.Success((int)minutes);
+    }
 
     public Result<DateTimeRange> NewStart(DateTime newStart) =>
         newStart >= End
@@ -44,20 +51,32 @@ public class DateTimeRange : ValueObject
             new DateTimeRange(Start, DateTime.MaxValue));
 
     public Result<DateTimeRange> NewDuration(TimeSpan newDuration) =>
-        Result.Success(
-            new DateTimeRange(Start, newDuration));
+        Create(Start, newDuration);
 
     public static Result<DateTimeRange> CreateDaysRange(DateTime start, int days) =>
-        Result.Success(
-            new DateTimeRange(start, start.AddDays(days)));
+        CalculateEnd(start, () => start.AddDays(days));
 
     public static Result<DateTimeRange> CreateWeeksRange(DateTime start, int weeks) =>
-        Result.Success(
-            new DateTimeRange(start, start.AddDays(7 * weeks)));
+        CalculateEnd(start, () => start.AddDays(7d * weeks));
 
     public static Result<DateTimeRange> CreateMonthsRange(DateTime start, int months) =>
-        Result.Success(
-            new DateTimeRange(start, start.AddMonths(months)));
+        CalculateEnd(start, () => start.AddMonths(months));
+
+    private static Result<DateTimeRange> CalculateEnd(DateTime start, Func<DateTime> calculation)
+    {
+        try
+        {
+            return Create(start, calculation());
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return Result.Failure<DateTimeRange>(DateCalculationMessage);
+        }
+        catch (OverflowException)
+        {
+            return Result.Failure<DateTimeRange>(DateCalculationMessage);
+        }
+    }
 
     protected override IEnumerable<IComparable> GetEqualityComponents()
     {

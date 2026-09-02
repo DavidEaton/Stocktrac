@@ -115,18 +115,17 @@ public class ContactableShould
     public void RejectDuplicateValues_On_UpdateContactDetails_WhenValuesAreDuplicated()
     {
         var person = CreatePerson();
-        var contactDetails = ContactDetails.Create(
+        var result = ContactDetails.Create(
             phones:
             [
                 CreatePhone("555-111-1111", PhoneType.Mobile, false),
                 CreatePhone("555-111-1111", PhoneType.Home, false)
             ],
             emails: [],
-            address: Maybe<Address>.None).Value;
+            address: Maybe<Address>.None);
 
-        var exception = Should.Throw<Exception>(() => person.UpdateContactDetails(contactDetails));
-
-        exception.Message.ShouldBe(Contactable.NonuniqueMessage);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Contactable.NonuniqueMessage);
         person.Phones.ShouldBeEmpty();
     }
 
@@ -168,7 +167,7 @@ public class ContactableShould
         person.Phones.Count.ShouldBe(2);
         person.Phones.ShouldContain(originalPhonePrimary);
 
-        originalPhonePrimary.SetNumber("555-333-3333");
+        originalPhonePrimary = originalPhonePrimary.SetNumber("555-333-3333").Value;
         var newPhoneOther = CreatePhone(
             number: "555-444-4444",
             phoneType: PhoneType.Home,

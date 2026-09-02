@@ -18,18 +18,18 @@ public class ContactPreferences : ValueObject
     public static Result<ContactPreferences> Create(bool allowMail, bool allowEmail, bool allowSms) =>
         Result.Success(new ContactPreferences(allowMail, allowEmail, allowSms));
 
-    public ContactPreferences NewAllowMail(bool allowMail) =>
-        new(allowMail, AllowEmail, AllowSms);
+    public Result<ContactPreferences> NewAllowMail(bool allowMail) =>
+        Result.Success(new ContactPreferences(allowMail, AllowEmail, AllowSms));
 
-    public ContactPreferences NewAllowEmail(bool allowEmail) =>
-        new(AllowMail, allowEmail, AllowSms);
+    public Result<ContactPreferences> NewAllowEmail(bool allowEmail) =>
+        Result.Success(new ContactPreferences(AllowMail, allowEmail, AllowSms));
 
-    public ContactPreferences NewAllowSms(bool allowSms) =>
-        new(AllowMail, AllowEmail, allowSms);
+    public Result<ContactPreferences> NewAllowSms(bool allowSms) =>
+        Result.Success(new ContactPreferences(AllowMail, AllowEmail, allowSms));
 
     protected override IEnumerable<IComparable> GetEqualityComponents()
     {
-        yield return AllowEmail;
+        yield return AllowMail;
         yield return AllowEmail;
         yield return AllowSms;
     }
