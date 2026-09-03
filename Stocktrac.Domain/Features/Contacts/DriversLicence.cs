@@ -2,22 +2,15 @@
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class DriversLicense : ValueObject
+public readonly record struct DriversLicense
 {
-    public static readonly int MinimumLength = 3;
-    public static readonly int MaximumLength = 255;
-    public static readonly string UnderMinimumLengthMessage = $"Drivers License cannot be less than {MinimumLength} character(s) in length";
-    public static readonly string OverMaximumLengthMessage = $"Drivers License cannot be over {MaximumLength} characters in length";
-    public static readonly string DateRangeInvalidMessage = $"Drivers License must have valid dates";
-    public static readonly string RequiredMessage = $"Drivers License number is required.";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
-
-    public string? Number { get; private set; }
-    public DateTimeRange ValidDateRange { get; private set; }
-    public State State { get; private set; }
+    public DriversLicenseNumber Number { get; }
+    public DateTimeRange ValidDateRange { get; }
+    public State State { get; }
 
     private DriversLicense(
-        string number,
+        DriversLicenseNumber number,
         State state,
         DateTimeRange validDateRange)
     {
@@ -26,74 +19,19 @@ public class DriversLicense : ValueObject
         ValidDateRange = validDateRange;
     }
 
-    public static Result<DriversLicense> Create(
-        string number,
-        State state,
-        DateTimeRange validRange)
-    {
-        if (string.IsNullOrWhiteSpace(number))
-            return Result.Failure<DriversLicense>(RequiredMessage);
+    public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
+        !Enum.IsDefined(state)
+            ? Result.Failure<DriversLicense>(StateInvalidMessage)
+            : Result.Success(new DriversLicense(number, state, validRange));
 
-        if (!Enum.IsDefined(state))
-            return Result.Failure<DriversLicense>(StateInvalidMessage);
-
-        number = (number ?? string.Empty).Trim();
-
-        if (validRange is null)
-            return Result.Failure<DriversLicense>(DateRangeInvalidMessage);
-
-        if (number.Length < MinimumLength)
-            return Result.Failure<DriversLicense>(UnderMinimumLengthMessage);
-
-        if (number.Length > MaximumLength)
-            return Result.Failure<DriversLicense>(OverMaximumLengthMessage);
-
-        return Result.Success(
-            new DriversLicense(
-                number: number,
-                state: state,
-                validDateRange: validRange));
-    }
-
-    public Result<DriversLicense> NewNumber(string newNumber) =>
+    public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);
 
-    public Result<DriversLicense> NewState(State newState)
-    {
-        if (Number is null)
-            return Result.Failure<DriversLicense>(RequiredMessage);
+    public Result<DriversLicense> NewState(State newState) =>
+        !Enum.IsDefined(newState)
+            ? Result.Failure<DriversLicense>(StateInvalidMessage)
+            : Create(Number, newState, ValidDateRange);
 
-        return Create(Number, newState, ValidDateRange);
-    }
-
-    public Result<DriversLicense> NewValidRange(DateTime start, DateTime end)
-    {
-        if (Number is null)
-            return Result.Failure<DriversLicense>(RequiredMessage);
-
-        return DateTimeRange.Create(start, end)
-            .Bind(range => Create(Number, State, range));
-    }
-
-    protected override IEnumerable<IComparable> GetEqualityComponents()
-    {
-        yield return State;
-        yield return (IComparable)ValidDateRange;
-
-        if (Number is null)
-            yield break;
-
-        yield return Number;
-
-    }
-
-    // EF requires an empty constructor
-    protected DriversLicense()
-    {
-        Number = string.Empty;
-        State = State.AL;
-        ValidDateRange = DateTimeRange.Create(
-            start: DateTime.Today,
-            end: DateTime.Today.AddYears(1)).Value;
-    }
+    public Result<DriversLicense> NewValidDateRange(DateTimeRange dateRange) =>
+        Create(Number, State, dateRange);
 }
