@@ -56,39 +56,20 @@ public class Person : Contactable, ICustomerEntity
     }
 
     public Result<PersonName> SetName(PersonName name) =>
-        name is null
-            ? Result.Failure<PersonName>(RequiredMessage)
-            : Result.Success(Name = name);
+        Result.Success(Name = name);
 
-    public void SetBirthday(Birthday birthday) =>
-        Birthday = birthday;
+    public Result<Birthday?> SetBirthday(Birthday birthday) =>
+        Result.Success(Birthday = birthday);
 
     public void RemoveBirthday() =>
         Birthday = null;
 
-    public Result<DriversLicense> SetDriversLicense(
-        DriversLicense driversLicense) =>
-        driversLicense switch
-        {
-            null => Result.Failure<DriversLicense>(InvalidValueMessage),
-            _ => Result.Success(DriversLicense = driversLicense)
-        };
+    public void RemoveDriversLicense() =>
+        DriversLicense = null;
+
+    public Result<DriversLicense?> SetDriversLicense(DriversLicense driversLicense) =>
+        Result.Success(DriversLicense = driversLicense);
 
     public override string ToString() =>
         Name.ToString();
-
-    // EF requires a parameterless constructor.
-    private Person()
-    {
-        Name = PersonName.Create(string.Empty, string.Empty).Value;
-        Birthday = null;
-        DriversLicense = DriversLicense.Create(
-                string.Empty,
-                State.MI,
-                DateTimeRange.Create(
-                    DateTime.MinValue,
-                    DateTime.MinValue.AddYears(1))
-                .Value)
-            .Value;
-    }
 }
