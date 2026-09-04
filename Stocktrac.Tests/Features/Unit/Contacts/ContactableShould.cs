@@ -101,7 +101,7 @@ public class ContactableShould
     public void SetAndClearAddress_WhenAddressIsValidAndRejectNullAddress()
     {
         var person = CreatePerson();
-        var address = Address.Create("123 Main St", "Anytown", State.NY, "12345").Value;
+        var address = CreateAddress("123 Main St", "Anytown", State.NY, "12345");
 
         person.SetAddress(address).IsSuccess.ShouldBe(true);
         person.Address.ShouldBe(address);
@@ -215,11 +215,7 @@ public class ContactableShould
         var person = CreatePerson(
             phones: [],
             emails: []);
-        var address = Address.Create(
-            addressLine1: addressLine1,
-            city: city,
-            state: state,
-            postalCode: postalCode).Value;
+        var address = CreateAddress(addressLine1, city, state, postalCode);
         var contactDetails = ContactDetails.Create(
             phones: [],
             emails: [],
@@ -229,9 +225,9 @@ public class ContactableShould
 
         person.Address.ShouldNotBe(null);
         person.Address.HasValue.ShouldBe(true);
-        person.Address.Value.AddressLine1.ShouldBe(addressLine1);
-        person.Address.Value.City.ShouldBe(city);
-        person.Address.Value.PostalCode.ShouldBe(postalCode);
+        person.Address.Value.AddressLine1.Value.ShouldBe(addressLine1);
+        person.Address.Value.City.Value.ShouldBe(city);
+        person.Address.Value.PostalCode.Value.ShouldBe(postalCode);
     }
 
     [Fact]
@@ -244,11 +240,7 @@ public class ContactableShould
         var person = CreatePerson(
             phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true, 1)],
             emails: [CreateEmail("primary@example.com", true, 1)]);
-        var address = Address.Create(
-            addressLine1: addressLine1,
-            city: city,
-            state: state,
-            postalCode: postalCode).Value;
+        var address = CreateAddress(addressLine1, city, state, postalCode);
         var contactDetails = ContactDetails.Create(
             phones: person.Phones,
             emails: person.Emails,
@@ -303,6 +295,13 @@ public class ContactableShould
         SetId(email, id);
         return email;
     }
+
+    private static Address CreateAddress(string line, string city, State state, string postalCode) =>
+        Address.Create(
+            AddressLine.Create(line).Value,
+            City.Create(city).Value,
+            state,
+            PostalCode.Create(postalCode).Value).Value;
 
     private static void SetId(Entity entity, long? id)
     {

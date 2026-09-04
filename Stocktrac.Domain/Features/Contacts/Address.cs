@@ -76,6 +76,6 @@ public readonly record struct Address
 
     public string AddressFull =>
         AddressLine2.HasValue
-            ? $"{AddressLine1}, {City}, {State} {PostalCode}"
-            : $"{AddressLine1}, {AddressLine2}, {City}, {State} {PostalCode}";
+            ? $"{AddressLine1}, {AddressLine2}, {City}, {State} {PostalCode}"
+            : $"{AddressLine1}, {City}, {State} {PostalCode}";
 }
