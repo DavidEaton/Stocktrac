@@ -96,6 +96,36 @@ public abstract class Contactable : Entity, IContactable
         return Result.Success(phone);
     }
 
+    public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones)
+    {
+        var validation = ValidateContacts(
+            requestedPhones,
+            phone => phone.Number,
+            phone => phone.IsPrimary);
+
+        if (validation.IsFailure)
+            return validation;
+
+        phones.Clear();
+        phones.AddRange(requestedPhones);
+        return Result.Success();
+    }
+
+    public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails)
+    {
+        var validation = ValidateContacts(
+            requestedEmails,
+            email => email.Address,
+            email => email.IsPrimary);
+
+        if (validation.IsFailure)
+            return validation;
+
+        emails.Clear();
+        emails.AddRange(requestedEmails);
+        return Result.Success();
+    }
+
     public Result<string> SetNotes(string note) =>
         Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
 
@@ -121,130 +151,25 @@ public abstract class Contactable : Entity, IContactable
         Emails.Any(email =>
             email.IsPrimary);
 
-    public void UpdateContactDetails(ContactDetails contactDetails)
-    {
-        UpdatePhones(contactDetails?.Phones);
-        UpdateEmails(contactDetails?.Emails);
-        UpdateAddress(contactDetails?.Address);
-    }
-
-    private void UpdateAddress(Maybe<Address>? address) =>
-        Address = address ?? Maybe<Address>.None;
-
-    private void UpdatePhones(IReadOnlyList<Phone>? requestedPhones)
-    {
-        if (requestedPhones is null || requestedPhones.Count < 1)
-            return;
-
-        ValidateContactDetails(
-            contacts: requestedPhones,
-            getId: phone => phone.Id,
-            getValue: phone => phone.Number,
-            isPrimary: phone => phone.IsPrimary);
-
-        if (requestedPhones is null || requestedPhones.Count < 1)
-            return;
-
-        var toAdd = requestedPhones
-            .Where(phone => phone.Id == 0);
-
-        toAdd.ToList()
-            .ForEach(phone =>
-                AddPhoneOrThrow(phone));
-
-        var toUpdate = requestedPhones
-            .Where(phone =>
-                phones.Any(callerPhone =>
-                    callerPhone.Id == phone.Id));
-
-        toUpdate.ToList()
-            .ForEach(phone =>
-                UpdatePhone(
-                    existingPhone: phones.First(callerPhone =>
-                        callerPhone.Id == phone.Id),
-                    requestedPhone: phone));
-    }
-
-    private static void UpdatePhone(Phone existingPhone, Phone requestedPhone)
-    {
-        if (existingPhone.Number != requestedPhone.Number)
-            existingPhone.SetNumber(requestedPhone.Number);
-
-        if (existingPhone.PhoneType != requestedPhone.PhoneType)
-            existingPhone.SetPhoneType(requestedPhone.PhoneType);
-
-        if (existingPhone.IsPrimary != requestedPhone.IsPrimary)
-            existingPhone.SetIsPrimary(requestedPhone.IsPrimary);
-    }
-
-    private void AddPhoneOrThrow(Phone phone)
-    {
-        var result = AddPhone(phone);
-        if (result.IsFailure)
-            throw new Exception(result.Error);
-    }
-
-    private static void UpdateEmails(IReadOnlyList<Email>? requestedEmails)
-    {
-        if (requestedEmails is null || requestedEmails.Count < 1)
-            return;
-
-        ValidateContactDetails(
-            contacts: requestedEmails,
-            getId: email => email.Id,
-            getValue: email => email.Address,
-            isPrimary: email => email.IsPrimary);
-
-        if (requestedEmails is null || requestedEmails.Count < 1)
-            return;
-
-        var toAdd = requestedEmails
-            .Where(email => email.Id == 0);
-    }
-
-    private static void UpdateEmail(Email existingEmail, Email requestedEmail)
-    {
-        if (existingEmail.Address != requestedEmail.Address)
-            existingEmail.SetAddress(requestedEmail.Address);
-
-        if (existingEmail.IsPrimary != requestedEmail.IsPrimary)
-            existingEmail.SetIsPrimary(requestedEmail.IsPrimary);
-    }
-
-    private void AddEmailOrThrow(Email email)
-    {
-        var result = AddEmail(email);
-        if (result.IsFailure)
-            throw new Exception(result.Error);
-    }
-
-    private static void ValidateContactDetails<TContact, TValue>(
+    private static Result ValidateContacts<TContact, TValue>(
         IReadOnlyList<TContact>? contacts,
-        Func<TContact, long> getId,
         Func<TContact, TValue> getValue,
         Func<TContact, bool> isPrimary)
         where TContact : class
     {
         if (contacts is null)
-        {
-            // Log warning: "Contacts list is null. No validation performed."
-            return;
-        }
+            return Result.Failure(RequiredMessage);
 
         if (contacts.Any(contact => contact is null))
-            throw new Exception(RequiredMessage);
-
-        if (contacts.Where(contact =>
-            getId(contact) != 0)
-            .GroupBy(getId)
-            .Any(group => group.Count() > 1))
-            throw new Exception(NonuniqueMessage);
+            return Result.Failure(RequiredMessage);
 
         if (contacts.GroupBy(getValue).Any(group => group.Count() > 1))
-            throw new Exception(NonuniqueMessage);
+            return Result.Failure(NonuniqueMessage);
 
         if (contacts.Count(isPrimary) > 1)
-            throw new Exception(PrimaryExistsMessage);
+            return Result.Failure(PrimaryExistsMessage);
+
+        return Result.Success();
     }
 
     // EF requires a parameterless constructor
