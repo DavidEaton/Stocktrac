@@ -13,11 +13,12 @@ public interface IContactable
 
     Result<Phone> AddPhone(Phone phone);
     Result<Phone> RemovePhone(Phone phone);
+    Result ReplacePhones(IReadOnlyList<Phone> phones);
     Result<Email> AddEmail(Email email);
     Result<Email> RemoveEmail(Email email);
+    Result ReplaceEmails(IReadOnlyList<Email> emails);
     bool HasPhone(Phone phone);
     bool IsUniqueContactableEmail(Email email);
     bool HasPrimaryPhone();
     bool HasPrimaryEmail();
-    void UpdateContactDetails(ContactDetails contactDetails);
 }

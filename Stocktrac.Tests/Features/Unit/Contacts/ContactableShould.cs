@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Shouldly;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
@@ -111,165 +111,92 @@ public class ContactableShould
     }
 
     [Fact]
-    public void RejectDuplicateValues_On_UpdateContactDetails_WhenValuesAreDuplicated()
+    public void ReplacePhones_WhenRequestedCollectionIsValid()
     {
-        var person = CreatePerson();
-        var result = ContactDetails.Create(
-            phones:
-            [
-                CreatePhone("555-111-1111", PhoneType.Mobile, false),
-                CreatePhone("555-111-1111", PhoneType.Home, false)
-            ],
-            emails: [],
-            address: Maybe<Address>.None);
+        var person = CreatePerson(
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)]);
+        var replacements = new[]
+        {
+            CreatePhone("555-222-2222", PhoneType.Home, true),
+            CreatePhone("555-333-3333", PhoneType.Work, false)
+        };
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(Contactable.NonuniqueMessage);
-        person.Phones.ShouldBeEmpty();
+        var result = person.ReplacePhones(replacements);
+
+        result.IsSuccess.ShouldBeTrue();
+        person.Phones.ShouldBe(replacements);
     }
 
-    [Fact(Skip = "Skipping test due to known bug in UpdateContactDetails method.")]
-    public void RejectMultiplePrimaries_On_UpdateContactDetails_WhenMultiplePrimariesExist()
+    [Fact]
+    public void ReplaceEmails_WhenRequestedCollectionIsValid()
     {
-        var person = CreatePerson();
-        var contactDetails = ContactDetails.Create(
-            phones: [],
-            emails:
-            [
-                CreateEmail("first@example.com", true),
-                CreateEmail("second@example.com", true)
-            ],
-            address: Maybe<Address>.None).Value;
+        var person = CreatePerson(
+            emails: [CreateEmail("old@example.com", true)]);
+        var replacements = new[]
+        {
+            CreateEmail("primary@example.com", true),
+            CreateEmail("other@example.com", false)
+        };
 
-        var exception = Should.Throw<Exception>(() => person.UpdateContactDetails(contactDetails));
+        var result = person.ReplaceEmails(replacements);
 
-        exception.Message.ShouldBe(Contactable.PrimaryExistsMessage);
+        result.IsSuccess.ShouldBeTrue();
+        person.Emails.ShouldBe(replacements);
+    }
+
+    [Fact]
+    public void ClearContacts_WhenRequestedCollectionsAreEmpty()
+    {
+        var person = CreatePerson(
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)],
+            emails: [CreateEmail("person@example.com", true)]);
+
+        person.ReplacePhones([]).IsSuccess.ShouldBeTrue();
+        person.ReplaceEmails([]).IsSuccess.ShouldBeTrue();
+
+        person.Phones.ShouldBeEmpty();
         person.Emails.ShouldBeEmpty();
     }
 
     [Fact]
-    public void UpdatePhones_On_UpdateContactDetails_WhenPhonesAreValid()
+    public void PreservePhones_WhenReplacementContainsDuplicateNumbers()
     {
-        var originalPhonePrimary = CreatePhone(
-            number: "555-111-1111",
-            phoneType: PhoneType.Mobile,
-            isPrimary: true,
-            id: 1);
-        var originalPhoneOther = CreatePhone(
-            number: "555-222-2222",
-            phoneType: PhoneType.Home,
-            isPrimary: false,
-            id: 2);
-        var person = CreatePerson(
-            phones: [originalPhonePrimary, originalPhoneOther]);
+        var original = CreatePhone("555-111-1111", PhoneType.Mobile, true);
+        var person = CreatePerson(phones: [original]);
 
-        person.Phones.Count.ShouldBe(2);
-        person.Phones.ShouldContain(originalPhonePrimary);
+        var result = person.ReplacePhones(
+        [
+            CreatePhone("555-222-2222", PhoneType.Mobile, false),
+            CreatePhone("555-222-2222", PhoneType.Home, false)
+        ]);
 
-        originalPhonePrimary = originalPhonePrimary.SetNumber("555-333-3333").Value;
-        var newPhoneOther = CreatePhone(
-            number: "555-444-4444",
-            phoneType: PhoneType.Home,
-            isPrimary: false,
-            id: 0);
-        var contactDetails = ContactDetails.Create(
-            phones: [originalPhonePrimary, newPhoneOther],
-            emails: [],
-            address: Maybe<Address>.None).Value;
-
-        person.UpdateContactDetails(contactDetails);
-
-        person.Phones.Count.ShouldBe(3);
-        person.Phones.ShouldContain(originalPhonePrimary);
-        person.Phones.ShouldContain(newPhoneOther);
-    }
-
-    [Fact(Skip = "Skipping test due to known bug in UpdateContactDetails method.")]
-    public void UpdateEmails_On_UpdateContactDetails_WhenEmailsAreValid()
-    {
-        var existingPrimaryEmail = CreateEmail("primary@example.com", true, 1);
-        var existingEmailToRemove = CreateEmail("remove@example.com", false, 2);
-        var person = CreatePerson(emails: [existingPrimaryEmail, existingEmailToRemove]);
-        var requestedPrimaryEmail = CreateEmail("updated@example.com", false, 1);
-        var requestedNewEmail = CreateEmail("new@example.com", true);
-        var contactDetails = ContactDetails.Create(
-            phones: [],
-            emails: [requestedPrimaryEmail, requestedNewEmail],
-            address: Maybe<Address>.None).Value;
-
-        person.UpdateContactDetails(contactDetails);
-
-        person.Emails.Count.ShouldBe(2);
-        person.Emails.ShouldContain(requestedPrimaryEmail);
-        person.Emails.ShouldContain(requestedNewEmail);
+        result.Error.ShouldBe(Contactable.NonuniqueMessage);
+        person.Phones.ShouldBe([original]);
     }
 
     [Fact]
-    public void UpdateAddress_On_UpdateContactDetails_WhenAddressIsValid()
+    public void PreserveEmails_WhenReplacementContainsMultiplePrimaries()
     {
-        var addressLine1 = "123 Main St";
-        var city = "Anytown";
-        var state = State.NY;
-        var postalCode = "12345";
-        var person = CreatePerson(
-            phones: [],
-            emails: []);
-        var address = CreateAddress(addressLine1, city, state, postalCode);
-        var contactDetails = ContactDetails.Create(
-            phones: [],
-            emails: [],
-            address: address).Value;
+        var original = CreateEmail("original@example.com", true);
+        var person = CreatePerson(emails: [original]);
 
-        person.UpdateContactDetails(contactDetails);
+        var result = person.ReplaceEmails(
+        [
+            CreateEmail("first@example.com", true),
+            CreateEmail("second@example.com", true)
+        ]);
 
-        person.Address.ShouldNotBe(Maybe<Address>.None);
-        person.Address.HasValue.ShouldBe(true);
-        person.Address.Value.AddressLine1.Value.ShouldBe(addressLine1);
-        person.Address.Value.City.Value.ShouldBe(city);
-        person.Address.Value.PostalCode.Value.ShouldBe(postalCode);
+        result.Error.ShouldBe(Contactable.PrimaryExistsMessage);
+        person.Emails.ShouldBe([original]);
     }
 
     [Fact]
-    public void PreserveContactDetails_On_UpdateContactDetails_WhenContactDetailsAreEmpty()
+    public void RejectNullReplacementCollections()
     {
-        var addressLine1 = "123 Main St";
-        var city = "Anytown";
-        var state = State.NY;
-        var postalCode = "12345";
-        var person = CreatePerson(
-            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true, 1)],
-            emails: [CreateEmail("primary@example.com", true, 1)]);
-        var address = CreateAddress(addressLine1, city, state, postalCode);
-        var contactDetails = ContactDetails.Create(
-            phones: person.Phones,
-            emails: person.Emails,
-            address: address).Value;
+        var person = CreatePerson();
 
-        person.UpdateContactDetails(contactDetails);
-
-        var phonesCount = person.Phones.Count;
-        var emailsCount = person.Emails.Count;
-        var addressValue = person.Address.Value;
-
-        phonesCount.ShouldBeGreaterThan(0);
-        emailsCount.ShouldBeGreaterThan(0);
-        addressValue.ShouldBe(address);
-
-        var emptyContactDetails = ContactDetails.Create(
-            phones: [],
-            emails: [],
-            address: Maybe<Address>.None).Value;
-        person?.UpdateContactDetails(emptyContactDetails);
-
-        var personContactDetails = ContactDetails.Create(
-            phones: person?.Phones,
-            emails: person?.Emails,
-            address: person?.Address).Value;
-
-        // personContactDetails.ShouldBe(contactDetails);
-        personContactDetails?.Phones?.Count.ShouldBe(phonesCount);
-        personContactDetails?.Emails?.Count.ShouldBe(emailsCount);
-        personContactDetails?.Address.ShouldBe(Maybe<Address>.None);
+        person.ReplacePhones(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.ReplaceEmails(null!).Error.ShouldBe(Contactable.RequiredMessage);
     }
 
     private static Person CreatePerson(

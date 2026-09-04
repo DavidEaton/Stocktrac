@@ -8,9 +8,8 @@ branches in those classes: normalization, exact validation failures, mutation
 atomicity, collection invariants, boundary values, every arithmetic operation,
 overflow propagation, culture-independent formatting, and credit-card setters.
 
-`UpdateContactDetails_WithValidEmails_ReturnsSuccess` remains skipped because
-`Contactable.UpdateEmails` identifies new emails but does not add or update them.
-The skipped test should be enabled when that production defect is fixed.
+Phone and email replacement is covered as aggregate behavior on `Person`, including
+successful replacement, clearing, validation failures, and mutation atomicity.
 
 ## Recommended next test classes
 
@@ -18,7 +17,7 @@ The domain contains many public behaviors with no dedicated tests yet. Add these
 in small, feature-focused changes, in the following order.
 
 1. **Contact primitives:** `Phone`, `Address`, `DateTimeRange`, `DriversLicense`,
-   `BusinessName`, and `ContactDetails`. Cover null/blank input, trimming, every
+   and `BusinessName`. Cover null/blank input, trimming, every
    minimum and maximum boundary, invalid enum values, equality, formatting, and
    the guarantee that a failed `New...`/setter call leaves the original unchanged.
 2. **People and identity:** `PersonName`, `Person`, and `SSN`. Include today and
