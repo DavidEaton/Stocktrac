@@ -16,11 +16,8 @@ public class Email : Entity, IHasPrimary
     public string Address { get; private set; }
     public bool IsPrimary { get; private set; } = true;
 
-    private Email(string address, bool isPrimary)
-    {
-        Address = address;
-        IsPrimary = isPrimary;
-    }
+    private Email(string address, bool isPrimary) =>
+        (Address, IsPrimary) = (address, isPrimary);
 
     public static Result<Email> Create(string address, bool isPrimary) =>
         Result.Success(address?.Trim() ?? string.Empty)

@@ -11,11 +11,8 @@ public class DateTimeRange : ValueObject
     public DateTime Start { get; private set; } = DateTime.Today;
     public DateTime End { get; private set; } = DateTime.MaxValue;
 
-    private DateTimeRange(DateTime start, DateTime end)
-    {
-        Start = start;
-        End = end;
-    }
+    private DateTimeRange(DateTime start, DateTime end) =>
+        (Start, End) = (start, end);
 
     public static Result<DateTimeRange> Create(DateTime start, DateTime end) =>
         start >= end

@@ -12,11 +12,8 @@ public readonly record struct Money
     public Amount Amount { get; }
     public CurrencyCode CurrencyCode { get; }
 
-    private Money(Amount amount, CurrencyCode currencyCode)
-    {
-        Amount = amount;
-        CurrencyCode = currencyCode;
-    }
+    private Money(Amount amount, CurrencyCode currencyCode) =>
+        (Amount, CurrencyCode) = (amount, currencyCode);
 
     public static Money Create(Amount amount, CurrencyCode currencyCode) =>
         new(amount, currencyCode);

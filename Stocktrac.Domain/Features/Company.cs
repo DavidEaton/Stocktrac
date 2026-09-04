@@ -14,11 +14,8 @@ public class Company : Entity
 
     public Business Business { get; private set; }
     public long NextInvoiceNumberOrSeed { get; private set; } = 0;
-    private Company(Business business, long invoiceNumberSeed)
-    {
-        Business = business;
-        NextInvoiceNumberOrSeed = invoiceNumberSeed;
-    }
+    private Company(Business business, long invoiceNumberSeed) =>
+        (Business, NextInvoiceNumberOrSeed) = (business, invoiceNumberSeed);
 
     public static Result<Company> Create(Business business, long seed)
     {
