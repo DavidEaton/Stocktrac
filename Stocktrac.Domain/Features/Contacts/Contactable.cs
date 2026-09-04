@@ -100,9 +100,7 @@ public abstract class Contactable : Entity, IContactable
         Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
 
     public Result SetAddress(Address address) =>
-        address is null
-            ? Result.Failure<Address>(RequiredMessage)
-            : Result.Success(Address = address);
+        Result.Success(Address = address);
 
     public Result ClearAddress() =>
         Result.Success(Address = Maybe<Address>.None);

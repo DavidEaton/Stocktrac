@@ -6,9 +6,9 @@ public readonly record struct Address
 {
     public static readonly string AddressRequiredMessage = $"Address is required";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
-    public static Maybe<Address> Default => Maybe<Address>.None;
     public AddressLine AddressLine1 { get; }
     public AddressLine? AddressLine2 { get; }
+    public static Maybe<Address> Default => Maybe<Address>.None;
     public City City { get; }
     public State State { get; }
     public PostalCode PostalCode { get; }

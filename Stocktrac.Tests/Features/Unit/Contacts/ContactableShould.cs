@@ -105,7 +105,6 @@ public class ContactableShould
 
         person.SetAddress(address).IsSuccess.ShouldBe(true);
         person.Address.ShouldBe(address);
-        person.SetAddress(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.Address.ShouldBe(address);
         person.ClearAddress().IsSuccess.ShouldBe(true);
         person.Address.HasValue.ShouldBe(false);
@@ -223,7 +222,7 @@ public class ContactableShould
 
         person.UpdateContactDetails(contactDetails);
 
-        person.Address.ShouldNotBe(null);
+        person.Address.ShouldNotBe(Maybe<Address>.None);
         person.Address.HasValue.ShouldBe(true);
         person.Address.Value.AddressLine1.Value.ShouldBe(addressLine1);
         person.Address.Value.City.Value.ShouldBe(city);

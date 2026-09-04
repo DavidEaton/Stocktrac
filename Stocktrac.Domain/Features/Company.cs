@@ -38,7 +38,7 @@ public class Company : Entity
     // EF requires a parameterless constructor
     private Company() =>
         Business = Business.Create(
-            BusinessName.Create("Business Name")
-                .Value)
+            BusinessName.Create("Business Name").Value,
+            Maybe<Address>.None)
             .Value;
 }

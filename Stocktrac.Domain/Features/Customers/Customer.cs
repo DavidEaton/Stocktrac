@@ -184,7 +184,7 @@ public class Customer : Entity
             birthday: Birthday.Create(DateTime.Today).Value,
             emails: null,
             phones: null,
-            address: null).Value;
+            address: Maybe<Address>.None).Value;
         ContactPreferences = ContactPreferences.Create(
             allowMail: true,
             allowEmail: true,

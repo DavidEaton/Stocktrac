@@ -17,9 +17,9 @@ public class Business : Contactable, ICustomerEntity
 
     private Business(
         BusinessName name,
+        Maybe<Address> address,
         string? notes = null,
         Person? contact = null,
-        Address? address = null,
         IReadOnlyList<Phone>? phones = null,
         IReadOnlyList<Email>? emails = null)
         : base(
@@ -34,9 +34,9 @@ public class Business : Contactable, ICustomerEntity
 
     public static Result<Business> Create(
         BusinessName name,
+        Maybe<Address> address,
         string? notes = null,
         Person? contact = null,
-        Address? address = null,
         IReadOnlyList<Email>? emails = null,
         IReadOnlyList<Phone>? phones = null)
     {
@@ -53,13 +53,7 @@ public class Business : Contactable, ICustomerEntity
         notes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
 
         return Result.Success(
-            new Business(
-                name,
-                notes,
-                contact,
-                address,
-                phones,
-                emails));
+            new Business(name, address, notes, contact, phones, emails));
     }
 
     // BusinessName has already been validated; no need to validate
