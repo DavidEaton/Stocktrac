@@ -11,11 +11,8 @@ namespace Stocktrac.Domain.Features.Employees
         public bool IsActive =>
             DateTime.Today.InRange(PeriodAssigned);
 
-        private RoleAssignment(EmploymentRole role, DateTimeRange periodAssigned)
-        {
-            Role = role;
-            PeriodAssigned = periodAssigned;
-        }
+        private RoleAssignment(EmploymentRole role, DateTimeRange periodAssigned) =>
+            (Role, PeriodAssigned) = (role, periodAssigned);
 
         public static Result<RoleAssignment> Create(EmploymentRole role, DateTimeRange periodAssigned) =>
             !Enum.IsDefined(role) || periodAssigned is null

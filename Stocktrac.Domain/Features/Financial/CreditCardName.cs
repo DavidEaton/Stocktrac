@@ -12,10 +12,8 @@ public readonly record struct CreditCardName
     public static readonly string InvalidLengthMessage =
         $"Value must be between {MinimumLength} and {MaximumLength} characters.";
     public string Value { get; init; }
-    private CreditCardName(string value)
-    {
+    private CreditCardName(string value) =>
         Value = value;
-    }
 
     public static Result<CreditCardName> Create(string? name) =>
         Result.Success(name?.Trim() ?? string.Empty)

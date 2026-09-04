@@ -11,10 +11,8 @@ public class BusinessName : ValueObject
 
     public string Name { get; private set; }
 
-    private BusinessName(string name)
-    {
+    private BusinessName(string name) =>
         Name = name;
-    }
 
     public static Result<BusinessName> Create(string name) =>
         CreateNormalized(name);
