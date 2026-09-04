@@ -49,14 +49,32 @@ public class DriversLicenseNumberShould
         result.Value.Number.ShouldBe("Ab 12-cD");
     }
 
-    [Fact]
-    public void ApplySameValidation_On_NewNumber_WhenNumberIsProvided()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ReturnRequiredError_On_NewNumber_WhenNumberIsBlank(string? number)
     {
-        DriversLicenseNumber.NewNumber(null!).Error.ShouldBe(DriversLicenseNumber.RequiredMessage);
-        DriversLicenseNumber.NewNumber("   ").Error.ShouldBe(DriversLicenseNumber.RequiredMessage);
-        DriversLicenseNumber.NewNumber("ab").Error.ShouldBe(DriversLicenseNumber.InvalidLengthMessage);
-        DriversLicenseNumber.NewNumber(new string('x', 256)).Error
-            .ShouldBe(DriversLicenseNumber.InvalidLengthMessage);
+        var result = DriversLicenseNumber.NewNumber(number!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicenseNumber.RequiredMessage);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(256)]
+    public void ReturnLengthError_On_NewNumber_WhenTrimmedNumberIsOutsideBounds(int length)
+    {
+        var result = DriversLicenseNumber.NewNumber($"  {new string('x', length)}  ");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicenseNumber.InvalidLengthMessage);
+    }
+
+    [Fact]
+    public void PreserveTrimmedNumber_On_NewNumber_WhenNumberIsValid()
+    {
         DriversLicenseNumber.NewNumber("  A123  ").Value.Number.ShouldBe("A123");
     }
 
@@ -72,5 +90,15 @@ public class DriversLicenseNumberShould
         (first == second).ShouldBeTrue();
         first.ShouldNotBe(different);
         (first != different).ShouldBeTrue();
+        default(DriversLicenseNumber).Number.ShouldBeNull();
+    }
+
+    [Fact]
+    public void ExposeValidationContractConstants()
+    {
+        DriversLicenseNumber.MinimumLength.ShouldBe(3);
+        DriversLicenseNumber.MaximumLength.ShouldBe(255);
+        DriversLicenseNumber.RequiredMessage.ShouldBe("Drivers License Number is required.");
+        DriversLicenseNumber.InvalidLengthMessage.ShouldBe("Value must be between 3 and 255 characters.");
     }
 }

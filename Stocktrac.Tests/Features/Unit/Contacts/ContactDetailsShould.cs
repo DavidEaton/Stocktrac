@@ -22,7 +22,11 @@ public class ContactDetailsShould
     {
         var phone = Phone.Create("555-123-4567", PhoneType.Mobile, true).Value;
         var email = Email.Create("person@example.com", true).Value;
-        var address = Address.Create("123 Main", "City", State.AL, "12345").Value;
+        var address = Address.Create(
+            AddressLine.Create("123 Main").Value,
+            City.Create("City").Value,
+            State.AL,
+            PostalCode.Create("12345").Value).Value;
 
         var details = ContactDetails.Create([phone], [email], Maybe<Address>.From(address)).Value;
 

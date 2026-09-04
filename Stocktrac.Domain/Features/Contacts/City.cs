@@ -20,5 +20,8 @@ namespace Stocktrac.Domain.Features.Contacts
                     value => value.Length is >= MinimumLength and <= MaximumLength,
                     InvalidLengthMessage)
                 .Map(value => new City(value));
+
+        public override string ToString() =>
+            Value ?? string.Empty;
     }
 }
