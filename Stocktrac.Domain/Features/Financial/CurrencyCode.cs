@@ -31,8 +31,10 @@ public readonly record struct CurrencyCode
     public static Result<CurrencyCode> Create(string? code) =>
         Result.Success(NormalizeCode(code))
             .Ensure(
-                value => value.Length == CodeLength &&
-                         value.All(char.IsAsciiLetter),
+                value => value.Length == CodeLength,
+                InvalidMessage)
+            .Ensure(
+                value => value.All(char.IsAsciiLetter),
                 InvalidMessage)
             .Ensure(
                 Iso4217CountryCurrencyCodes.Contains,

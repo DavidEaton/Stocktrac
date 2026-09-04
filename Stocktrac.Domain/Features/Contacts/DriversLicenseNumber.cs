@@ -6,8 +6,7 @@ namespace Stocktrac.Domain.Features.Contacts
     {
         public const int MinimumLength = 3;
         public const int MaximumLength = 255;
-        public static readonly string InvalidLengthMessage =
-            $"Value must be between {MinimumLength} and {MaximumLength} characters.";
+        public static readonly string InvalidLengthMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
         public static readonly string RequiredMessage = $"Drivers License Number is required.";
 
         public string? Number { get; }
