@@ -31,7 +31,7 @@ public abstract class Contactable : Entity, IContactable
             .Trim()
             .Truncate(NoteMaximumLength);
 
-        SetAddress(address.GetValueOrDefault()!);
+        Address = address;
 
         if (phones is not null)
             foreach (var phone in phones)
