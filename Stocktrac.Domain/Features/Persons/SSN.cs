@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public sealed class SSN : ValueObject
+public readonly record struct SSN
 {
     private const int AreaNumberLength = 3;
     private const int GroupNumberLength = 2;
@@ -56,11 +56,6 @@ public sealed class SSN : ValueObject
 
     public override string ToString() => Masked;
 
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
-    }
-
     private static bool IsFormatted(string value)
     {
         return value[FirstHyphenIndex] == '-' &&
@@ -69,11 +64,5 @@ public sealed class SSN : ValueObject
                        index != FirstHyphenIndex &&
                        index != SecondHyphenIndex)
                     .All(char.IsAsciiDigit);
-    }
-
-    // EF requires an empty constructor
-    private SSN()
-    {
-        Value = string.Empty;
     }
 }

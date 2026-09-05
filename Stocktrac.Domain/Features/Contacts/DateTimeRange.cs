@@ -2,14 +2,14 @@
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class DateTimeRange : ValueObject
+public readonly record struct DateTimeRange
 {
     public static readonly string RequiredMessage = $"Please include all required items.";
     public static readonly string EndBeforeStartMessage = "End date cannot occur before Start date";
     public static readonly string DateCalculationMessage = "The requested date range is outside the supported range.";
 
-    public DateTime Start { get; private set; } = DateTime.Today;
-    public DateTime End { get; private set; } = DateTime.MaxValue;
+    public DateTime Start { get; } = DateTime.Today;
+    public DateTime End { get; } = DateTime.MaxValue;
 
     private DateTimeRange(DateTime start, DateTime end) =>
         (Start, End) = (start, end);
@@ -74,13 +74,4 @@ public class DateTimeRange : ValueObject
             return Result.Failure<DateTimeRange>(DateCalculationMessage);
         }
     }
-
-    protected override IEnumerable<IComparable> GetEqualityComponents()
-    {
-        yield return End;
-        yield return Start;
-    }
-
-    // EF requires an empty constructor
-    protected DateTimeRange() { }
 }

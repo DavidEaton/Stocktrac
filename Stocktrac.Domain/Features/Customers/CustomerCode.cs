@@ -2,11 +2,11 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Customers;
 
-public class CustomerCode : ValueObject
+public readonly record struct CustomerCode
 {
     public static readonly int MaximumLength = 20;
     public static readonly string InvalidLengthMessage = $"Code must be {MaximumLength} characters or less.";
-    public string Value { get; private set; }
+    public string Value { get; }
 
     private CustomerCode(string value) =>
         Value = value;
@@ -17,13 +17,4 @@ public class CustomerCode : ValueObject
                 code => code.Length <= MaximumLength,
                 InvalidLengthMessage)
             .Map(code => new CustomerCode(code));
-
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
-    }
-
-    // EF requires an empty constructor
-    private CustomerCode() =>
-        Value = string.Empty;
 }

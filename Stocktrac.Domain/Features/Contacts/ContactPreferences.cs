@@ -2,11 +2,11 @@
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class ContactPreferences : ValueObject
+public readonly record struct ContactPreferences
 {
-    public bool AllowMail { get; private set; }
-    public bool AllowEmail { get; private set; }
-    public bool AllowSms { get; private set; }
+    public bool AllowMail { get; }
+    public bool AllowEmail { get; }
+    public bool AllowSms { get; }
 
     private ContactPreferences(bool allowMail, bool allowEmail, bool allowSms)
     {
@@ -26,11 +26,4 @@ public class ContactPreferences : ValueObject
 
     public Result<ContactPreferences> NewAllowSms(bool allowSms) =>
         Result.Success(new ContactPreferences(AllowMail, AllowEmail, allowSms));
-
-    protected override IEnumerable<IComparable> GetEqualityComponents()
-    {
-        yield return AllowMail;
-        yield return AllowEmail;
-        yield return AllowSms;
-    }
 }
