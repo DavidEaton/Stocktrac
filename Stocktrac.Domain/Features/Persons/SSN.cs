@@ -29,27 +29,20 @@ public sealed class SSN : ValueObject
     // Static SSN.None instance to represent a non-existent SSN
     public static readonly SSN None = new(string.Empty);
 
-    public static Result<SSN> Create(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return Result.Failure<SSN>(RequiredMessage);
+    public static Result<SSN> Create(string? value) =>
+        Result.Success(value?.Trim() ?? string.Empty)
+            .Ensure(normalized => !string.IsNullOrWhiteSpace(normalized), RequiredMessage)
+            .Map(Normalize)
+            .Ensure(normalized => normalized is not null, InvalidFormatMessage)
+            .Map(normalized => new SSN(normalized!));
 
-        value = value?.Trim() ?? string.Empty;
-        var normalized = value.Length switch
+    private static string? Normalize(string value) =>
+        value.Length switch
         {
-            NormalizedLength when value.All(char.IsAsciiDigit) =>
-                value,
-
-            FormattedLength when IsFormatted(value) =>
-                value.Replace("-", string.Empty),
-
+            NormalizedLength when value.All(char.IsAsciiDigit) => value,
+            FormattedLength when IsFormatted(value) => value.Replace("-", string.Empty),
             _ => null
         };
-
-        return normalized is null
-            ? Result.Failure<SSN>(InvalidFormatMessage)
-            : Result.Success(new SSN(normalized));
-    }
 
     public string ToFormattedString()
     {

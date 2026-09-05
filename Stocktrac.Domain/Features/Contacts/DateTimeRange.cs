@@ -15,9 +15,9 @@ public class DateTimeRange : ValueObject
         (Start, End) = (start, end);
 
     public static Result<DateTimeRange> Create(DateTime start, DateTime end) =>
-        start >= end
-            ? Result.Failure<DateTimeRange>(EndBeforeStartMessage)
-            : Result.Success(new DateTimeRange(start, end));
+        Result.Success((Start: start, End: end))
+            .Ensure(values => values.Start < values.End, EndBeforeStartMessage)
+            .Map(values => new DateTimeRange(values.Start, values.End));
 
     public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
         CalculateEnd(start, () => start.Add(duration));

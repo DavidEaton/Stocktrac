@@ -70,54 +70,43 @@ public class Vehicle : Entity
         string color,
         bool active = true,
         bool nonTraditionalVehicle = false)
-    {
-        make = (make ?? string.Empty).Trim();
-        model = (model ?? string.Empty).Trim();
-        plate = (plate ?? string.Empty).Trim();
-        unitNumber = (unitNumber ?? string.Empty).Trim();
-        color = (color ?? string.Empty).Trim();
-
-        var vinResult = ValidateVin(vin, nonTraditionalVehicle);
-        if (vinResult.IsFailure)
-            return Result.Failure<Vehicle>(vinResult.Error);
-
-        var makeModelResult = ValidateMakeModel(make, model, nonTraditionalVehicle);
-        if (makeModelResult.IsFailure)
-            return Result.Failure<Vehicle>(makeModelResult.Error);
-
-        var yearResult = ValidateYear(year);
-        if (yearResult.IsFailure)
-            return Result.Failure<Vehicle>(yearResult.Error);
-
-        var plateResult = ValidatePlate(plate);
-        if (plateResult.IsFailure)
-            return Result.Failure<Vehicle>(plateResult.Error);
-
-        var plateStateProvinceResult = ValidatePlateStateProvince(plateStateProvince);
-        if (plateStateProvinceResult.IsFailure)
-            return Result.Failure<Vehicle>(plateStateProvinceResult.Error);
-
-        var unitNumberResult = ValidateUnitNumber(unitNumber);
-        if (unitNumberResult.IsFailure)
-            return Result.Failure<Vehicle>(unitNumberResult.Error);
-
-        var colorResult = ValidateColor(color);
-        if (colorResult.IsFailure)
-            return Result.Failure<Vehicle>(colorResult.Error);
-
-        return Result.Success(
-            new Vehicle(
-                vin: vin,
+        => Result.Success((
+                Vin: vin,
+                Make: (make ?? string.Empty).Trim(),
+                Model: (model ?? string.Empty).Trim(),
+                Plate: (plate ?? string.Empty).Trim(),
+                UnitNumber: (unitNumber ?? string.Empty).Trim(),
+                Color: (color ?? string.Empty).Trim()))
+            .Ensure(values => ValidateVin(values.Vin, nonTraditionalVehicle).IsSuccess, InvalidVinMessage)
+            .Ensure(
+                values => ValidateMakeModel(values.Make, values.Model, nonTraditionalVehicle).IsSuccess,
+                nonTraditionalVehicle
+                    ? NonTraditionalVehicleInvalidMakeModelMessage
+                    : InvalidLengthMessage)
+            .Ensure(_ => ValidateYear(year).IsSuccess, InvalidYearMessage)
+            .Ensure(
+                values => ValidatePlate(values.Plate).IsSuccess,
+                InvalidMaximumLengthMessage(MaximumPlateLength))
+            .Ensure(
+                _ => ValidatePlateStateProvince(plateStateProvince).IsSuccess,
+                InvalidPlateStateProvinceMessage)
+            .Ensure(
+                values => ValidateUnitNumber(values.UnitNumber).IsSuccess,
+                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
+            .Ensure(
+                values => ValidateColor(values.Color).IsSuccess,
+                InvalidMaximumLengthMessage(MaximumColorLength))
+            .Map(values => new Vehicle(
+                vin: values.Vin,
                 year: year,
-                make: make,
-                model: model,
+                make: values.Make,
+                model: values.Model,
                 nonTraditionalVehicle: nonTraditionalVehicle,
-                plate: plate,
+                plate: values.Plate,
                 plateStateProvince: plateStateProvince,
-                unitNumber: unitNumber,
-                color: color,
+                unitNumber: values.UnitNumber,
+                color: values.Color,
                 active: active));
-    }
 
     private static Result ValidateMakeModel(string make, string model, bool nonTraditionalVehicle)
     {

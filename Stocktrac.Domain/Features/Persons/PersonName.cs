@@ -20,25 +20,22 @@ public class PersonName : ValueObject
     public string FirstName { get; }
     public string? MiddleName { get; }
 
-    public static Result<PersonName> Create(string lastName, string firstName, string? middleName = null)
-    {
-        if (string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(firstName))
-            return Result.Failure<PersonName>(RequiredMessage);
-
-        lastName = (lastName ?? string.Empty).Trim();
-        firstName = (firstName ?? string.Empty).Trim();
-        middleName = middleName is null || middleName == string.Empty ? null : middleName.Trim();
-
-        if (lastName.Length < MinimumLength ||
-            lastName.Length > MaximumLength ||
-            firstName.Length > MaximumLength ||
-            firstName.Length > MaximumLength ||
-            middleName?.Length > MaximumLength ||
-            middleName?.Length > MaximumLength)
-            return Result.Failure<PersonName>(InvalidLengthMessage);
-
-        return Result.Success(new PersonName(lastName, firstName, middleName));
-    }
+    public static Result<PersonName> Create(string lastName, string firstName, string? middleName = null) =>
+        Result.Success((
+                LastName: lastName?.Trim() ?? string.Empty,
+                FirstName: firstName?.Trim() ?? string.Empty,
+                MiddleName: string.IsNullOrEmpty(middleName) ? null : middleName.Trim()))
+            .Ensure(
+                values => !string.IsNullOrWhiteSpace(values.LastName) &&
+                          !string.IsNullOrWhiteSpace(values.FirstName),
+                RequiredMessage)
+            .Ensure(
+                values => values.LastName.Length is >= MinimumLength and <= MaximumLength &&
+                          values.FirstName.Length is >= MinimumLength and <= MaximumLength &&
+                          (values.MiddleName is null ||
+                           values.MiddleName.Length is >= MinimumLength and <= MaximumLength),
+                InvalidLengthMessage)
+            .Map(values => new PersonName(values.LastName, values.FirstName, values.MiddleName));
 
     public Result<PersonName> NewLastName(string newLastName)
     {

@@ -21,20 +21,11 @@ public class Phone : Entity, IHasPrimary
         IsPrimary = isPrimary;
     }
 
-    public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary)
-    {
-        if (!Enum.IsDefined(phoneType))
-            return Result.Failure<Phone>(PhoneTypeInvalidMessage);
-
-        number = (number ?? string.Empty).Trim();
-
-        var phoneAttribute = new PhoneAttribute();
-
-        if (!phoneAttribute.IsValid(number))
-            return Result.Failure<Phone>(InvalidMessage);
-
-        return Result.Success(new Phone(number, phoneType, isPrimary));
-    }
+    public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary) =>
+        Result.Success((Number: number?.Trim() ?? string.Empty, PhoneType: phoneType))
+            .Ensure(values => Enum.IsDefined(values.PhoneType), PhoneTypeInvalidMessage)
+            .Ensure(values => new PhoneAttribute().IsValid(values.Number), InvalidMessage)
+            .Map(values => new Phone(values.Number, values.PhoneType, isPrimary));
 
     public override string ToString()
     {

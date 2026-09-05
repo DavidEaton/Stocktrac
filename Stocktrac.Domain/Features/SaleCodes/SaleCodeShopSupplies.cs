@@ -38,21 +38,20 @@ namespace Stocktrac.Domain.Features.SaleCodes
             double maximumCharge,
             bool includeParts,
             bool includeLabor)
-        {
-            if (percentage < MinimumValue)
-                return Result.Failure<SaleCodeShopSupplies>(MinimumValueMessage);
-
-            if (minimumJobAmount < MinimumValue)
-                return Result.Failure<SaleCodeShopSupplies>(MinimumValueMessage);
-
-            if (minimumCharge < MinimumValue)
-                return Result.Failure<SaleCodeShopSupplies>(MinimumValueMessage);
-
-            if (maximumCharge < MinimumValue)
-                return Result.Failure<SaleCodeShopSupplies>(MinimumValueMessage);
-
-            return Result.Success(new SaleCodeShopSupplies(percentage, minimumJobAmount, minimumCharge, maximumCharge, includeParts, includeLabor));
-        }
+        => Result.Success((percentage, minimumJobAmount, minimumCharge, maximumCharge))
+            .Ensure(
+                values => values.percentage >= MinimumValue &&
+                          values.minimumJobAmount >= MinimumValue &&
+                          values.minimumCharge >= MinimumValue &&
+                          values.maximumCharge >= MinimumValue,
+                MinimumValueMessage)
+            .Map(values => new SaleCodeShopSupplies(
+                values.percentage,
+                values.minimumJobAmount,
+                values.minimumCharge,
+                values.maximumCharge,
+                includeParts,
+                includeLabor));
 
         public Result<double> SetPercentage(double percentage) =>
             percentage < MinimumValue
