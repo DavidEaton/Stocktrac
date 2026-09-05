@@ -14,12 +14,12 @@ public class Customer : Entity
     public static readonly string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
 
     public CustomerType CustomerType { get; private set; }
-    public CustomerCode? Code { get; private set; }
+    public Maybe<CustomerCode> Code { get; private set; }
     public ContactPreferences ContactPreferences { get; private set; }
     public ICustomerEntity CustomerEntity { get; private set; }
     public EntityType EntityType => CustomerEntity.EntityType;
-    public string? Name => CustomerEntity?.ToString();
-    public string? Notes => CustomerEntity?.Notes;
+    public string Name => CustomerEntity.ToString() ?? string.Empty;
+    public Maybe<string> Notes => CustomerEntity.Notes;
     public Maybe<Address> Address => CustomerEntity.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
@@ -29,7 +29,7 @@ public class Customer : Entity
     private Customer(
         ICustomerEntity entity,
         CustomerType customerType,
-        CustomerCode? code,
+        Maybe<CustomerCode> code,
         ContactPreferences contactPreferences)
     {
         CustomerEntity = entity;
@@ -43,7 +43,10 @@ public class Customer : Entity
             .Ensure(values => values.Entity is not null, RequiredMessage)
             .Ensure(values => Enum.IsDefined(values.CustomerType), UnknownCustomerTypeMessage)
             .Bind(values => ContactPreferences.Create(true, true, true)
-                .Map(preferences => new Customer(values.Entity, values.CustomerType, code, preferences)));
+                .Map(preferences => new Customer(values.Entity, values.CustomerType, ToMaybe(code), preferences)));
+
+    private static Maybe<CustomerCode> ToMaybe(CustomerCode? code) =>
+        code.HasValue ? code.Value : Maybe<CustomerCode>.None;
 
     public Result SetAddress(Address address) =>
         CustomerEntity switch
@@ -137,8 +140,8 @@ public class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result<CustomerCode?> SetCode(CustomerCode? code) =>
-        Result.Success(Code = code);
+    public Result<Maybe<CustomerCode>> SetCode(CustomerCode? code) =>
+        Result.Success(Code = ToMaybe(code));
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {

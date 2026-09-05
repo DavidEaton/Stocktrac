@@ -11,7 +11,7 @@ public class Business : Contactable, ICustomerEntity
     public static readonly string InvalidMessage = $"Invalid business.";
 
     public BusinessName Name { get; private set; }
-    public Person? Contact { get; private set; }
+    public Maybe<Person> Contact { get; private set; }
     public override string ToString() => Name.Name;
     public EntityType EntityType => EntityType.Business;
 
@@ -19,7 +19,7 @@ public class Business : Contactable, ICustomerEntity
         BusinessName name,
         Maybe<Address> address,
         string? notes = null,
-        Person? contact = null,
+        Maybe<Person> contact = default,
         IReadOnlyList<Phone>? phones = null,
         IReadOnlyList<Email>? emails = null)
         : base(notes, address, phones, emails)
@@ -43,12 +43,13 @@ public class Business : Contactable, ICustomerEntity
         // Only the primitive type (vs. ValueObject type) Notes property is
         // transformed and validated (parsed) here in the domain class that
         // creates it.
-        var normalizedNotes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
-
         return Result.Success(name)
             .Map(validName => new Business(
-                validName, address, normalizedNotes, contact, phones, emails));
+                validName, address, notes, ToMaybe(contact), phones, emails));
     }
+
+    private static Maybe<Person> ToMaybe(Person? contact) =>
+        contact is null ? Maybe<Person>.None : contact;
 
     // BusinessName has already been validated; no need to validate
     public void SetName(BusinessName name) =>

@@ -13,7 +13,7 @@ public abstract class Contactable : Entity, IContactable
     public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
     public static readonly string InvalidValueMessage = "Invalid value";
     public static readonly string NotFoundMessage = "Entry not found";
-    public string? Notes { get; private set; }
+    public Maybe<string> Notes { get; private set; }
     public Maybe<Address> Address { get; private set; }
 
     private readonly List<Phone> phones = [];
@@ -27,9 +27,7 @@ public abstract class Contactable : Entity, IContactable
         IReadOnlyList<Phone>? phones,
         IReadOnlyList<Email>? emails)
     {
-        Notes = notes?
-            .Trim()
-            .Truncate(NoteMaximumLength);
+        Notes = NormalizeNotes(notes);
 
         Address = address;
 
@@ -126,8 +124,13 @@ public abstract class Contactable : Entity, IContactable
         return Result.Success();
     }
 
-    public Result<string> SetNotes(string note) =>
-        Result.Success(Notes = note.Trim().Truncate(NoteMaximumLength));
+    public Result<Maybe<string>> SetNotes(string note) =>
+        Result.Success(Notes = NormalizeNotes(note));
+
+    private static Maybe<string> NormalizeNotes(string? notes) =>
+        string.IsNullOrWhiteSpace(notes)
+            ? Maybe<string>.None
+            : notes.Trim().Truncate(NoteMaximumLength);
 
     public Result SetAddress(Address address) =>
         Result.Success(Address = address);

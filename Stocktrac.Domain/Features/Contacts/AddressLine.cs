@@ -8,7 +8,7 @@ namespace Stocktrac.Domain.Features.Contacts
         public const int MaximumLength = 255;
         public static readonly string InvalidLengthMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
         public static readonly string RequiredMessage = "Address Line is required.";
-        public string? Value { get; }
+        public string Value { get; }
 
         private AddressLine(string value) =>
             Value = value;
