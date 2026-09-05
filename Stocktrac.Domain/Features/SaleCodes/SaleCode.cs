@@ -46,43 +46,29 @@ namespace Stocktrac.Domain.Features.SaleCodes
             double desiredMargin,
             SaleCodeShopSupplies shopSupplies,
             IReadOnlyList<string> saleCodes)
-        {
-            name = name?.Trim() ?? string.Empty;
-            code = code?.Trim().ToUpperInvariant() ?? string.Empty;
-
-            if (name.Length < MinimumLength || name.Length > NameMaximumLength)
-                return Result.Failure<SaleCode>(
-                    InvalidLengthMessage(MinimumLength, NameMaximumLength));
-
-            if (code.Length < MinimumLength || code.Length > CodeMaximumLength)
-                return Result.Failure<SaleCode>(
-                    InvalidLengthMessage(MinimumLength, CodeMaximumLength));
-
-            if
-                (laborRate < MinimumValue)
-                return Result.Failure<SaleCode>(MinimumValueMessage);
-
-            if (desiredMargin < MinimumValue ||
-                desiredMargin > MaximumDesiredMarginValue)
-            {
-                return Result.Failure<SaleCode>(
-                    InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue));
-            }
-
-            if (shopSupplies is null)
-                return Result.Failure<SaleCode>(RequiredMessage);
-
-            if (saleCodes.Contains(code, StringComparer.OrdinalIgnoreCase))
-                return Result.Failure<SaleCode>(NonuniqueMessage);
-
-            return Result.Success(
-                new SaleCode(
-                    name: name,
-                    code: code,
-                    laborRate: laborRate,
-                    desiredMargin: desiredMargin,
-                    shopSupplies: shopSupplies));
-        }
+        => Result.Success((
+                Name: name?.Trim() ?? string.Empty,
+                Code: code?.Trim().ToUpperInvariant() ?? string.Empty))
+            .Ensure(
+                values => values.Name.Length is >= MinimumLength and <= NameMaximumLength,
+                InvalidLengthMessage(MinimumLength, NameMaximumLength))
+            .Ensure(
+                values => values.Code.Length is >= MinimumLength and <= CodeMaximumLength,
+                InvalidLengthMessage(MinimumLength, CodeMaximumLength))
+            .Ensure(_ => laborRate >= MinimumValue, MinimumValueMessage)
+            .Ensure(
+                _ => desiredMargin >= MinimumValue && desiredMargin <= MaximumDesiredMarginValue,
+                InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue))
+            .Ensure(_ => shopSupplies is not null, RequiredMessage)
+            .Ensure(
+                values => !saleCodes.Contains(values.Code, StringComparer.OrdinalIgnoreCase),
+                NonuniqueMessage)
+            .Map(values => new SaleCode(
+                name: values.Name,
+                code: values.Code,
+                laborRate: laborRate,
+                desiredMargin: desiredMargin,
+                shopSupplies: shopSupplies));
 
         public Result<string> SetName(string name)
         {

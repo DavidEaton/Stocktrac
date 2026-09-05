@@ -76,46 +76,30 @@ public class Employee : Entity
         string? printedName = null,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
-    {
-        if (hiredPerson is null)
-            return Result.Failure<Employee>(RequiredMessage);
-
-        if (hired < StartDateMinimum || hired > EndDateMaximum)
-            return Result.Failure<Employee>(DateRangeMessage);
-
-        notes = (notes ?? string.Empty)
-            .Trim()
-            .Truncate(MaximumNoteLength);
-
-        var certificationNumberValidationResult = ValidateCertificationNumber(certificationNumber);
-        if (certificationNumberValidationResult.IsFailure)
-            return Result.Failure<Employee>(certificationNumberValidationResult.Error);
-        certificationNumber ??= certificationNumber?.Trim() ?? string.Empty;
-
-        var printedNameValidationResult = ValidatePrintedName(printedName);
-        if (printedNameValidationResult.IsFailure)
-            return Result.Failure<Employee>(printedNameValidationResult.Error);
-        printedName ??= printedName?.Trim() ?? string.Empty;
-
-        var expenseCategoryValidationResult = ValidateExpenseCategory(expenseCategory);
-        if (expenseCategoryValidationResult.IsFailure)
-            return Result.Failure<Employee>(expenseCategoryValidationResult.Error);
-
-        var benefitLoadValidationResult = ValidateBenefitLoad(benefitLoad);
-        if (benefitLoadValidationResult.IsFailure)
-            return Result.Failure<Employee>(benefitLoadValidationResult.Error);
-
-        return Result.Success(new Employee(
-            personEmployed: hiredPerson,
-            roleAssignments: roleAssignments,
-            ssn: ssn,
-            hired: hired,
-            notes: notes,
-            certificationNumber: certificationNumber,
-            printedName: printedName,
-            expenseCategory: expenseCategory,
-            benefitLoad: benefitLoad));
-    }
+        => Result.Success((
+                Notes: (notes ?? string.Empty).Trim().Truncate(MaximumNoteLength),
+                CertificationNumber: certificationNumber?.Trim() ?? string.Empty,
+                PrintedName: printedName?.Trim() ?? string.Empty))
+            .Ensure(_ => hiredPerson is not null, RequiredMessage)
+            .Ensure(_ => hired >= StartDateMinimum && hired <= EndDateMaximum, DateRangeMessage)
+            .Ensure(
+                values => ValidateCertificationNumber(values.CertificationNumber).IsSuccess,
+                InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
+            .Ensure(
+                values => ValidatePrintedName(values.PrintedName).IsSuccess,
+                InvalidMaximumLengthMessage(MaximumPrintedNameLength))
+            .Ensure(_ => ValidateExpenseCategory(expenseCategory).IsSuccess, InvalidExpenseCategoryMessage)
+            .Ensure(_ => ValidateBenefitLoad(benefitLoad).IsSuccess, BenefitLoadMessage)
+            .Map(values => new Employee(
+                personEmployed: hiredPerson,
+                roleAssignments: roleAssignments,
+                ssn: ssn,
+                hired: hired,
+                notes: values.Notes,
+                certificationNumber: values.CertificationNumber,
+                printedName: values.PrintedName,
+                expenseCategory: expenseCategory,
+                benefitLoad: benefitLoad));
 
     private static Result ValidateCertificationNumber(string? certificationNumber)
     {

@@ -15,9 +15,11 @@ namespace Stocktrac.Domain.Features.Employees
             (Role, PeriodAssigned) = (role, periodAssigned);
 
         public static Result<RoleAssignment> Create(EmploymentRole role, DateTimeRange periodAssigned) =>
-            !Enum.IsDefined(role) || periodAssigned is null
-                ? Result.Failure<RoleAssignment>(RequiredMessage)
-                : Result.Success(new RoleAssignment(role, periodAssigned));
+            Result.Success((Role: role, PeriodAssigned: periodAssigned))
+                .Ensure(
+                    values => Enum.IsDefined(values.Role) && values.PeriodAssigned is not null,
+                    RequiredMessage)
+                .Map(values => new RoleAssignment(values.Role, values.PeriodAssigned));
 
         public Result<EmploymentRole> SetRole(EmploymentRole role)
         {

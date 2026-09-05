@@ -47,40 +47,22 @@ public sealed class Tenant : Entity<Guid>
         string? name,
         string? companyName,
         string? logoUrl = null)
-    {
-        name = name?.Trim() ?? string.Empty;
-        companyName = companyName?.Trim() ?? string.Empty;
-        logoUrl = NormalizeOptionalValue(logoUrl);
-
-        if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<Tenant>(NameRequiredMessage);
-
-        if (name.Length < MinimumNameLength ||
-            name.Length > MaximumNameLength)
-        {
-            return Result.Failure<Tenant>(InvalidNameLengthMessage);
-        }
-
-        if (string.IsNullOrWhiteSpace(companyName))
-            return Result.Failure<Tenant>(CompanyNameRequiredMessage);
-
-        if (companyName.Length < MinimumCompanyNameLength ||
-            companyName.Length > MaximumCompanyNameLength)
-        {
-            return Result.Failure<Tenant>(
-                InvalidCompanyNameLengthMessage);
-        }
-
-        if (logoUrl?.Length > MaximumLogoUrlLength)
-            return Result.Failure<Tenant>(InvalidLogoUrlLengthMessage);
-
-        return Result.Success(
-            new Tenant(
-                Guid.NewGuid(),
-                name,
-                companyName,
-                logoUrl));
-    }
+        => Result.Success((
+                Name: name?.Trim() ?? string.Empty,
+                CompanyName: companyName?.Trim() ?? string.Empty,
+                LogoUrl: NormalizeOptionalValue(logoUrl)))
+            .Ensure(values => !string.IsNullOrWhiteSpace(values.Name), NameRequiredMessage)
+            .Ensure(
+                values => values.Name.Length is >= MinimumNameLength and <= MaximumNameLength,
+                InvalidNameLengthMessage)
+            .Ensure(values => !string.IsNullOrWhiteSpace(values.CompanyName), CompanyNameRequiredMessage)
+            .Ensure(
+                values => values.CompanyName.Length is >= MinimumCompanyNameLength and <= MaximumCompanyNameLength,
+                InvalidCompanyNameLengthMessage)
+            .Ensure(
+                values => values.LogoUrl is null || values.LogoUrl.Length <= MaximumLogoUrlLength,
+                InvalidLogoUrlLengthMessage)
+            .Map(values => new Tenant(Guid.NewGuid(), values.Name, values.CompanyName, values.LogoUrl));
 
     public Result SetName(string? name)
     {

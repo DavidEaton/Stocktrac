@@ -17,15 +17,11 @@ public class Company : Entity
     private Company(Business business, long invoiceNumberSeed) =>
         (Business, NextInvoiceNumberOrSeed) = (business, invoiceNumberSeed);
 
-    public static Result<Company> Create(Business business, long seed)
-    {
-        if (business is null)
-            return Result.Failure<Company>(RequiredMessage);
-
-        return seed <= MinimumValue || seed > long.MaxValue
-            ? Result.Failure<Company>(MinimumValueMessage)
-            : Result.Success(new Company(business, seed));
-    }
+    public static Result<Company> Create(Business business, long seed) =>
+        Result.Success((Business: business, Seed: seed))
+            .Ensure(values => values.Business is not null, RequiredMessage)
+            .Ensure(values => values.Seed > MinimumValue, MinimumValueMessage)
+            .Map(values => new Company(values.Business, values.Seed));
 
     public Result<long> SetInvoiceNumberSeed(long seed) =>
         seed <= MinimumValue || seed > long.MaxValue

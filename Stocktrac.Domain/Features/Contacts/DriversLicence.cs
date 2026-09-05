@@ -20,9 +20,9 @@ public readonly record struct DriversLicense
     }
 
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
-        !Enum.IsDefined(state)
-            ? Result.Failure<DriversLicense>(StateInvalidMessage)
-            : Result.Success(new DriversLicense(number, state, validRange));
+        Result.Success(state)
+            .Ensure(Enum.IsDefined, StateInvalidMessage)
+            .Map(validState => new DriversLicense(number, validState, validRange));
 
     public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);

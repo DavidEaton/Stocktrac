@@ -38,21 +38,20 @@ public class Person : Contactable, ICustomerEntity
         Maybe<Address> address = default,
         DriversLicense? driversLicense = null)
     {
-        if (name is null)
-            return Result.Failure<Person>(RequiredMessage);
-
-        notes = (notes ?? string.Empty)
+        var normalizedNotes = (notes ?? string.Empty)
             .Trim()
             .Truncate(NoteMaximumLength);
 
-        return Result.Success(new Person(
-            name: name,
-            notes: notes,
-            address: address,
-            emails: emails,
-            phones: phones,
-            birthday: birthday,
-            driversLicense: driversLicense));
+        return Result.Success(name)
+            .Ensure(value => value is not null, RequiredMessage)
+            .Map(validName => new Person(
+                name: validName,
+                notes: normalizedNotes,
+                address: address,
+                emails: emails,
+                phones: phones,
+                birthday: birthday,
+                driversLicense: driversLicense));
     }
 
     public Result<PersonName> SetName(PersonName name) =>

@@ -39,23 +39,16 @@ public class Customer : Entity
         ContactPreferences = contactPreferences;
     }
 
-    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, CustomerCode? code)
-    {
-        if (entity is null)
-            return Result.Failure<Customer>(RequiredMessage);
-
-        if (!Enum.IsDefined(customerType))
-            return Result.Failure<Customer>(UnknownCustomerTypeMessage);
-
-        return Result.Success(
-            new Customer(
-                entity: entity,
-                customerType: customerType,
-                code: code,
-                contactPreferences: ContactPreferences.Create(
-                    true, true, true).Value
-        ));
-    }
+    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, CustomerCode? code) =>
+        Result.Success((Entity: entity, CustomerType: customerType))
+            .Ensure(values => values.Entity is not null, RequiredMessage)
+            .Ensure(values => Enum.IsDefined(values.CustomerType), UnknownCustomerTypeMessage)
+            .Bind(values => ContactPreferences.Create(true, true, true)
+                .Map(preferences => new Customer(
+                    entity: values.Entity,
+                    customerType: values.CustomerType,
+                    code: code,
+                    contactPreferences: preferences)));
 
     public Result SetAddress(Address address) =>
         CustomerEntity switch

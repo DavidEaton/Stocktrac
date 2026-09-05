@@ -47,13 +47,12 @@ public class Business : Contactable, ICustomerEntity
         // Only the primitive type (vs. ValueObject type) Notes property is
         // transformed and validated (parsed) here in the domain class that
         // creates it.
-        if (name is null)
-            return Result.Failure<Business>(InvalidMessage);
+        var normalizedNotes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
 
-        notes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
-
-        return Result.Success(
-            new Business(name, address, notes, contact, phones, emails));
+        return Result.Success(name)
+            .Ensure(value => value is not null, InvalidMessage)
+            .Map(validName => new Business(
+                validName, address, normalizedNotes, contact, phones, emails));
     }
 
     // BusinessName has already been validated; no need to validate
