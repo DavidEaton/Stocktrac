@@ -46,7 +46,7 @@ public class Customer : Entity
                 .Map(preferences => new Customer(values.Entity, values.CustomerType, ToMaybe(code), preferences)));
 
     private static Maybe<CustomerCode> ToMaybe(CustomerCode? code) =>
-        code.HasValue ? code.Value : Maybe<CustomerCode>.None;
+        code ?? Maybe<CustomerCode>.None;
 
     public Result SetAddress(Address address) =>
         CustomerEntity switch
