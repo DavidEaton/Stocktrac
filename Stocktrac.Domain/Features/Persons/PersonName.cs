@@ -2,10 +2,10 @@
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public class PersonName : ValueObject
+public readonly record struct PersonName
 {
-    public static readonly int MinimumLength = 1;
-    public static readonly int MaximumLength = 255;
+    public const int MinimumLength = 1;
+    public const int MaximumLength = 255;
     public static readonly string InvalidLengthMessage = $"First, last and middle names must be between {MinimumLength} character(s) {MaximumLength} and in length";
     public static readonly string RequiredMessage = $"First and last names are required";
 
@@ -89,23 +89,5 @@ public class PersonName : ValueObject
         ? $"{FirstName} {LastName}"
         : $"{FirstName} {MiddleName} {LastName}";
 
-    public override string ToString()
-    {
-        return LastFirstMiddleInitial;
-    }
-
-    protected override IEnumerable<IComparable> GetEqualityComponents()
-    {
-        yield return LastName;
-        yield return FirstName;
-        yield return MiddleName ?? string.Empty;
-    }
-
-    // EF requires an empty constructor
-    private PersonName()
-    {
-        LastName = string.Empty;
-        FirstName = string.Empty;
-        MiddleName = string.Empty;
-    }
+    public override string ToString() => LastFirstMiddleInitial;
 }

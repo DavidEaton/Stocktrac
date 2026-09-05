@@ -2,14 +2,14 @@
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class BusinessName : ValueObject
+public readonly record struct BusinessName
 {
     public const int MinimumLength = 2;
     public const int MaximumLength = 255;
     public static readonly string InvalidLengthMessage = $"Business Name must be between {MinimumLength} and {MaximumLength} character(s) in length.";
     public static readonly string RequiredMessage = $"Business Name is required.";
 
-    public string Name { get; private set; }
+    public string Name { get; }
 
     private BusinessName(string name) =>
         Name = name;
@@ -34,9 +34,4 @@ public class BusinessName : ValueObject
 
     public override string ToString() =>
         Name;
-        
-    protected override IEnumerable<IComparable> GetEqualityComponents()
-    {
-        yield return Name;
-    }
 }

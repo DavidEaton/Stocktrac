@@ -9,9 +9,9 @@ namespace Stocktrac.Domain.Features.SaleCodes
 
         // TODO: Move these constants to user-configurable settings in the future.
         // For now, they are hard-coded to match the current validation rules in StockTrac.
-        public static readonly int MinimumLength = 1;
-        public static readonly int NameMaximumLength = 255;
-        public static readonly int CodeMaximumLength = 4;
+        public const int MinimumLength = 1;
+        public const int NameMaximumLength = 255;
+        public const int CodeMaximumLength = 4;
         public static readonly double MinimumValue = 0;
         public static readonly double MaximumDesiredMarginValue = 100;
         public static string InvalidLengthMessage(int minLength, int maxLength) => $"Value must be between {minLength} and {maxLength} characters.";
@@ -63,12 +63,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
             .Ensure(
                 values => !saleCodes.Contains(values.Code, StringComparer.OrdinalIgnoreCase),
                 NonuniqueMessage)
-            .Map(values => new SaleCode(
-                name: values.Name,
-                code: values.Code,
-                laborRate: laborRate,
-                desiredMargin: desiredMargin,
-                shopSupplies: shopSupplies));
+            .Map(values => new SaleCode(values.Name, values.Code, laborRate, desiredMargin, shopSupplies));
 
         public Result<string> SetName(string name)
         {

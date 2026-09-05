@@ -9,7 +9,6 @@ public class Customer : Entity
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static readonly string DuplicateItemMessagePrefix = $"Customer already has this ";
-    public static readonly string UnknownEntityTypeMessage = $"Unknown entity type.";
     public static readonly string UnknownCustomerTypeMessage = $"Unknown type.";
     public static readonly string RequiredMessage = "Please include all required items.";
     public static readonly string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
@@ -44,11 +43,7 @@ public class Customer : Entity
             .Ensure(values => values.Entity is not null, RequiredMessage)
             .Ensure(values => Enum.IsDefined(values.CustomerType), UnknownCustomerTypeMessage)
             .Bind(values => ContactPreferences.Create(true, true, true)
-                .Map(preferences => new Customer(
-                    entity: values.Entity,
-                    customerType: values.CustomerType,
-                    code: code,
-                    contactPreferences: preferences)));
+                .Map(preferences => new Customer(values.Entity, values.CustomerType, code, preferences)));
 
     public Result SetAddress(Address address) =>
         CustomerEntity switch

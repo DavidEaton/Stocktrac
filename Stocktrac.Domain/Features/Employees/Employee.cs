@@ -91,15 +91,15 @@ public class Employee : Entity
             .Ensure(_ => ValidateExpenseCategory(expenseCategory).IsSuccess, InvalidExpenseCategoryMessage)
             .Ensure(_ => ValidateBenefitLoad(benefitLoad).IsSuccess, BenefitLoadMessage)
             .Map(values => new Employee(
-                personEmployed: hiredPerson,
-                roleAssignments: roleAssignments,
-                ssn: ssn,
-                hired: hired,
-                notes: values.Notes,
-                certificationNumber: values.CertificationNumber,
-                printedName: values.PrintedName,
-                expenseCategory: expenseCategory,
-                benefitLoad: benefitLoad));
+                hiredPerson,
+                roleAssignments,
+                ssn,
+                hired,
+                values.Notes,
+                values.CertificationNumber,
+                values.PrintedName,
+                expenseCategory,
+                benefitLoad));
 
     private static Result ValidateCertificationNumber(string? certificationNumber)
     {
@@ -167,9 +167,9 @@ public class Employee : Entity
         return Result.Success(exited);
     }
 
-    private static bool IsEmploymentDateWithinAllowedRange(DateTime date) =>
-        date >= StartDateMinimum &&
-        date <= EndDateMaximum;
+    private static bool IsEmploymentDateWithinAllowedRange(DateTime employmentDate) =>
+        employmentDate >= StartDateMinimum &&
+        employmentDate <= EndDateMaximum;
 
     public Result<string> SetNotes(string notes) =>
         Result.Success(Notes = notes

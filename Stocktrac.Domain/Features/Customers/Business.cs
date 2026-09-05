@@ -22,11 +22,7 @@ public class Business : Contactable, ICustomerEntity
         Person? contact = null,
         IReadOnlyList<Phone>? phones = null,
         IReadOnlyList<Email>? emails = null)
-        : base(
-            notes: notes,
-            address: address,
-            phones: phones,
-            emails: emails)
+        : base(notes, address, phones, emails)
     {
         Name = name;
         Contact = contact;
@@ -50,7 +46,6 @@ public class Business : Contactable, ICustomerEntity
         var normalizedNotes = (notes ?? string.Empty).Trim().Truncate(NoteMaximumLength);
 
         return Result.Success(name)
-            .Ensure(value => value is not null, InvalidMessage)
             .Map(validName => new Business(
                 validName, address, normalizedNotes, contact, phones, emails));
     }

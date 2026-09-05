@@ -43,15 +43,14 @@ public class Person : Contactable, ICustomerEntity
             .Truncate(NoteMaximumLength);
 
         return Result.Success(name)
-            .Ensure(value => value is not null, RequiredMessage)
             .Map(validName => new Person(
-                name: validName,
-                notes: normalizedNotes,
-                address: address,
-                emails: emails,
-                phones: phones,
-                birthday: birthday,
-                driversLicense: driversLicense));
+                validName,
+                normalizedNotes,
+                address,
+                emails,
+                phones,
+                driversLicense,
+                birthday));
     }
 
     public Result<PersonName> SetName(PersonName name) =>

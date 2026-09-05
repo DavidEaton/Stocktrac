@@ -7,12 +7,12 @@ public class Vehicle : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly int MaximumMakeModelLength = 50;
-    public static readonly int MinimumMakeModelLength = 2;
-    public static readonly int VinRequiredLength = 17;
-    public static readonly int MaximumPlateLength = 20;
-    public static readonly int MaximumUnitNumberLength = 20;
-    public static readonly int MaximumColorLength = 12;
+    public const int MaximumMakeModelLength = 50;
+    public const int MinimumMakeModelLength = 2;
+    public const int VinRequiredLength = 17;
+    public const int MaximumPlateLength = 20;
+    public const int MaximumUnitNumberLength = 20;
+    public const int MaximumColorLength = 12;
 
     public static readonly string InvalidVinMessage = $"VIN was invalid";
     public const int YearMinimum = 1896; // First year of production commercial vehicles
@@ -97,16 +97,16 @@ public class Vehicle : Entity
                 values => ValidateColor(values.Color).IsSuccess,
                 InvalidMaximumLengthMessage(MaximumColorLength))
             .Map(values => new Vehicle(
-                vin: values.Vin,
-                year: year,
-                make: values.Make,
-                model: values.Model,
-                nonTraditionalVehicle: nonTraditionalVehicle,
-                plate: values.Plate,
-                plateStateProvince: plateStateProvince,
-                unitNumber: values.UnitNumber,
-                color: values.Color,
-                active: active));
+                values.Vin,
+                year,
+                values.Make,
+                values.Model,
+                nonTraditionalVehicle,
+                values.Plate,
+                plateStateProvince,
+                values.UnitNumber,
+                values.Color,
+                active));
 
     private static Result ValidateMakeModel(string make, string model, bool nonTraditionalVehicle)
     {
