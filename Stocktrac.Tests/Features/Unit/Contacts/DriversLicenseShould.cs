@@ -18,7 +18,7 @@ public class DriversLicenseShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.Number.ShouldBe(number);
         result.Value.State.ShouldBe(State.CA);
-        result.Value.ValidDateRange.ShouldBeSameAs(range);
+        result.Value.ValidDateRange.ShouldBeEquivalentTo(range);
     }
 
     [Theory]
@@ -48,7 +48,7 @@ public class DriversLicenseShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.Number.ShouldBe(replacement);
         result.Value.State.ShouldBe(original.State);
-        result.Value.ValidDateRange.ShouldBeSameAs(original.ValidDateRange);
+        result.Value.ValidDateRange.ShouldBeEquivalentTo(original.ValidDateRange);
         original.Number.ShouldNotBe(replacement);
     }
 
@@ -62,7 +62,7 @@ public class DriversLicenseShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.State.ShouldBe(State.NY);
         result.Value.Number.ShouldBe(original.Number);
-        result.Value.ValidDateRange.ShouldBeSameAs(original.ValidDateRange);
+        result.Value.ValidDateRange.ShouldBeEquivalentTo(original.ValidDateRange);
         original.State.ShouldBe(State.CA);
     }
 
@@ -86,7 +86,7 @@ public class DriversLicenseShould
         var result = original.NewValidDateRange(replacement);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ValidDateRange.ShouldBeSameAs(replacement);
+        result.Value.ValidDateRange.ShouldBeEquivalentTo(replacement);
         result.Value.Number.ShouldBe(original.Number);
         result.Value.State.ShouldBe(original.State);
         original.ValidDateRange.ShouldNotBeSameAs(replacement);

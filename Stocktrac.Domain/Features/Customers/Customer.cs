@@ -137,7 +137,7 @@ public class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result<CustomerCode> SetCode(CustomerCode code) =>
+    public Result<CustomerCode?> SetCode(CustomerCode? code) =>
         Result.Success(Code = code);
 
     public Result SetCustomerEntity(ICustomerEntity entity)
