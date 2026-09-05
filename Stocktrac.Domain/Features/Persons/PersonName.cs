@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public readonly record struct PersonName
+public sealed record PersonName
 {
     public const int MinimumLength = 1;
     public const int MaximumLength = 255;
@@ -20,7 +20,7 @@ public readonly record struct PersonName
     public string FirstName { get; }
     public Maybe<string> MiddleName { get; }
 
-    public static Result<PersonName> Create(string lastName, string firstName, string? middleName = null) =>
+    public static Result<PersonName> Create(string? lastName, string? firstName, string? middleName = null) =>
         Result.Success((
                 LastName: lastName?.Trim() ?? string.Empty,
                 FirstName: firstName?.Trim() ?? string.Empty,
@@ -37,7 +37,7 @@ public readonly record struct PersonName
                 InvalidLengthMessage)
             .Map(values => new PersonName(values.LastName, values.FirstName, values.MiddleName));
 
-    public Result<PersonName> NewLastName(string newLastName)
+    public Result<PersonName> NewLastName(string? newLastName)
     {
         newLastName = (newLastName ?? string.Empty).Trim();
 
@@ -48,7 +48,7 @@ public readonly record struct PersonName
         return Result.Success(new PersonName(newLastName, FirstName, MiddleName.GetValueOrDefault()));
     }
 
-    public Result<PersonName> NewFirstName(string newFirstName)
+    public Result<PersonName> NewFirstName(string? newFirstName)
     {
         newFirstName = (newFirstName ?? string.Empty).Trim();
 

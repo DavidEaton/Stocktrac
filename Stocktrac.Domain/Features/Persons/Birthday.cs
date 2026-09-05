@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Persons
 {
-    public readonly record struct Birthday
+    public sealed record Birthday
     {
         public static readonly DateTime MinimumDate = new(1900, 1, 1);
         public static DateTime MaximumDate => DateTime.Today;

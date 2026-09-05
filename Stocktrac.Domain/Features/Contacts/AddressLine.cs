@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts
 {
-    public readonly record struct AddressLine
+    public sealed record AddressLine
     {
         public const int MinimumLength = 2;
         public const int MaximumLength = 255;

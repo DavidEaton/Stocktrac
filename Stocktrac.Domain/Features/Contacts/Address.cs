@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct Address
+public sealed record Address
 {
     public static readonly string AddressRequiredMessage = $"Address is required";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
@@ -33,19 +33,20 @@ public readonly record struct Address
         State state,
         PostalCode postalCode,
         Maybe<AddressLine> addressLine2 = default) =>
-        Result.Success(state)
+        Result.Success((AddressLine: addressLine1, City: city, PostalCode: postalCode, State: state))
             .Ensure(
-                value => Enum.IsDefined(value),
+                values => values.AddressLine is not null && values.City is not null && values.PostalCode is not null,
+                AddressRequiredMessage)
+            .Ensure(
+                values => Enum.IsDefined(values.State),
                 StateInvalidMessage)
-            .Map(state => new Address(addressLine1, city, state, postalCode, addressLine2));
+            .Map(values => new Address(values.AddressLine, values.City, values.State, values.PostalCode, addressLine2));
 
     public Result<Address> NewAddressLine1(AddressLine newAddressLine) =>
-        Result.Success(
-            new Address(newAddressLine, City, State, PostalCode, AddressLine2));
+        Create(newAddressLine, City, State, PostalCode, AddressLine2);
 
     public Result<Address> NewCity(City newCity) =>
-        Result.Success(
-            new Address(AddressLine1, newCity, State, PostalCode, AddressLine2));
+        Create(AddressLine1, newCity, State, PostalCode, AddressLine2);
 
     public Result<Address> NewState(State newState)
     {
@@ -64,8 +65,7 @@ public readonly record struct Address
     }
 
     public Result<Address> NewPostalCode(PostalCode newPostalCode) =>
-        Result.Success(
-            new Address(AddressLine1, City, State, newPostalCode, AddressLine2));
+        Create(AddressLine1, City, State, newPostalCode, AddressLine2);
 
     public Result<Address> NewAddressLine2(Maybe<AddressLine> newAddressLine2) =>
         Result.Success(

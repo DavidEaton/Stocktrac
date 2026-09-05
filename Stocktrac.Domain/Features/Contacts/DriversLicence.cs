@@ -1,9 +1,10 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct DriversLicense
+public sealed record DriversLicense
 {
+    public const string RequiredMessage = "Driver's license details are required";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
     public DriversLicenseNumber Number { get; }
     public DateTimeRange ValidDateRange { get; }
@@ -20,9 +21,10 @@ public readonly record struct DriversLicense
     }
 
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
-        Result.Success(state)
-            .Ensure(Enum.IsDefined, StateInvalidMessage)
-            .Map(validState => new DriversLicense(number, validState, validRange));
+        Result.Success((Number: number, State: state, ValidRange: validRange))
+            .Ensure(values => values.Number is not null && values.ValidRange is not null, RequiredMessage)
+            .Ensure(values => Enum.IsDefined(values.State), StateInvalidMessage)
+            .Map(values => new DriversLicense(values.Number, values.State, values.ValidRange));
 
     public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);

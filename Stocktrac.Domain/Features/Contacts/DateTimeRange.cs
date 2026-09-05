@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct DateTimeRange
+public sealed record DateTimeRange
 {
     public static readonly string RequiredMessage = $"Please include all required items.";
     public static readonly string EndBeforeStartMessage = "End date cannot occur before Start date";

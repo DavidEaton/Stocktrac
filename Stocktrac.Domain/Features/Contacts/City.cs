@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts
 {
-    public readonly record struct City
+    public sealed record City
     {
         public const int MinimumLength = 1;
         public const int MaximumLength = 100;
@@ -15,13 +15,13 @@ namespace Stocktrac.Domain.Features.Contacts
 
         public static Result<City> Create(string? value) =>
             Result.Success(value?.Trim() ?? string.Empty)
-                .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
+                .Ensure(static value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
                 .Ensure(
-                    value => value.Length is >= MinimumLength and <= MaximumLength,
+                    static value => value.Length is >= MinimumLength and <= MaximumLength,
                     InvalidLengthMessage)
                 .Map(value => new City(value));
 
         public override string ToString() =>
-            Value ?? string.Empty;
+            Value;
     }
 }

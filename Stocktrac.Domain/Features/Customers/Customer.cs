@@ -45,8 +45,13 @@ public class Customer : Entity
             .Bind(values => ContactPreferences.Create(true, true, true)
                 .Map(preferences => new Customer(values.Entity, values.CustomerType, ToMaybe(code), preferences)));
 
-    private static Maybe<CustomerCode> ToMaybe(CustomerCode? code) =>
-        code ?? Maybe<CustomerCode>.None;
+    private static Maybe<CustomerCode> ToMaybe(CustomerCode? code)
+    {
+        if (code is null)
+            return Maybe<CustomerCode>.None;
+
+        return code;
+    }
 
     public Result SetAddress(Address address) =>
         CustomerEntity switch

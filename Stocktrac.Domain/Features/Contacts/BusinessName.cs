@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct BusinessName
+public sealed record BusinessName
 {
     public const int MinimumLength = 2;
     public const int MaximumLength = 255;
@@ -14,10 +14,10 @@ public readonly record struct BusinessName
     private BusinessName(string name) =>
         Name = name;
 
-    public static Result<BusinessName> Create(string name) =>
+    public static Result<BusinessName> Create(string? name) =>
         CreateNormalized(name);
 
-    public static Result<BusinessName> NewBusinessName(string name) =>
+    public static Result<BusinessName> NewBusinessName(string? name) =>
         CreateNormalized(name);
 
     private static Result<BusinessName> CreateNormalized(string? name)
