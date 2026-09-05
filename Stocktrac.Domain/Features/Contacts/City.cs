@@ -8,7 +8,7 @@ namespace Stocktrac.Domain.Features.Contacts
         public const int MaximumLength = 100;
         public static readonly string InvalidLengthMessage = $"City must be between {MinimumLength} and {MaximumLength} characters.";
         public static readonly string RequiredMessage = "City is required.";
-        public string? Value { get; }
+        public string Value { get; }
 
         private City(string value) =>
             Value = value;

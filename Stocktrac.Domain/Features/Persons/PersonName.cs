@@ -18,7 +18,7 @@ public readonly record struct PersonName
 
     public string LastName { get; }
     public string FirstName { get; }
-    public string? MiddleName { get; }
+    public Maybe<string> MiddleName { get; }
 
     public static Result<PersonName> Create(string lastName, string firstName, string? middleName = null) =>
         Result.Success((
@@ -45,7 +45,7 @@ public readonly record struct PersonName
             newLastName.Length > MaximumLength)
             return Result.Failure<PersonName>(InvalidLengthMessage);
 
-        return Result.Success(new PersonName(newLastName, FirstName, MiddleName));
+        return Result.Success(new PersonName(newLastName, FirstName, MiddleName.GetValueOrDefault()));
     }
 
     public Result<PersonName> NewFirstName(string newFirstName)
@@ -56,7 +56,7 @@ public readonly record struct PersonName
             newFirstName.Length > MaximumLength)
             return Result.Failure<PersonName>(InvalidLengthMessage);
 
-        return Result.Success(new PersonName(LastName, newFirstName, MiddleName));
+        return Result.Success(new PersonName(LastName, newFirstName, MiddleName.GetValueOrDefault()));
     }
 
     public Result<PersonName> NewMiddleName(string? newMiddleName)
@@ -75,19 +75,19 @@ public readonly record struct PersonName
     }
 
     public string LastFirstMiddle =>
-        string.IsNullOrWhiteSpace(MiddleName)
+        MiddleName.HasNoValue
             ? $"{LastName}, {FirstName}"
-            : $"{LastName}, {FirstName} {MiddleName}";
+            : $"{LastName}, {FirstName} {MiddleName.Value}";
 
     public string LastFirstMiddleInitial =>
-        string.IsNullOrWhiteSpace(MiddleName)
+        MiddleName.HasNoValue
             ? $"{LastName}, {FirstName}"
-            : $"{LastName}, {FirstName} {MiddleName[0]}.";
+            : $"{LastName}, {FirstName} {MiddleName.Value[0]}.";
 
     public string FirstMiddleLast =>
-        string.IsNullOrWhiteSpace(MiddleName)
+        MiddleName.HasNoValue
         ? $"{FirstName} {LastName}"
-        : $"{FirstName} {MiddleName} {LastName}";
+        : $"{FirstName} {MiddleName.Value} {LastName}";
 
     public override string ToString() => LastFirstMiddleInitial;
 }

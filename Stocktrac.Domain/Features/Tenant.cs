@@ -29,13 +29,13 @@ public sealed class Tenant : Entity<Guid>
 
     public string Name { get; private set; }
     public string CompanyName { get; private set; }
-    public string? LogoUrl { get; private set; }
+    public Maybe<string> LogoUrl { get; private set; }
 
     private Tenant(
         Guid id,
         string name,
         string companyName,
-        string? logoUrl)
+        Maybe<string> logoUrl)
     {
         Id = id;
         Name = name;
@@ -62,7 +62,7 @@ public sealed class Tenant : Entity<Guid>
             .Ensure(
                 values => values.LogoUrl is null || values.LogoUrl.Length <= MaximumLogoUrlLength,
                 InvalidLogoUrlLengthMessage)
-            .Map(values => new Tenant(Guid.NewGuid(), values.Name, values.CompanyName, values.LogoUrl));
+            .Map(values => new Tenant(Guid.NewGuid(), values.Name, values.CompanyName, ToMaybe(values.LogoUrl)));
 
     public Result SetName(string? name)
     {
@@ -96,13 +96,16 @@ public sealed class Tenant : Entity<Guid>
 
         return logoUrl?.Length > MaximumLogoUrlLength
             ? Result.Failure(InvalidLogoUrlLengthMessage)
-            : Result.Success(LogoUrl = logoUrl);
+            : Result.Success(LogoUrl = ToMaybe(logoUrl));
     }
 
     private static string? NormalizeOptionalValue(string? value) =>
         string.IsNullOrWhiteSpace(value)
             ? null
             : value.Trim();
+
+    private static Maybe<string> ToMaybe(string? value) =>
+        value is null ? Maybe<string>.None : value;
 
     // Required by Entity Framework.
     private Tenant()

@@ -93,8 +93,8 @@ public class ContactableShould
         var result = person.SetNotes(note);
 
         result.IsSuccess.ShouldBe(true);
-        person.Notes!.Length.ShouldBe(Contactable.NoteMaximumLength);
-        person.Notes.ShouldNotStartWith(" ");
+        person.Notes.Value.Length.ShouldBe(Contactable.NoteMaximumLength);
+        person.Notes.Value.ShouldNotStartWith(" ");
     }
 
     [Fact]

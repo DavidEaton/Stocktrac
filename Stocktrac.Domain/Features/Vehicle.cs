@@ -23,26 +23,26 @@ public class Vehicle : Entity
     public static readonly string InvalidPlateStateProvinceMessage = $"Plate State/Province is invalid";
 
     public string VIN { get; private set; } // Refactor to ValueObject
-    public int? Year { get; private set; }
+    public Maybe<int> Year { get; private set; }
     public string Make { get; private set; }
     public string Model { get; private set; }
     public bool NonTraditionalVehicle { get; private set; } = false; // We need to allow for non-traditional vehicles. For example, they may be servicing a trailer and just type in TRAILER for the Make and nothing else.
     public string Plate { get; private set; }
-    public State? PlateStateProvince { get; private set; }
+    public Maybe<State> PlateStateProvince { get; private set; }
     public string UnitNumber { get; private set; }
     public string Color { get; private set; }
     public bool Active { get; private set; } = true;
 
-    public override string ToString() => $"{Year ?? 0} {Make} {Model}";
+    public override string ToString() => $"{Year.GetValueOrDefault()} {Make} {Model}";
 
     private Vehicle(
         string vin,
-        int? year,
+        Maybe<int> year,
         string make,
         string model,
         bool nonTraditionalVehicle,
         string plate,
-        State? plateStateProvince,
+        Maybe<State> plateStateProvince,
         string unitNumber,
         string color,
         bool active)
@@ -98,12 +98,12 @@ public class Vehicle : Entity
                 InvalidMaximumLengthMessage(MaximumColorLength))
             .Map(values => new Vehicle(
                 values.Vin,
-                year,
+                ToMaybe(year),
                 values.Make,
                 values.Model,
                 nonTraditionalVehicle,
                 values.Plate,
-                plateStateProvince,
+                ToMaybe(plateStateProvince),
                 values.UnitNumber,
                 values.Color,
                 active));
@@ -163,6 +163,12 @@ public class Vehicle : Entity
             ? Result.Success()
             : Result.Failure(InvalidPlateStateProvinceMessage);
 
+    private static Maybe<int> ToMaybe(int? value) =>
+        value.HasValue ? value.Value : Maybe<int>.None;
+
+    private static Maybe<State> ToMaybe(State? value) =>
+        value.HasValue ? value.Value : Maybe<State>.None;
+
     private static Result ValidateUnitNumber(string? unitNumber)
     {
         unitNumber = unitNumber?.Trim() ?? string.Empty;
@@ -189,10 +195,10 @@ public class Vehicle : Entity
             : Result.Failure<string>(InvalidVinMessage);
     }
 
-    public Result<int?> SetYear(int? year) =>
+    public Result<Maybe<int>> SetYear(int? year) =>
         year > DateTime.Today.Year + 1 || year < YearMinimum
-            ? Result.Failure<int?>(InvalidYearMessage)
-            : Result.Success(Year = year);
+            ? Result.Failure<Maybe<int>>(InvalidYearMessage)
+            : Result.Success(Year = ToMaybe(year));
 
     public Result<string> SetMake(string make)
     {
@@ -219,10 +225,10 @@ public class Vehicle : Entity
             : Result.Success(Plate = plate);
     }
 
-    public Result<State?> SetPlateStateProvince(State? plateStateProvince) =>
+    public Result<Maybe<State>> SetPlateStateProvince(State? plateStateProvince) =>
         plateStateProvince is not null && !Enum.IsDefined(plateStateProvince.Value)
-            ? Result.Failure<State?>(InvalidPlateStateProvinceMessage)
-            : Result.Success(PlateStateProvince = plateStateProvince);
+            ? Result.Failure<Maybe<State>>(InvalidPlateStateProvinceMessage)
+            : Result.Success(PlateStateProvince = ToMaybe(plateStateProvince));
 
     public Result<string> SetUnitNumber(string? unitNumber)
     {

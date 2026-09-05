@@ -9,7 +9,7 @@ namespace Stocktrac.Domain.Features.Contacts
         public static readonly string InvalidLengthMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
         public static readonly string RequiredMessage = $"Drivers License Number is required.";
 
-        public string? Number { get; }
+        public string Number { get; }
 
         private DriversLicenseNumber(string number) =>
             Number = number;

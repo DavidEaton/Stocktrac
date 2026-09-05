@@ -22,7 +22,7 @@ public class CreditCardShould
         result.Value.Name.ShouldBe(name);
         result.Value.FeeType.ShouldBe(CreditCardFeeType.Percentage);
         result.Value.Fee.ShouldBe(fee);
-        result.Value.AddedToDeposit.ShouldBe(depositedAt);
+        result.Value.AddedToDeposit.Value.ShouldBe(depositedAt);
     }
 
     [Fact]
@@ -155,8 +155,8 @@ public class CreditCardShould
         var result = card.SetAddedToDeposit(depositedAt);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.AddedToDeposit.ShouldBe(depositedAt);
-        card.AddedToDeposit.ShouldBe(DateTime.MinValue);
+        result.Value.AddedToDeposit.Value.ShouldBe(depositedAt);
+        card.AddedToDeposit.Value.ShouldBe(DateTime.MinValue);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class CreditCardShould
             CreateName("Visa"),
             CreditCardFeeType.Flat,
             Fee.Default,
-            null).Value.IsAddedToDeposit.ShouldBeFalse();
+            null).Value.AddedToDeposit.HasNoValue.ShouldBeTrue();
         CreateCreditCard().IsAddedToDeposit.ShouldBeTrue();
     }
 

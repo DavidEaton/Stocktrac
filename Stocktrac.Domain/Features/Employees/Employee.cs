@@ -23,13 +23,13 @@ public class Employee : Entity
     public Person PersonEmployed { get; private set; }
     public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
     private readonly List<RoleAssignment> roleAssignments = [];
-    public string? Notes { get; private set; }
+    public Maybe<string> Notes { get; private set; }
     public SSN SSN { get; private set; }
-    public string? CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object 
-    public DateTime? Hired { get; private set; } = null;
-    public DateTime? Exited { get; private set; }
-    public bool Active => Hired.HasValue && !Exited.HasValue;
-    public string? PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
+    public Maybe<string> CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object
+    public DateTime Hired { get; private set; }
+    public Maybe<DateTime> Exited { get; private set; }
+    public bool Active => !Exited.HasValue;
+    public Maybe<string> PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
     public double BenefitLoad { get; private set; } = 0.0; // TODO: This should be defined and probably a value object 
 
@@ -46,9 +46,9 @@ public class Employee : Entity
         PersonEmployed = personEmployed;
         SSN = ssn;
         Hired = hired;
-        Notes = notes;
-        CertificationNumber = certificationNumber;
-        PrintedName = printedName;
+        Notes = ToMaybe(notes);
+        CertificationNumber = ToMaybe(certificationNumber);
+        PrintedName = ToMaybe(printedName);
         ExpenseCategory = expenseCategory;
         BenefitLoad = benefitLoad;
 
@@ -158,7 +158,7 @@ public class Employee : Entity
             return Result.Failure<DateTime>(DateRangeMessage);
         }
 
-        if (!Hired.HasValue || exited < Hired.Value)
+        if (exited < Hired)
         {
             return Result.Failure<DateTime>(DateRangeMessage);
         }
@@ -171,10 +171,11 @@ public class Employee : Entity
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    public Result<string> SetNotes(string notes) =>
-        Result.Success(Notes = notes
-            .Trim()
-            .Truncate(MaximumNoteLength));
+    private static Maybe<string> ToMaybe(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? Maybe<string>.None : value;
+
+    public Result<Maybe<string>> SetNotes(string notes) =>
+        Result.Success(Notes = ToMaybe(notes.Trim().Truncate(MaximumNoteLength)));
 
     public Result<SSN> SetSSN(SSN ssn) =>
         Result.Success(SSN = ssn);
@@ -185,16 +186,16 @@ public class Employee : Entity
 
         return certificationNumber.Length > MaximumCertificationNumberLength
             ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
-            : Result.Success(CertificationNumber = certificationNumber);
+            : Result.Success(CertificationNumber = ToMaybe(certificationNumber));
     }
 
-    public Result<string> SetPrintedName(string printedName)
+    public Result<Maybe<string>> SetPrintedName(string printedName)
     {
         printedName = printedName?.Trim() ?? string.Empty;
 
         return printedName.Length <= MaximumPrintedNameLength
-            ? Result.Success(PrintedName = printedName)
-            : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
+            ? Result.Success(PrintedName = ToMaybe(printedName))
+            : Result.Failure<Maybe<string>>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
     }
 
     public Result<EmployeeExpenseCategory> SetExpenseCategory(EmployeeExpenseCategory expenseCategory) =>
@@ -215,8 +216,8 @@ public class Employee : Entity
         PersonEmployed = Person.Create(personName, string.Empty).Value;
         SSN = SSN.Create(string.Empty).Value;
         Hired = DateTime.Today;
-        Notes = string.Empty;
-        CertificationNumber = string.Empty;
-        PrintedName = string.Empty;
+        Notes = Maybe<string>.None;
+        CertificationNumber = Maybe<string>.None;
+        PrintedName = Maybe<string>.None;
     }
 }

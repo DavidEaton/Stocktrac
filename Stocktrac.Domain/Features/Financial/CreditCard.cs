@@ -9,7 +9,7 @@ public class CreditCard : Entity
     public CreditCardName Name { get; private set; }
     public CreditCardFeeType FeeType { get; private set; }
     public Fee Fee { get; private set; }
-    public DateTime? AddedToDeposit { get; private set; }
+    public Maybe<DateTime> AddedToDeposit { get; private set; }
     public bool IsAddedToDeposit => AddedToDeposit.HasValue;
 
     private CreditCard()
@@ -20,7 +20,7 @@ public class CreditCard : Entity
         CreditCardName name,
         CreditCardFeeType feeType,
         Fee fee,
-        DateTime? addedToDeposit)
+        Maybe<DateTime> addedToDeposit)
     {
         Name = name;
         FeeType = feeType;
@@ -35,7 +35,11 @@ public class CreditCard : Entity
         DateTime? addedToDeposit) =>
         CreditCardName.Create(name.Value)
             .Bind(validName => ValidateFeeType(feeType)
-                .Map(validFeeType => new CreditCard(validName, validFeeType, fee, addedToDeposit)));
+                .Map(validFeeType => new CreditCard(
+                    validName,
+                    validFeeType,
+                    fee,
+                    ToMaybe(addedToDeposit))));
 
     public Result<CreditCard> SetName(string? name) =>
         CreditCardName.Create(name).Map(SetNameValue);
@@ -63,12 +67,16 @@ public class CreditCard : Entity
     private CreditCard SetFeeTypeValue(CreditCardFeeType feeType) =>
         Copy(feeType: feeType);
 
+    private static Maybe<DateTime> ToMaybe(DateTime? value) =>
+        value.HasValue ? value.Value : Maybe<DateTime>.None;
+
     private CreditCard Copy(
         CreditCardName? name = null,
         CreditCardFeeType? feeType = null,
         Fee? fee = null,
-        DateTime? addedToDeposit = null) =>
-        new(name ?? Name, feeType ?? FeeType, fee ?? Fee, addedToDeposit ?? AddedToDeposit)
+        Maybe<DateTime>? addedToDeposit = null) =>
+        new(name ?? Name, feeType ?? FeeType, fee ?? Fee,
+            addedToDeposit ?? AddedToDeposit)
         {
             Id = Id
         };
