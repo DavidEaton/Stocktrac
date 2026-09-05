@@ -78,17 +78,11 @@ public class CreditCardNameShould
     }
 
     [Fact]
-    public void ContainAssignedValue_On_Value_WhenInitializedDirectly()
+    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
     {
-        var name = new CreditCardName { Value = "Direct value" };
+        CreditCardName? name = default;
 
-        name.Value.ShouldBe("Direct value");
-    }
-
-    [Fact]
-    public void ContainNullValue_WhenDefaultInitialized()
-    {
-        default(CreditCardName).Value.ShouldBeNull();
+        name.ShouldBeNull();
     }
 
     [Fact]

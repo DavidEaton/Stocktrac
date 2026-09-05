@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct PostalCode
+public sealed record PostalCode
 {
     public const int MinimumLength = 1;
     public const int MaximumLength = 20;

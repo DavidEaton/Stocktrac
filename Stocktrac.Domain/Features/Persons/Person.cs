@@ -6,6 +6,8 @@ namespace Stocktrac.Domain.Features.Persons;
 
 public class Person : Contactable, ICustomerEntity
 {
+    public const string NameRequiredMessage = "Person name is required";
+
     public PersonName Name { get; private set; }
 
     public Maybe<Birthday> Birthday { get; private set; }
@@ -39,6 +41,7 @@ public class Person : Contactable, ICustomerEntity
         DriversLicense? driversLicense = null)
     {
         return Result.Success(name)
+            .Ensure(validName => validName is not null, NameRequiredMessage)
             .Map(validName => new Person(
                 validName,
                 notes,
@@ -49,14 +52,26 @@ public class Person : Contactable, ICustomerEntity
                 ToMaybe(birthday)));
     }
 
-    private static Maybe<Birthday> ToMaybe(Birthday? birthday) =>
-        birthday.HasValue ? birthday.Value : Maybe<Birthday>.None;
+    private static Maybe<Birthday> ToMaybe(Birthday? birthday)
+    {
+        if (birthday is null)
+            return Maybe<Birthday>.None;
 
-    private static Maybe<DriversLicense> ToMaybe(DriversLicense? driversLicense) =>
-        driversLicense.HasValue ? driversLicense.Value : Maybe<DriversLicense>.None;
+        return birthday;
+    }
+
+    private static Maybe<DriversLicense> ToMaybe(DriversLicense? driversLicense)
+    {
+        if (driversLicense is null)
+            return Maybe<DriversLicense>.None;
+
+        return driversLicense;
+    }
 
     public Result<PersonName> SetName(PersonName name) =>
-        Result.Success(Name = name);
+        name is null
+            ? Result.Failure<PersonName>(NameRequiredMessage)
+            : Result.Success(Name = name);
 
     public Result<Maybe<Birthday>> SetBirthday(Birthday birthday) =>
         Result.Success(Birthday = birthday);

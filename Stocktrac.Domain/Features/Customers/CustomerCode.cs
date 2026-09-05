@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Customers;
 
-public readonly record struct CustomerCode
+public sealed record CustomerCode
 {
     public const int MaximumLength = 20;
     public static readonly string InvalidLengthMessage = $"Code must be {MaximumLength} characters or less.";

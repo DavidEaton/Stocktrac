@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts
 {
-    public readonly record struct DriversLicenseNumber
+    public sealed record DriversLicenseNumber
     {
         public const int MinimumLength = 3;
         public const int MaximumLength = 255;

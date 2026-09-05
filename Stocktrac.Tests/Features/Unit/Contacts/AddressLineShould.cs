@@ -60,8 +60,14 @@ public class AddressLineShould
         first.GetHashCode().ShouldBe(second.GetHashCode());
         (first == second).ShouldBeTrue();
         first.ShouldNotBe(different);
-        default(AddressLine).Value.ShouldBeNull();
-        default(AddressLine).ToString().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
+    {
+        AddressLine? addressLine = default;
+
+        addressLine.ShouldBeNull();
     }
 
     [Fact]

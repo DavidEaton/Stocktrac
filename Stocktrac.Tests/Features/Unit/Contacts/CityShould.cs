@@ -56,8 +56,14 @@ public class CityShould
         first.ShouldBe(second);
         first.GetHashCode().ShouldBe(second.GetHashCode());
         first.ShouldNotBe(different);
-        default(City).Value.ShouldBeNull();
-        default(City).ToString().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
+    {
+        City? city = default;
+
+        city.ShouldBeNull();
     }
 
     [Fact]

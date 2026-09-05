@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public readonly record struct SSN
+public sealed record SSN
 {
     private const int AreaNumberLength = 3;
     private const int GroupNumberLength = 2;
@@ -25,9 +25,6 @@ public readonly record struct SSN
 
     private SSN(string value) =>
         Value = value;
-
-    // Static SSN.None instance to represent a non-existent SSN
-    public static readonly SSN None = new(string.Empty);
 
     public static Result<SSN> Create(string? value) =>
         Result.Success(value?.Trim() ?? string.Empty)

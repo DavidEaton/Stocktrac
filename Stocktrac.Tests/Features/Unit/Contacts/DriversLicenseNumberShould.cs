@@ -90,7 +90,14 @@ public class DriversLicenseNumberShould
         (first == second).ShouldBeTrue();
         first.ShouldNotBe(different);
         (first != different).ShouldBeTrue();
-        default(DriversLicenseNumber).Number.ShouldBeNull();
+    }
+
+    [Fact]
+    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
+    {
+        DriversLicenseNumber? number = default;
+
+        number.ShouldBeNull();
     }
 
     [Fact]
