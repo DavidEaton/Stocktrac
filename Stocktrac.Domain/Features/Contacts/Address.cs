@@ -7,7 +7,7 @@ public readonly record struct Address
     public static readonly string AddressRequiredMessage = $"Address is required";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
     public AddressLine AddressLine1 { get; }
-    public AddressLine? AddressLine2 { get; }
+    public Maybe<AddressLine> AddressLine2 { get; }
     public static Maybe<Address> Default => Maybe<Address>.None;
     public City City { get; }
     public State State { get; }
@@ -18,7 +18,7 @@ public readonly record struct Address
         City city,
         State state,
         PostalCode postalCode,
-        AddressLine? addressLine2 = null)
+        Maybe<AddressLine> addressLine2)
     {
         AddressLine1 = addressLine1;
         AddressLine2 = addressLine2;
@@ -32,7 +32,7 @@ public readonly record struct Address
         City city,
         State state,
         PostalCode postalCode,
-        AddressLine? addressLine2 = null) =>
+        Maybe<AddressLine> addressLine2 = default) =>
         Result.Success(state)
             .Ensure(
                 value => Enum.IsDefined(value),
@@ -67,7 +67,7 @@ public readonly record struct Address
         Result.Success(
             new Address(AddressLine1, City, State, newPostalCode, AddressLine2));
 
-    public Result<Address> NewAddressLine2(AddressLine? newAddressLine2) =>
+    public Result<Address> NewAddressLine2(Maybe<AddressLine> newAddressLine2) =>
         Result.Success(
             new Address(AddressLine1, City, State, PostalCode, newAddressLine2));
 

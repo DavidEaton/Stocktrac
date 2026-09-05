@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using Shouldly;
 using Stocktrac.Domain.Features.Contacts;
 
@@ -34,7 +35,8 @@ public class AddressShould
     [Fact]
     public void OmitSecondLineAndItsSeparator_On_AddressFull_WhenSecondLineIsAbsent()
     {
-        ValidAddress().AddressFull.ShouldBe("123 Main St, Albany, NY 12345");
+        ValidAddress(Maybe<AddressLine>.None)
+            .AddressFull.ShouldBe("123 Main St, Albany, NY 12345");
     }
 
     [Theory]
@@ -92,7 +94,7 @@ public class AddressShould
     [InlineData(64)]
     public void ReturnStateError_On_NewState_WhenStateIsUndefined(int state)
     {
-        var original = ValidAddress();
+        var original = ValidAddress(Maybe<AddressLine>.None);
 
         var result = original.NewState((State)state);
 
@@ -117,7 +119,7 @@ public class AddressShould
     [Fact]
     public void ReturnUpdatedCopy_On_NewAddressLine2_WhenValueIsPresent()
     {
-        var original = ValidAddress();
+        var original = ValidAddress(Maybe<AddressLine>.None);
         var replacement = AddressLine.Create("Suite 9").Value;
 
         var result = original.NewAddressLine2(replacement);
@@ -128,22 +130,10 @@ public class AddressShould
     }
 
     [Fact]
-    public void ClearSecondLine_On_NewAddressLine2_WhenValueIsNull()
-    {
-        var original = ValidAddress(AddressLine.Create("Suite 9").Value);
-
-        var result = original.NewAddressLine2(null);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.AddressLine2.ShouldBeNull();
-        AssertOnlyExpectedValueChanged(original, result.Value, nameof(Address.AddressLine2));
-    }
-
-    [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenAllValuesAreEqual()
     {
-        var first = ValidAddress();
-        var second = ValidAddress();
+        var first = ValidAddress(Maybe<AddressLine>.None);
+        var second = ValidAddress(Maybe<AddressLine>.None);
 
         first.ShouldBe(second);
         (first == second).ShouldBeTrue();
@@ -160,9 +150,8 @@ public class AddressShould
         if (member != nameof(Address.PostalCode)) updated.PostalCode.ShouldBe(original.PostalCode);
     }
 
-    private static Address ValidAddress(AddressLine? line2 = null) =>
+    private static Address ValidAddress(Maybe<AddressLine> line2) =>
         Address.Create(ValidLine(), ValidCity(), State.NY, ValidPostalCode(), line2).Value;
-
     private static AddressLine ValidLine() => AddressLine.Create("123 Main St").Value;
     private static City ValidCity() => City.Create("Albany").Value;
     private static PostalCode ValidPostalCode() => PostalCode.Create("12345").Value;

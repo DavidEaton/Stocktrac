@@ -227,7 +227,8 @@ public class ContactableShould
             AddressLine.Create(line).Value,
             City.Create(city).Value,
             state,
-            PostalCode.Create(postalCode).Value).Value;
+            PostalCode.Create(postalCode).Value,
+            Maybe<AddressLine>.None).Value;
 
     private static void SetId(Entity entity, long? id)
     {
