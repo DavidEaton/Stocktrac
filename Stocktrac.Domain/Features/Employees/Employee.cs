@@ -9,10 +9,10 @@ public class Employee : Entity
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static DateTime StartDateMinimum => DateTime.Today.AddYears(-50);
     public static DateTime EndDateMaximum => DateTime.Today.AddYears(1);
-    public static readonly int MaximumNoteLength = 10000;
-    public static readonly int MaximumSSNLength = 12;
-    public static readonly int MaximumCertificationNumberLength = 20;
-    public static readonly int MaximumPrintedNameLength = 50;
+    public const int MaximumNoteLength = 10000;
+    public const int MaximumSSNLength = 12;
+    public const int MaximumCertificationNumberLength = 20;
+    public const int MaximumPrintedNameLength = 50;
     public static readonly double MinimumBenefitLoad = 0.0;
     public static readonly double MaximumBenefitLoad = 100.0;
     public static readonly string RequiredMessage = $"Please include all required items.";

@@ -4,8 +4,8 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public readonly record struct PostalCode
 {
-    public static readonly int MinimumLength = 1;
-    public static readonly int MaximumLength = 20;
+    public const int MinimumLength = 1;
+    public const int MaximumLength = 20;
     public static readonly string InvalidMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
     public string Value { get; }
 

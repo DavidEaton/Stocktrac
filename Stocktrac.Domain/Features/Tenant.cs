@@ -6,11 +6,11 @@ public sealed class Tenant : Entity<Guid>
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly int MinimumNameLength = 2;
-    public static readonly int MaximumNameLength = 2048;
-    public static readonly int MinimumCompanyNameLength = 2;
-    public static readonly int MaximumCompanyNameLength = 2048;
-    public static readonly int MaximumLogoUrlLength = 4096;
+    public const int MinimumNameLength = 2;
+    public const int MaximumNameLength = 2048;
+    public const int MinimumCompanyNameLength = 2;
+    public const int MaximumCompanyNameLength = 2048;
+    public const int MaximumLogoUrlLength = 4096;
 
     public static readonly string NameRequiredMessage =
         "Tenant name is required.";

@@ -6,7 +6,7 @@ public abstract class Contactable : Entity, IContactable
 {
     // Targeting tests at the abstract base class binds them to the code’s implementation details.
     // Always test only concrete classes; don’t test abstract classes directly
-    public static readonly int NoteMaximumLength = 10000;
+    public const int NoteMaximumLength = 10000;
     public static readonly string NoteMaximumLengthMessage = $"Notes must be {NoteMaximumLength} or fewer characters in length.";
     public static readonly string RequiredMessage = "Please complete all required entries.";
     public static readonly string NonuniqueMessage = "Duplicate entry; each must be unique.";
