@@ -15,13 +15,13 @@ public sealed record CreditCardName
     private CreditCardName(string value) =>
         Value = value;
 
-    public static Result<CreditCardName> Create(string? name) =>
-        Result.Success(name?.Trim() ?? string.Empty)
-            .Ensure(
-                value => !string.IsNullOrWhiteSpace(value),
-                RequiredMessage)
-            .Ensure(
-                value => value.Length is >= MinimumLength and <= MaximumLength,
-                InvalidLengthMessage)
-            .Map(value => new CreditCardName(value));
+    public static Result<CreditCardName> Create(string? name)
+    {
+        var normalized = name?.Trim() ?? string.Empty;
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
+                Result.FailureIf(!string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength, InvalidLengthMessage))
+            .Map(() => new CreditCardName(normalized));
+    }
 }

@@ -33,13 +33,15 @@ public class CreditCard : Entity
         CreditCardFeeType feeType,
         Fee fee,
         DateTime? addedToDeposit) =>
-        CreditCardName.Create(name.Value)
-            .Bind(validName => ValidateFeeType(feeType)
-                .Map(validFeeType => new CreditCard(
-                    validName,
-                    validFeeType,
-                    fee,
-                    ToMaybe(addedToDeposit))));
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(name is null, CreditCardName.RequiredMessage),
+                ValidateFeeType(feeType))
+            .Map(() => new CreditCard(
+                name!,
+                feeType,
+                fee,
+                ToMaybe(addedToDeposit)));
 
     public Result<CreditCard> SetName(string? name) =>
         CreditCardName.Create(name).Map(SetNameValue);

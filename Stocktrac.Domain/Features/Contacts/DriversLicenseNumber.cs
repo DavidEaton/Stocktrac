@@ -14,13 +14,15 @@ namespace Stocktrac.Domain.Features.Contacts
         private DriversLicenseNumber(string number) =>
             Number = number;
 
-        public static Result<DriversLicenseNumber> Create(string? number) =>
-            Result.Success(number?.Trim() ?? string.Empty)
-                .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
-                .Ensure(
-                    value => value.Length is >= MinimumLength and <= MaximumLength,
-                    InvalidLengthMessage)
-                .Map(value => new DriversLicenseNumber(value));
+        public static Result<DriversLicenseNumber> Create(string? number)
+        {
+            var normalized = number?.Trim() ?? string.Empty;
+            return Result.Combine(
+                    Environment.NewLine,
+                    Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
+                    Result.FailureIf(!string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength, InvalidLengthMessage))
+                .Map(() => new DriversLicenseNumber(normalized));
+        }
 
         public static Result<DriversLicenseNumber> NewNumber(string newNumber) =>
             Create(newNumber);

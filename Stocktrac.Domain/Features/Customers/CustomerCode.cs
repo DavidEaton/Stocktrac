@@ -11,10 +11,12 @@ public sealed record CustomerCode
     private CustomerCode(string value) =>
         Value = value;
 
-    public static Result<CustomerCode> Create(string? value) =>
-        Result.Success(value?.Trim() ?? string.Empty)
-            .Ensure(
-                code => code.Length <= MaximumLength,
-                InvalidLengthMessage)
-            .Map(code => new CustomerCode(code));
+    public static Result<CustomerCode> Create(string? value)
+    {
+        var normalized = value?.Trim() ?? string.Empty;
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(normalized.Length > MaximumLength, InvalidLengthMessage))
+            .Map(() => new CustomerCode(normalized));
+    }
 }

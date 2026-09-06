@@ -21,18 +21,18 @@ public sealed record DriversLicense
     }
 
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
-        Result.Success((Number: number, State: state, ValidRange: validRange))
-            .Ensure(values => values.Number is not null && values.ValidRange is not null, RequiredMessage)
-            .Ensure(values => Enum.IsDefined(values.State), StateInvalidMessage)
-            .Map(values => new DriversLicense(values.Number, values.State, values.ValidRange));
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(number is null, RequiredMessage),
+                Result.FailureIf(validRange is null, RequiredMessage),
+                Result.FailureIf(!Enum.IsDefined(state), StateInvalidMessage))
+            .Map(() => new DriversLicense(number!, state, validRange!));
 
     public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);
 
     public Result<DriversLicense> NewState(State newState) =>
-        !Enum.IsDefined(newState)
-            ? Result.Failure<DriversLicense>(StateInvalidMessage)
-            : Create(Number, newState, ValidDateRange);
+        Create(Number, newState, ValidDateRange);
 
     public Result<DriversLicense> NewValidDateRange(DateTimeRange dateRange) =>
         Create(Number, State, dateRange);
