@@ -13,13 +13,15 @@ namespace Stocktrac.Domain.Features.Contacts
         private AddressLine(string value) =>
             Value = value;
 
-        public static Result<AddressLine> Create(string? value) =>
-            Result.Success(value?.Trim() ?? string.Empty)
-                .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
-                .Ensure(
-                    value => value.Length is >= MinimumLength and <= MaximumLength,
-                    InvalidLengthMessage)
-                .Map(value => new AddressLine(value));
+        public static Result<AddressLine> Create(string? value)
+        {
+            var normalized = value?.Trim() ?? string.Empty;
+            return Result.Combine(
+                    Environment.NewLine,
+                    Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
+                    Result.FailureIf(!string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength, InvalidLengthMessage))
+                .Map(() => new AddressLine(normalized));
+        }
 
         public override string ToString() =>
             Value ?? string.Empty;

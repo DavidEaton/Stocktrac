@@ -46,24 +46,19 @@ namespace Stocktrac.Domain.Features.SaleCodes
             double desiredMargin,
             SaleCodeShopSupplies shopSupplies,
             IReadOnlyList<string> saleCodes)
-        => Result.Success((
-                Name: name?.Trim() ?? string.Empty,
-                Code: code?.Trim().ToUpperInvariant() ?? string.Empty))
-            .Ensure(
-                values => values.Name.Length is >= MinimumLength and <= NameMaximumLength,
-                InvalidLengthMessage(MinimumLength, NameMaximumLength))
-            .Ensure(
-                values => values.Code.Length is >= MinimumLength and <= CodeMaximumLength,
-                InvalidLengthMessage(MinimumLength, CodeMaximumLength))
-            .Ensure(_ => laborRate >= MinimumValue, MinimumValueMessage)
-            .Ensure(
-                _ => desiredMargin >= MinimumValue && desiredMargin <= MaximumDesiredMarginValue,
-                InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue))
-            .Ensure(_ => shopSupplies is not null, RequiredMessage)
-            .Ensure(
-                values => !saleCodes.Contains(values.Code, StringComparer.OrdinalIgnoreCase),
-                NonuniqueMessage)
-            .Map(values => new SaleCode(values.Name, values.Code, laborRate, desiredMargin, shopSupplies));
+        {
+            var normalizedName = name?.Trim() ?? string.Empty;
+            var normalizedCode = code?.Trim().ToUpperInvariant() ?? string.Empty;
+            return Result.Combine(
+                    Environment.NewLine,
+                    Result.FailureIf(normalizedName.Length is < MinimumLength or > NameMaximumLength, InvalidLengthMessage(MinimumLength, NameMaximumLength)),
+                    Result.FailureIf(normalizedCode.Length is < MinimumLength or > CodeMaximumLength, InvalidLengthMessage(MinimumLength, CodeMaximumLength)),
+                    Result.FailureIf(laborRate < MinimumValue, MinimumValueMessage),
+                    Result.FailureIf(desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue, InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue)),
+                    Result.FailureIf(shopSupplies is null, RequiredMessage),
+                    Result.FailureIf(saleCodes.Contains(normalizedCode, StringComparer.OrdinalIgnoreCase), NonuniqueMessage))
+                .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies!));
+        }
 
         public Result<string> SetName(string name)
         {

@@ -26,12 +26,17 @@ public sealed record SSN
     private SSN(string value) =>
         Value = value;
 
-    public static Result<SSN> Create(string? value) =>
-        Result.Success(value?.Trim() ?? string.Empty)
-            .Ensure(normalized => !string.IsNullOrWhiteSpace(normalized), RequiredMessage)
-            .Map(Normalize)
-            .Ensure(normalized => normalized is not null, InvalidFormatMessage)
-            .Map(normalized => new SSN(normalized!));
+    public static Result<SSN> Create(string? value)
+    {
+        var input = value?.Trim() ?? string.Empty;
+        var normalized = Normalize(input);
+
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(string.IsNullOrWhiteSpace(input), RequiredMessage),
+                Result.FailureIf(!string.IsNullOrWhiteSpace(input) && normalized is null, InvalidFormatMessage))
+            .Map(() => new SSN(normalized!));
+    }
 
     private static string? Normalize(string value) =>
         value.Length switch

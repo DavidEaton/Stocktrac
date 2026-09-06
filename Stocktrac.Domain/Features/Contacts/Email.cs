@@ -19,22 +19,17 @@ public class Email : Entity, IHasPrimary
     private Email(string address, bool isPrimary) =>
         (Address, IsPrimary) = (address, isPrimary);
 
-    public static Result<Email> Create(string address, bool isPrimary) =>
-        Result.Success(address?.Trim() ?? string.Empty)
-            .Ensure(
-                value => !string.IsNullOrWhiteSpace(value),
-                EmptyMessage)
-            .Ensure(
-                value => value.Length >= MinimumLength,
-                MinimumLengthMessage)
-            // https://www.rfc-editor.org/rfc/rfc5321#section-4.5.3
-            .Ensure(
-                value => value.Length <= MaximumLength,
-                MaximumLengthMessage)
-            .Ensure(
-                value => new EmailAddressAttribute().IsValid(value),
-                InvalidMessage)
-            .Map(value => new Email(value, isPrimary));
+    public static Result<Email> Create(string address, bool isPrimary)
+    {
+        var normalized = address?.Trim() ?? string.Empty;
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(string.IsNullOrWhiteSpace(normalized), EmptyMessage),
+                Result.FailureIf(normalized.Length > 0 && normalized.Length < MinimumLength, MinimumLengthMessage),
+                Result.FailureIf(normalized.Length > MaximumLength, MaximumLengthMessage),
+                Result.FailureIf(normalized.Length > 0 && !new EmailAddressAttribute().IsValid(normalized), InvalidMessage))
+            .Map(() => new Email(normalized, isPrimary));
+    }
 
     public Result<string> SetAddress(string address)
     {

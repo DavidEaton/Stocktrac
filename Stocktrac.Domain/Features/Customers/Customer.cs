@@ -39,11 +39,12 @@ public class Customer : Entity
     }
 
     public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, CustomerCode? code) =>
-        Result.Success((Entity: entity, CustomerType: customerType))
-            .Ensure(values => values.Entity is not null, RequiredMessage)
-            .Ensure(values => Enum.IsDefined(values.CustomerType), UnknownCustomerTypeMessage)
-            .Bind(values => ContactPreferences.Create(true, true, true)
-                .Map(preferences => new Customer(values.Entity, values.CustomerType, ToMaybe(code), preferences)));
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(entity is null, RequiredMessage),
+                Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
+            .Bind(() => ContactPreferences.Create(true, true, true)
+                .Map(preferences => new Customer(entity!, customerType, ToMaybe(code), preferences)));
 
     private static Maybe<CustomerCode> ToMaybe(CustomerCode? code)
     {

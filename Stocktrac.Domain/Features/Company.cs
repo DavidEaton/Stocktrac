@@ -18,10 +18,11 @@ public class Company : Entity
         (Business, NextInvoiceNumberOrSeed) = (business, invoiceNumberSeed);
 
     public static Result<Company> Create(Business business, long seed) =>
-        Result.Success((Business: business, Seed: seed))
-            .Ensure(values => values.Business is not null, RequiredMessage)
-            .Ensure(values => values.Seed > MinimumValue, MinimumValueMessage)
-            .Map(values => new Company(values.Business, values.Seed));
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(business is null, RequiredMessage),
+                Result.FailureIf(seed <= MinimumValue, MinimumValueMessage))
+            .Map(() => new Company(business!, seed));
 
     public Result<long> SetInvoiceNumberSeed(long seed) =>
         seed <= MinimumValue || seed > long.MaxValue

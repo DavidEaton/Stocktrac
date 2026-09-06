@@ -76,30 +76,29 @@ public class Employee : Entity
         string? printedName = null,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
-        => Result.Success((
-                Notes: (notes ?? string.Empty).Trim().Truncate(MaximumNoteLength),
-                CertificationNumber: certificationNumber?.Trim() ?? string.Empty,
-                PrintedName: printedName?.Trim() ?? string.Empty))
-            .Ensure(_ => hiredPerson is not null, RequiredMessage)
-            .Ensure(_ => hired >= StartDateMinimum && hired <= EndDateMaximum, DateRangeMessage)
-            .Ensure(
-                values => ValidateCertificationNumber(values.CertificationNumber).IsSuccess,
-                InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
-            .Ensure(
-                values => ValidatePrintedName(values.PrintedName).IsSuccess,
-                InvalidMaximumLengthMessage(MaximumPrintedNameLength))
-            .Ensure(_ => ValidateExpenseCategory(expenseCategory).IsSuccess, InvalidExpenseCategoryMessage)
-            .Ensure(_ => ValidateBenefitLoad(benefitLoad).IsSuccess, BenefitLoadMessage)
-            .Map(values => new Employee(
-                hiredPerson,
+    {
+        var normalizedNotes = (notes ?? string.Empty).Trim().Truncate(MaximumNoteLength);
+        var normalizedCertificationNumber = certificationNumber?.Trim() ?? string.Empty;
+        var normalizedPrintedName = printedName?.Trim() ?? string.Empty;
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(hiredPerson is null, RequiredMessage),
+                Result.FailureIf(hired < StartDateMinimum || hired > EndDateMaximum, DateRangeMessage),
+                ValidateCertificationNumber(normalizedCertificationNumber),
+                ValidatePrintedName(normalizedPrintedName),
+                ValidateExpenseCategory(expenseCategory),
+                ValidateBenefitLoad(benefitLoad))
+            .Map(() => new Employee(
+                hiredPerson!,
                 roleAssignments,
                 ssn,
                 hired,
-                values.Notes,
-                values.CertificationNumber,
-                values.PrintedName,
+                normalizedNotes,
+                normalizedCertificationNumber,
+                normalizedPrintedName,
                 expenseCategory,
                 benefitLoad));
+    }
 
     private static Result ValidateCertificationNumber(string? certificationNumber)
     {
