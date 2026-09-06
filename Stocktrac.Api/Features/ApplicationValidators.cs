@@ -6,22 +6,17 @@ namespace Stocktrac.Api.Features;
 
 public static class ApplicationValidators
 {
-    public static IRuleBuilderOptions<T, TElement> MustBeValueObject<T, TValueObject, TElement>(
-        this IRuleBuilder<T, TElement> ruleBuilder,
-        Func<TElement, Result<TValueObject>> factoryMethod)
-        where TValueObject : ValueObject
-    {
-        return (IRuleBuilderOptions<T, TElement>)ruleBuilder.Custom((value, context) =>
+    public static IRuleBuilderOptionsConditions<T, TElement>
+        MustSatisfyFactory<T, TElement, TResult>(
+            this IRuleBuilder<T, TElement> ruleBuilder,
+            Func<TElement, Result<TResult>> factoryMethod) =>
+        ruleBuilder.Custom((value, context) =>
         {
-
             var result = factoryMethod(value);
 
             if (result.IsFailure)
-            {
                 context.AddFailure(result.Error);
-            }
         });
-    }
 
     public static IRuleBuilderOptions<T, TElement> MustBeEntity<T, TElement, TEntity>(
         this IRuleBuilder<T, TElement> ruleBuilder,

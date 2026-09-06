@@ -25,7 +25,7 @@ public sealed record Address
     }
 
     public static Result<Address> Create(AddressLine addressLine1, City city, State state, PostalCode postalCode, Maybe<AddressLine> addressLine2 = default) =>
-    Result.Combine(
+        Result.Combine(
             Environment.NewLine,
             Result.FailureIf(
                 addressLine1 is null,
