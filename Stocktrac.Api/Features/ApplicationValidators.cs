@@ -18,48 +18,22 @@ public static class ApplicationValidators
                 context.AddFailure(result.Error);
         });
 
-    public static IRuleBuilderOptions<T, TElement> MustBeEntity<T, TElement, TEntity>(
-        this IRuleBuilder<T, TElement> ruleBuilder,
-        Func<TElement, Result<TEntity>> factoryMethod)
-        where TEntity : Domain.Features.Entity
-    {
-        return (IRuleBuilderOptions<T, TElement>)ruleBuilder.Custom((value, context) =>
-        {
-            var result = factoryMethod(value);
+    public static IRuleBuilderOptionsConditions<T, TElement>
+        MustBeEntity<T, TElement, TEntity>(
+            this IRuleBuilder<T, TElement> ruleBuilder,
+            Func<TElement, Result<TEntity>> factoryMethod)
+        where TEntity : Domain.Features.Entity =>
+        ruleBuilder.MustSatisfyFactory(factoryMethod);
 
-            if (result.IsFailure)
-            {
-                context.AddFailure(result.Error);
-            }
-        });
-    }
+    public static IRuleBuilderOptions<T, IList<TElement>>
+        ListHasAtMostOnePrimary<T, TElement>(
+            this IRuleBuilder<T, IList<TElement>> ruleBuilder)
+        where TElement : IHasPrimary =>
+        ruleBuilder
+            .Must(items => items.Count(item => item.IsPrimary) <= 1)
+            .WithMessage("Only one primary item is allowed in the list.");
 
-    public static IRuleBuilderOptionsConditions<T, IList<IHasPrimary>> ListHasNoMoreThanOnePrimary<T, TElement>(
-        this IRuleBuilder<T, IList<IHasPrimary>> ruleBuilder)
-    {
-        return ruleBuilder.Custom((list, context) =>
-        {
-            if (HasOnlyOnePrimary(list))
-            {
-                context.AddFailure(
-                    context.PropertyPath,
-                    $"Only one Primary item allowed in list");
-            }
-        });
-    }
+    private static bool HasAtMostOnePrimary(IList<IHasPrimary> items) =>
+        items.Count(item => item.IsPrimary) <= 1;
 
-    private static bool HasOnlyOnePrimary(IList<IHasPrimary> items)
-    {
-        var primaryCount = 0;
-
-        foreach (var item in items)
-        {
-            if (item.IsPrimary)
-            {
-                primaryCount += 1;
-            }
-        }
-
-        return primaryCount <= 1;
-    }
 }
