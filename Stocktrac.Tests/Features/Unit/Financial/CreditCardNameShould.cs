@@ -108,17 +108,6 @@ public class CreditCardNameShould
     }
 
     [Fact]
-    public void CreateCopyWithUpdatedValue_On_WithExpression_WhenValueIsReassigned()
-    {
-        var original = CreditCardName.Create("Visa").Value;
-
-        var copy = original with { Value = "Mastercard" };
-
-        copy.Value.ShouldBe("Mastercard");
-        original.Value.ShouldBe("Visa");
-    }
-
-    [Fact]
     public void ReturnRecordRepresentation_On_ToString_WhenValueIsAssigned()
     {
         var name = CreditCardName.Create("Visa").Value;

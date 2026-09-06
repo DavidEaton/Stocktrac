@@ -1,11 +1,13 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record Address
 {
-    public static readonly string AddressRequiredMessage = $"Address is required";
+    public static readonly string AddressRequiredMessage = $"Address line 1 is required";
+    public static readonly string CityRequiredMessage = $"A valid city is required";
     public static readonly string StateInvalidMessage = $"Please enter a valid State";
+    public static readonly string PostalCodeRequiredMessage = $"A valid postal code is required";
     public AddressLine AddressLine1 { get; }
     public Maybe<AddressLine> AddressLine2 { get; }
     public static Maybe<Address> Default => Maybe<Address>.None;
@@ -13,12 +15,7 @@ public sealed record Address
     public State State { get; }
     public PostalCode PostalCode { get; }
 
-    private Address(
-        AddressLine addressLine1,
-        City city,
-        State state,
-        PostalCode postalCode,
-        Maybe<AddressLine> addressLine2)
+    private Address(AddressLine addressLine1, City city, State state, PostalCode postalCode, Maybe<AddressLine> addressLine2)
     {
         AddressLine1 = addressLine1;
         AddressLine2 = addressLine2;
@@ -27,20 +24,22 @@ public sealed record Address
         PostalCode = postalCode;
     }
 
-    public static Result<Address> Create(
-        AddressLine addressLine1,
-        City city,
-        State state,
-        PostalCode postalCode,
-        Maybe<AddressLine> addressLine2 = default) =>
-        Result.Success((AddressLine: addressLine1, City: city, PostalCode: postalCode, State: state))
-            .Ensure(
-                values => values.AddressLine is not null && values.City is not null && values.PostalCode is not null,
-                AddressRequiredMessage)
-            .Ensure(
-                values => Enum.IsDefined(values.State),
-                StateInvalidMessage)
-            .Map(values => new Address(values.AddressLine, values.City, values.State, values.PostalCode, addressLine2));
+    public static Result<Address> Create(AddressLine addressLine1, City city, State state, PostalCode postalCode, Maybe<AddressLine> addressLine2 = default) =>
+    Result.Combine(
+            Environment.NewLine,
+            Result.FailureIf(
+                addressLine1 is null,
+                AddressRequiredMessage),
+            Result.FailureIf(
+                city is null,
+                CityRequiredMessage),
+            Result.FailureIf(
+                !Enum.IsDefined(state),
+                StateInvalidMessage),
+            Result.FailureIf(
+                postalCode is null,
+                PostalCodeRequiredMessage))
+        .Map(() => new Address(addressLine1!, city!, state, postalCode!, addressLine2));
 
     public Result<Address> NewAddressLine1(AddressLine newAddressLine) =>
         Create(newAddressLine, City, State, PostalCode, AddressLine2);
@@ -48,28 +47,14 @@ public sealed record Address
     public Result<Address> NewCity(City newCity) =>
         Create(AddressLine1, newCity, State, PostalCode, AddressLine2);
 
-    public Result<Address> NewState(State newState)
-    {
-        var current = this;
-
-        return Result.Success(newState)
-            .Ensure(
-                static value => Enum.IsDefined(value),
-                StateInvalidMessage)
-            .Map(state => new Address(
-                current.AddressLine1,
-                current.City,
-                state,
-                current.PostalCode,
-                current.AddressLine2));
-    }
+    public Result<Address> NewState(State newState) =>
+        Create(AddressLine1, City, newState, PostalCode, AddressLine2);
 
     public Result<Address> NewPostalCode(PostalCode newPostalCode) =>
         Create(AddressLine1, City, State, newPostalCode, AddressLine2);
 
-    public Result<Address> NewAddressLine2(Maybe<AddressLine> newAddressLine2) =>
-        Result.Success(
-            new Address(AddressLine1, City, State, PostalCode, newAddressLine2));
+    public Result<Address> NewAddressLine2(AddressLine newAddressLine2) =>
+        Create(AddressLine1, City, State, PostalCode, newAddressLine2);
 
     public override string ToString() =>
         AddressFull;
