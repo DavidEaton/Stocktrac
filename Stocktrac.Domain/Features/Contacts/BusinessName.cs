@@ -24,12 +24,13 @@ public sealed record BusinessName
     {
         var normalizedName = name?.Trim() ?? string.Empty;
 
-        return Result.Success(normalizedName)
-            .Ensure(value => value.Length > 0, RequiredMessage)
-            .Ensure(
-                value => value.Length is >= MinimumLength and <= MaximumLength,
-                $"{InvalidLengthMessage} You entered {normalizedName.Length} character(s).")
-            .Map(value => new BusinessName(value));
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(normalizedName.Length == 0, RequiredMessage),
+                Result.FailureIf(
+                    normalizedName.Length > 0 && normalizedName.Length is < MinimumLength or > MaximumLength,
+                    $"{InvalidLengthMessage} You entered {normalizedName.Length} character(s)."))
+            .Map(() => new BusinessName(normalizedName));
     }
 
     public override string ToString() =>

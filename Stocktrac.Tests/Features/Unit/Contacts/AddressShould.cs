@@ -52,6 +52,20 @@ public class AddressShould
     }
 
     [Fact]
+    public void ReturnEveryError_On_Create_WhenSeveralComponentsAreInvalid()
+    {
+        var result = Address.Create(null!, null!, (State)(-1), null!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(string.Join(
+            Environment.NewLine,
+            Address.AddressRequiredMessage,
+            Address.CityRequiredMessage,
+            Address.StateInvalidMessage,
+            Address.PostalCodeRequiredMessage));
+    }
+
+    [Fact]
     public void ReturnUpdatedCopy_On_NewAddressLine1_WithoutChangingOtherValues()
     {
         var original = ValidAddress(AddressLine.Create("Suite 1").Value);

@@ -38,6 +38,19 @@ public class DriversLicenseShould
     }
 
     [Fact]
+    public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
+    {
+        var result = DriversLicense.Create(null!, (State)(-1), null!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(string.Join(
+            Environment.NewLine,
+            DriversLicense.RequiredMessage,
+            DriversLicense.RequiredMessage,
+            DriversLicense.StateInvalidMessage));
+    }
+
+    [Fact]
     public void ReplaceNumberAndPreserveOtherComponents_On_NewNumber_WhenNumberIsProvided()
     {
         var original = CreateLicense();

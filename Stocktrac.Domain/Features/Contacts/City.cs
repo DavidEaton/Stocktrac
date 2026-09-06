@@ -13,13 +13,18 @@ namespace Stocktrac.Domain.Features.Contacts
         private City(string value) =>
             Value = value;
 
-        public static Result<City> Create(string? value) =>
-            Result.Success(value?.Trim() ?? string.Empty)
-                .Ensure(static value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
-                .Ensure(
-                    static value => value.Length is >= MinimumLength and <= MaximumLength,
-                    InvalidLengthMessage)
-                .Map(value => new City(value));
+        public static Result<City> Create(string? value)
+        {
+            var normalized = value?.Trim() ?? string.Empty;
+
+            return Result.Combine(
+                    Environment.NewLine,
+                    Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
+                    Result.FailureIf(
+                        !string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength,
+                        InvalidLengthMessage))
+                .Map(() => new City(normalized));
+        }
 
         public override string ToString() =>
             Value;

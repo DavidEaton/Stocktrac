@@ -43,9 +43,11 @@ public class Business : Contactable, ICustomerEntity
         // Only the primitive type (vs. ValueObject type) Notes property is
         // transformed and validated (parsed) here in the domain class that
         // creates it.
-        return Result.Success(name)
-            .Map(validName => new Business(
-                validName, address, notes, ToMaybe(contact), phones, emails));
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(name is null, InvalidMessage))
+            .Map(() => new Business(
+                name!, address, notes, ToMaybe(contact), phones, emails));
     }
 
     private static Maybe<Person> ToMaybe(Person? contact) =>

@@ -13,11 +13,12 @@ namespace Stocktrac.Domain.Features.Persons
             _date = date;
 
         public static Result<Birthday> Create(DateTime date) =>
-            Result.Success(date)
-                .Ensure(
-                    value => value >= MinimumDate && value <= MaximumDate,
-                    $"Birthday must be between {MinimumDate:d} and {MaximumDate:d}")
-                .Map(value => new Birthday(value));
+            Result.Combine(
+                    Environment.NewLine,
+                    Result.FailureIf(
+                        date < MinimumDate || date > MaximumDate,
+                        $"Birthday must be between {MinimumDate:d} and {MaximumDate:d}"))
+                .Map(() => new Birthday(date));
 
         public static implicit operator DateTime(Birthday birthday) =>
             birthday._date;

@@ -70,43 +70,33 @@ public class Vehicle : Entity
         string color,
         bool active = true,
         bool nonTraditionalVehicle = false)
-        => Result.Success((
-                Vin: vin,
-                Make: (make ?? string.Empty).Trim(),
-                Model: (model ?? string.Empty).Trim(),
-                Plate: (plate ?? string.Empty).Trim(),
-                UnitNumber: (unitNumber ?? string.Empty).Trim(),
-                Color: (color ?? string.Empty).Trim()))
-            .Ensure(values => ValidateVin(values.Vin, nonTraditionalVehicle).IsSuccess, InvalidVinMessage)
-            .Ensure(
-                values => ValidateMakeModel(values.Make, values.Model, nonTraditionalVehicle).IsSuccess,
-                nonTraditionalVehicle
-                    ? NonTraditionalVehicleInvalidMakeModelMessage
-                    : InvalidLengthMessage)
-            .Ensure(_ => ValidateYear(year).IsSuccess, InvalidYearMessage)
-            .Ensure(
-                values => ValidatePlate(values.Plate).IsSuccess,
-                InvalidMaximumLengthMessage(MaximumPlateLength))
-            .Ensure(
-                _ => ValidatePlateStateProvince(plateStateProvince).IsSuccess,
-                InvalidPlateStateProvinceMessage)
-            .Ensure(
-                values => ValidateUnitNumber(values.UnitNumber).IsSuccess,
-                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
-            .Ensure(
-                values => ValidateColor(values.Color).IsSuccess,
-                InvalidMaximumLengthMessage(MaximumColorLength))
-            .Map(values => new Vehicle(
-                values.Vin,
+    {
+        var normalizedMake = (make ?? string.Empty).Trim();
+        var normalizedModel = (model ?? string.Empty).Trim();
+        var normalizedPlate = (plate ?? string.Empty).Trim();
+        var normalizedUnitNumber = (unitNumber ?? string.Empty).Trim();
+        var normalizedColor = (color ?? string.Empty).Trim();
+        return Result.Combine(
+                Environment.NewLine,
+                ValidateVin(vin, nonTraditionalVehicle),
+                ValidateMakeModel(normalizedMake, normalizedModel, nonTraditionalVehicle),
+                ValidateYear(year),
+                ValidatePlate(normalizedPlate),
+                ValidatePlateStateProvince(plateStateProvince),
+                ValidateUnitNumber(normalizedUnitNumber),
+                ValidateColor(normalizedColor))
+            .Map(() => new Vehicle(
+                vin,
                 ToMaybe(year),
-                values.Make,
-                values.Model,
+                normalizedMake,
+                normalizedModel,
                 nonTraditionalVehicle,
-                values.Plate,
+                normalizedPlate,
                 ToMaybe(plateStateProvince),
-                values.UnitNumber,
-                values.Color,
+                normalizedUnitNumber,
+                normalizedColor,
                 active));
+    }
 
     private static Result ValidateMakeModel(string make, string model, bool nonTraditionalVehicle)
     {

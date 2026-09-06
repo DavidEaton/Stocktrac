@@ -15,9 +15,10 @@ public sealed record DateTimeRange
         (Start, End) = (start, end);
 
     public static Result<DateTimeRange> Create(DateTime start, DateTime end) =>
-        Result.Success((Start: start, End: end))
-            .Ensure(values => values.Start < values.End, EndBeforeStartMessage)
-            .Map(values => new DateTimeRange(values.Start, values.End));
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(start >= end, EndBeforeStartMessage))
+            .Map(() => new DateTimeRange(start, end));
 
     public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
         CalculateEnd(start, () => start.Add(duration));
@@ -34,14 +35,12 @@ public sealed record DateTimeRange
     public Result<DateTimeRange> NewStart(DateTime newStart) =>
         newStart >= End
             ? Result.Failure<DateTimeRange>(RequiredMessage)
-            : Result.Success(
-                new DateTimeRange(newStart, End));
+            : Create(newStart, End);
 
     public Result<DateTimeRange> NewEnd(DateTime newEnd) =>
         Start >= newEnd
             ? Result.Failure<DateTimeRange>(RequiredMessage)
-            : Result.Success(
-                new DateTimeRange(Start, newEnd));
+            : Create(Start, newEnd);
 
     public Result<DateTimeRange> ClearEnd() =>
         Result.Success(

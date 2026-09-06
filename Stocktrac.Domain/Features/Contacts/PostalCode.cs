@@ -12,12 +12,16 @@ public sealed record PostalCode
     private PostalCode(string value) =>
         Value = value;
 
-    public static Result<PostalCode> Create(string? value) =>
-        Result.Success(value?.Trim() ?? string.Empty)
-            .Ensure(code => code.Length >= MinimumLength, InvalidMessage)
-            .Ensure(code => code.Length <= MaximumLength, InvalidMessage)
-            .Ensure(code => code.All(char.IsDigit), InvalidMessage)
-            .Map(code => new PostalCode(code));
+    public static Result<PostalCode> Create(string? value)
+    {
+        var normalized = value?.Trim() ?? string.Empty;
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(normalized.Length < MinimumLength, InvalidMessage),
+                Result.FailureIf(normalized.Length > MaximumLength, InvalidMessage),
+                Result.FailureIf(!normalized.All(char.IsDigit), InvalidMessage))
+            .Map(() => new PostalCode(normalized));
+    }
 
     public override string ToString() =>
         Value;

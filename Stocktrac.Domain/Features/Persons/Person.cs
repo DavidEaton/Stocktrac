@@ -40,10 +40,11 @@ public class Person : Contactable, ICustomerEntity
         Maybe<Address> address = default,
         DriversLicense? driversLicense = null)
     {
-        return Result.Success(name)
-            .Ensure(validName => validName is not null, NameRequiredMessage)
-            .Map(validName => new Person(
-                validName,
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(name is null, NameRequiredMessage))
+            .Map(() => new Person(
+                name!,
                 notes,
                 address,
                 emails,
