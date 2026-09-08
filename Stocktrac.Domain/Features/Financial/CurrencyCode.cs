@@ -10,10 +10,8 @@ public readonly record struct CurrencyCode
     public const int CodeLength = 3;
     public const string DefaultCode = "USD";
     public const string RequiredMessage = "Currency code is required.";
-    public const string InvalidMessage =
-        "Currency code must be three alphabetic characters.";
-    public const string UnsupportedMessage =
-        "Currency code is not an active ISO 4217 code.";
+    public const string InvalidMessage = "Currency code must be three alphabetic characters.";
+    public const string UnsupportedMessage = "Currency code is not an active ISO 4217 code.";
 
     // null internally means DefaultCode.
     private readonly string? _nonDefaultCode;
@@ -28,17 +26,13 @@ public readonly record struct CurrencyCode
     private CurrencyCode(string code) =>
         _nonDefaultCode = code == DefaultCode ? null : code;
 
-    public static Result<CurrencyCode> Create(string? code)
-    {
-        var normalized = NormalizeCode(code);
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
-                Result.FailureIf(normalized.Length > 0 && normalized.Length != CodeLength, InvalidMessage),
-                Result.FailureIf(normalized.Length > 0 && !normalized.All(char.IsAsciiLetter), InvalidMessage),
-                Result.FailureIf(normalized.Length == CodeLength && normalized.All(char.IsAsciiLetter) && !Iso4217CountryCurrencyCodes.Contains(normalized), UnsupportedMessage))
-            .Map(() => new CurrencyCode(normalized));
-    }
+    public static Result<CurrencyCode> Create(string? code) =>
+        Result.Success(NormalizeCode(code))
+            .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
+            .Ensure(value => value.Length == CodeLength, InvalidMessage)
+            .Ensure(value => value.All(char.IsAsciiLetter), InvalidMessage)
+            .Ensure(Iso4217CountryCurrencyCodes.Contains, UnsupportedMessage)
+            .Map(value => new CurrencyCode(value));
 
     private static string NormalizeCode(string? code) =>
         code?.Trim().ToUpperInvariant()

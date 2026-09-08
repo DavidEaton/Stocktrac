@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
+using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features;
 
@@ -33,6 +34,10 @@ public class Company : Entity
     private Company() =>
         Business = Business.Create(
             BusinessName.Create("Business Name").Value,
-            Maybe<Address>.None)
+            Maybe<Address>.None,
+            Note.Create(string.Empty).Value,
+            Maybe<Person>.None,
+            [],
+            [])
             .Value;
 }

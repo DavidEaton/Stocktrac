@@ -14,13 +14,13 @@ public sealed record BusinessName
     private BusinessName(string name) =>
         Name = name;
 
-    public static Result<BusinessName> Create(string? name) =>
+    public static Result<BusinessName> Create(string name) =>
         CreateNormalized(name);
 
-    public static Result<BusinessName> NewBusinessName(string? name) =>
+    public static Result<BusinessName> NewBusinessName(string name) =>
         CreateNormalized(name);
 
-    private static Result<BusinessName> CreateNormalized(string? name)
+    private static Result<BusinessName> CreateNormalized(string name)
     {
         var normalizedName = name?.Trim() ?? string.Empty;
 

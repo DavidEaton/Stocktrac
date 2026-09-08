@@ -76,6 +76,6 @@ public class AddressLineShould
         AddressLine.MinimumLength.ShouldBe(2);
         AddressLine.MaximumLength.ShouldBe(255);
         AddressLine.RequiredMessage.ShouldBe("Address Line is required.");
-        AddressLine.InvalidLengthMessage.ShouldBe("Value must be between 2 and 255 characters.");
+        AddressLine.InvalidLengthMessage.ShouldBe("Address must be between 2 and 255 characters.");
     }
 }

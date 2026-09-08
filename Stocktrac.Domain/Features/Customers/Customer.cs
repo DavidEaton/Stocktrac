@@ -19,7 +19,7 @@ public class Customer : Entity
     public ICustomerEntity CustomerEntity { get; private set; }
     public EntityType EntityType => CustomerEntity.EntityType;
     public string Name => CustomerEntity.ToString() ?? string.Empty;
-    public Maybe<string> Notes => CustomerEntity.Notes;
+    public Maybe<Note> Notes => CustomerEntity.Notes;
     public Maybe<Address> Address => CustomerEntity.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
@@ -170,22 +170,22 @@ public class Customer : Entity
     // Confirm that EF is okay with modelBuilder.ApplyConfiguration(new CustomerConfiguration()); ...and can create a Customer instance WITHOUT a parameterless constructor (namespace Menominee.Api.Features.Customers)
     // EF requires a parameterless constructor??????????
     // 
-    private Customer()
-    {
-        vehicles = [];
-        CustomerEntity = Person.Create(
-            PersonName.Create(
-                lastName: "First",
-                firstName: "Last").Value,
-            notes: null,
-            birthday: Birthday.Create(DateTime.Today).Value,
-            emails: null,
-            phones: null,
-            address: Maybe<Address>.None).Value;
-        ContactPreferences = ContactPreferences.Create(
-            allowMail: true,
-            allowEmail: true,
-            allowSms: true).Value;
-        CustomerType = CustomerType.Retail;
-    }
+    // private Customer()
+    // {
+    //     vehicles = [];
+    //     CustomerEntity = Person.Create(
+    //         PersonName.Create(
+    //             lastName: "First",
+    //             firstName: "Last").Value,
+    //         notes: null,
+    //         birthday: Birthday.Create(DateTime.Today).Value,
+    //         emails: null,
+    //         phones: null,
+    //         address: Maybe<Address>.None).Value;
+    //     ContactPreferences = ContactPreferences.Create(
+    //         allowMail: true,
+    //         allowEmail: true,
+    //         allowSms: true).Value;
+    //     CustomerType = CustomerType.Retail;
+    // }
 }

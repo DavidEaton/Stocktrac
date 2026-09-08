@@ -4,8 +4,8 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record DriversLicense
 {
-    public const string RequiredMessage = "Driver's license details are required";
-    public static readonly string StateInvalidMessage = $"Please enter a valid State";
+    public const string RequiredMessage = "Driver's license details are required.";
+    public static readonly string StateInvalidMessage = $"Please enter a valid State.";
     public DriversLicenseNumber Number { get; }
     public DateTimeRange ValidDateRange { get; }
     public State State { get; }

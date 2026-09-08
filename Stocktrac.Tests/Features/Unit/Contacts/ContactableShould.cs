@@ -5,12 +5,13 @@ using Stocktrac.Domain.Features.Persons;
 using Entity = Stocktrac.Domain.Features.Entity;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
+
 public class ContactableShould
 {
     [Fact]
     public void HaveNoAddress_WhenAddressIsDefault()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
 
         Address.Default.HasValue.ShouldBe(false);
         person.Address.ShouldBe(Address.Default);
@@ -19,7 +20,7 @@ public class ContactableShould
     [Fact]
     public void AddAndRemoveContacts_WhenContactsAreValid()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
         var phone = CreatePhone("555-111-1111", PhoneType.Mobile, true);
         var email = CreateEmail("primary@example.com", true);
 
@@ -37,7 +38,7 @@ public class ContactableShould
     [Fact]
     public void ReturnRequiredError_WhenContactIsNull()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
 
         person.AddPhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.RemovePhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
@@ -76,7 +77,7 @@ public class ContactableShould
     [Fact]
     public void ReturnNotFoundError_On_RemoveContact_WhenContactIsAbsent()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
 
         person.RemoveEmail(CreateEmail("missing@example.com", false)).Error
             .ShouldBe(Contactable.NotFoundMessage);
@@ -85,22 +86,9 @@ public class ContactableShould
     }
 
     [Fact]
-    public void NormalizeAndTruncateNotes_On_SetNotes_WhenNotesExceedMaximumLength()
-    {
-        var person = CreatePerson();
-        var note = $"  {new string('n', Contactable.NoteMaximumLength + 1)}  ";
-
-        var result = person.SetNotes(note);
-
-        result.IsSuccess.ShouldBe(true);
-        person.Notes.Value.Length.ShouldBe(Contactable.NoteMaximumLength);
-        person.Notes.Value.ShouldNotStartWith(" ");
-    }
-
-    [Fact]
     public void SetAndClearAddress_WhenAddressIsValidAndRejectNullAddress()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
         var address = CreateAddress("123 Main St", "Anytown", State.NY, "12345");
 
         person.SetAddress(address).IsSuccess.ShouldBe(true);
@@ -114,7 +102,8 @@ public class ContactableShould
     public void ReplacePhones_WhenRequestedCollectionIsValid()
     {
         var person = CreatePerson(
-            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)]);
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)],
+            emails: []);
         var replacements = new[]
         {
             CreatePhone("555-222-2222", PhoneType.Home, true),
@@ -131,7 +120,8 @@ public class ContactableShould
     public void ReplaceEmails_WhenRequestedCollectionIsValid()
     {
         var person = CreatePerson(
-            emails: [CreateEmail("old@example.com", true)]);
+            emails: [CreateEmail("old@example.com", true)],
+            phones: []);
         var replacements = new[]
         {
             CreateEmail("primary@example.com", true),
@@ -162,7 +152,7 @@ public class ContactableShould
     public void PreservePhones_WhenReplacementContainsDuplicateNumbers()
     {
         var original = CreatePhone("555-111-1111", PhoneType.Mobile, true);
-        var person = CreatePerson(phones: [original]);
+        var person = CreatePerson(phones: [original], emails: []);
 
         var result = person.ReplacePhones(
         [
@@ -178,7 +168,7 @@ public class ContactableShould
     public void PreserveEmails_WhenReplacementContainsMultiplePrimaries()
     {
         var original = CreateEmail("original@example.com", true);
-        var person = CreatePerson(emails: [original]);
+        var person = CreatePerson(emails: [original], phones: []);
 
         var result = person.ReplaceEmails(
         [
@@ -193,20 +183,28 @@ public class ContactableShould
     [Fact]
     public void RejectNullReplacementCollections()
     {
-        var person = CreatePerson();
+        var person = CreatePerson(emails: [], phones: []);
 
         person.ReplacePhones(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.ReplaceEmails(null!).Error.ShouldBe(Contactable.RequiredMessage);
     }
 
     private static Person CreatePerson(
-        IReadOnlyList<Email>? emails = null,
-        IReadOnlyList<Phone>? phones = null) =>
+        IReadOnlyList<Email>? emails,
+        IReadOnlyList<Phone>? phones) =>
         Person.Create(
-            name: PersonName.Create("Doe", "Jane").Value,
-            notes: null,
-            emails: emails,
-            phones: phones).Value;
+            PersonName.Create("Doe", "Jane").Value,
+            Note.Create("Some notes.").Value,
+            emails ?? CreateEmails(),
+            phones ?? CreatePhones(),
+            Maybe<Birthday>.None,
+            Maybe<Address>.None,
+            Maybe<DriversLicense>.None
+            ).Value;
+
+    private static IReadOnlyList<Phone> CreatePhones() => [];
+
+    private static IReadOnlyList<Email> CreateEmails() => [];
 
     private static Phone CreatePhone(string number, PhoneType phoneType, bool isPrimary, long? id = null)
     {

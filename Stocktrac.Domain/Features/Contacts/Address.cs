@@ -4,10 +4,10 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record Address
 {
-    public static readonly string AddressRequiredMessage = $"Address line 1 is required";
-    public static readonly string CityRequiredMessage = $"A valid city is required";
-    public static readonly string StateInvalidMessage = $"Please enter a valid State";
-    public static readonly string PostalCodeRequiredMessage = $"A valid postal code is required";
+    public static readonly string AddressRequiredMessage = $"Address line 1 is required.";
+    public static readonly string CityRequiredMessage = $"A valid city is required.";
+    public static readonly string StateInvalidMessage = $"A valid State is required.";
+    public static readonly string PostalCodeRequiredMessage = $"A valid postal code is required.";
     public AddressLine AddressLine1 { get; }
     public Maybe<AddressLine> AddressLine2 { get; }
     public static Maybe<Address> Default => Maybe<Address>.None;

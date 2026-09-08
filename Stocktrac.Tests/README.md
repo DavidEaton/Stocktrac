@@ -204,6 +204,10 @@ Occasionally `From`, `After`, or another connector produces a more accurate sent
 
 ## Common mistakes
 
+### Testing an abstract base class directly
+
+Targeting tests at the abstract base class binds them to the code's implementation details. Always test only concrete classes; don't test abstract classes directly.
+
 ### Starting with the member
 
 Avoid:

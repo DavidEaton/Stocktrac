@@ -32,8 +32,4 @@ public static class ApplicationValidators
         ruleBuilder
             .Must(items => items.Count(item => item.IsPrimary) <= 1)
             .WithMessage("Only one primary item is allowed in the list.");
-
-    private static bool HasAtMostOnePrimary(IList<IHasPrimary> items) =>
-        items.Count(item => item.IsPrimary) <= 1;
-
 }

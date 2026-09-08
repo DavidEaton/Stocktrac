@@ -53,10 +53,6 @@ public class CurrencyCodeShould
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("\t\r\n")]
     [InlineData("US")]
     [InlineData("USDD")]
     [InlineData(" U S D ")]
@@ -71,6 +67,19 @@ public class CurrencyCodeShould
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CurrencyCode.InvalidMessage);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("\t\r\n")]
+    public void ReturnInvalidFailure_On_Create_WhenCodeIsMissing(string? code)
+    {
+        var result = CurrencyCode.Create(code);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(CurrencyCode.RequiredMessage);
     }
 
     [Theory]

@@ -12,10 +12,6 @@ public class CreditCard : Entity
     public Maybe<DateTime> AddedToDeposit { get; private set; }
     public bool IsAddedToDeposit => AddedToDeposit.HasValue;
 
-    private CreditCard()
-    {
-    }
-
     private CreditCard(
         CreditCardName name,
         CreditCardFeeType feeType,

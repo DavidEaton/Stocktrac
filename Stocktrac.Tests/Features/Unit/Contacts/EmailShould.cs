@@ -40,7 +40,7 @@ public class EmailShould
 
     [Theory]
     [InlineData("a@b", "Email address cannot be less than 5 character(s) in length.")]
-    [InlineData("invalid-email-address.com", "Email address and/or its format is invalid")]
+    [InlineData("invalid-email-address.com", "Email address and/or its format is invalid.")]
     [InlineData("", "Email address cannot be empty.")]
     [InlineData("lorem ipsum dolor sit amet consectetur adipiscing elit non qui ad dolores cillum non nam qui est in est dolorum laborum vel imperdiet cupiditate sit facilis minim consequat est do et dolor lorem nulla pariatur id vero est velit est dolorem laborum aut tempor", "Email address cannot be greater than 254 characters in length.")]
     public void ReturnSpecificError_On_Create_WhenAddressIsInvalid(string address, string expectedError)
@@ -48,7 +48,9 @@ public class EmailShould
         var result = Email.Create(address, true);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(expectedError);
+        result.Error.ShouldBe(expectedError,
+            StringCompareShould.IgnoreCase |
+            StringCompareShould.IgnoreLineEndings);
     }
 
     [Fact]

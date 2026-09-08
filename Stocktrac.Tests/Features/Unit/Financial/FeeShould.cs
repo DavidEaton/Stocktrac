@@ -53,9 +53,9 @@ public class FeeShould
     }
 
     [Theory]
-    [InlineData(null, CurrencyCode.InvalidMessage)]
-    [InlineData("", CurrencyCode.InvalidMessage)]
-    [InlineData("   ", CurrencyCode.InvalidMessage)]
+    [InlineData(null, CurrencyCode.RequiredMessage)]
+    [InlineData("", CurrencyCode.RequiredMessage)]
+    [InlineData("   ", CurrencyCode.RequiredMessage)]
     [InlineData("US", CurrencyCode.InvalidMessage)]
     [InlineData("US1", CurrencyCode.InvalidMessage)]
     [InlineData("USDD", CurrencyCode.InvalidMessage)]

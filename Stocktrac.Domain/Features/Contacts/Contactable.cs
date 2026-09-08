@@ -4,181 +4,177 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public abstract class Contactable : Entity, IContactable
 {
-    // Targeting tests at the abstract base class binds them to the code’s implementation details.
-    // Always test only concrete classes; don’t test abstract classes directly
-    public const int NoteMaximumLength = 10000;
-    public static readonly string NoteMaximumLengthMessage = $"Notes must be {NoteMaximumLength} or fewer characters in length.";
-    public static readonly string RequiredMessage = "Please complete all required entries.";
-    public static readonly string NonuniqueMessage = "Duplicate entry; each must be unique.";
-    public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
-    public static readonly string InvalidValueMessage = "Invalid value";
-    public static readonly string NotFoundMessage = "Entry not found";
-    public Maybe<string> Notes { get; private set; }
-    public Maybe<Address> Address { get; private set; }
+    public static readonly string RequiredMessage =
+        "Please complete all required entries.";
+
+    public static readonly string NonuniqueMessage =
+        "Duplicate entry; each must be unique.";
+
+    public static readonly string PrimaryExistsMessage =
+        "Primary has already been entered.";
+
+    public static readonly string InvalidValueMessage =
+        "Invalid value";
+
+    public static readonly string NotFoundMessage =
+        "Entry not found";
 
     private readonly List<Phone> phones = [];
-    public IReadOnlyList<Phone> Phones => [.. phones];
+
     private readonly List<Email> emails = [];
+
+    public Note Notes { get; private set; }
+
+    public Maybe<Address> Address { get; private set; }
+
+    public IReadOnlyList<Phone> Phones => [.. phones];
+
     public IReadOnlyList<Email> Emails => [.. emails];
 
-    internal Contactable(
-        string? notes,
+    protected Contactable(
+        Note notes,
         Maybe<Address> address,
-        IReadOnlyList<Phone>? phones,
-        IReadOnlyList<Email>? emails)
+        IReadOnlyList<Phone> phones,
+        IReadOnlyList<Email> emails)
     {
-        Notes = NormalizeNotes(notes);
-
+        Notes = notes;
         Address = address;
-
-        if (phones is not null)
-            foreach (var phone in phones)
-                AddPhone(phone);
-
-        if (emails is not null)
-            foreach (var email in emails)
-                AddEmail(email);
+        this.phones = [.. phones];
+        this.emails = [.. emails];
     }
 
-    public Result<Email> AddEmail(Email email)
-    {
-        if (email is null)
-            return Result.Failure<Email>(RequiredMessage);
+    public Result<Phone> AddPhone(Phone phone) =>
+        Maybe.From(phone)
+            .ToResult(RequiredMessage)
+            .Ensure(
+                requestedPhone => !HasPhone(requestedPhone),
+                NonuniqueMessage)
+            .Ensure(
+                requestedPhone =>
+                    !requestedPhone.IsPrimary || !HasPrimaryPhone(),
+                PrimaryExistsMessage)
+            .Tap(phones.Add);
 
-        if (!IsUniqueContactableEmail(email))
-            return Result.Failure<Email>(NonuniqueMessage);
+    public Result<Phone> RemovePhone(Phone phone) =>
+        Maybe.From(phone)
+            .ToResult(RequiredMessage)
+            .Ensure(
+                phones.Contains,
+                NotFoundMessage)
+            .Tap(requestedPhone => phones.Remove(requestedPhone));
 
-        if (HasPrimaryEmail() && email.IsPrimary)
-            return Result.Failure<Email>(PrimaryExistsMessage);
+    public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones) =>
+        ValidateContactList(
+                requestedPhones,
+                phone => phone.Number,
+                phone => phone.IsPrimary)
+            .Bind(validPhones =>
+            {
+                phones.Clear();
+                phones.AddRange(validPhones);
 
-        emails.Add(email);
-        return Result.Success(email);
-    }
+                return Result.Success();
+            });
 
-    public Result<Email> RemoveEmail(Email email)
-    {
-        if (email is null)
-            return Result.Failure<Email>(RequiredMessage);
+    public Result<Email> AddEmail(Email email) =>
+        Maybe.From(email)
+            .ToResult(RequiredMessage)
+            .Ensure(
+                IsUniqueContactableEmail,
+                NonuniqueMessage)
+            .Ensure(
+                requestedEmail =>
+                    !requestedEmail.IsPrimary || !HasPrimaryEmail(),
+                PrimaryExistsMessage)
+            .Tap(emails.Add);
 
-        if (!emails.Contains(email))
-            return Result.Failure<Email>(NotFoundMessage);
+    public Result<Email> RemoveEmail(Email email) =>
+        Maybe.From(email)
+            .ToResult(RequiredMessage)
+            .Ensure(
+                emails.Contains,
+                NotFoundMessage)
+            .Tap(requestedEmail => emails.Remove(requestedEmail));
 
-        emails.Remove(email);
-        return Result.Success(email);
-    }
+    public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails) =>
+        ValidateContactList(
+                requestedEmails,
+                email => email.Address,
+                email => email.IsPrimary)
+            .Bind(validEmails =>
+            {
+                emails.Clear();
+                emails.AddRange(validEmails);
 
-    public Result<Phone> AddPhone(Phone phone)
-    {
-        if (phone is null)
-            return Result.Failure<Phone>(RequiredMessage);
+                return Result.Success();
+            });
 
-        if (HasPhone(phone))
-            return Result.Failure<Phone>(NonuniqueMessage);
-
-        if (HasPrimaryPhone() && phone.IsPrimary)
-            return Result.Failure<Phone>(PrimaryExistsMessage);
-
-        phones.Add(phone);
-        return Result.Success(phone);
-    }
-
-    public Result<Phone> RemovePhone(Phone phone)
-    {
-        if (phone is null)
-            return Result.Failure<Phone>(RequiredMessage);
-
-        if (!phones.Contains(phone))
-            return Result.Failure<Phone>(NotFoundMessage);
-
-        phones.Remove(phone);
-        return Result.Success(phone);
-    }
-
-    public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones)
-    {
-        var validation = ValidateContacts(
-            requestedPhones,
-            phone => phone.Number,
-            phone => phone.IsPrimary);
-
-        if (validation.IsFailure)
-            return validation;
-
-        phones.Clear();
-        phones.AddRange(requestedPhones);
-        return Result.Success();
-    }
-
-    public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails)
-    {
-        var validation = ValidateContacts(
-            requestedEmails,
-            email => email.Address,
-            email => email.IsPrimary);
-
-        if (validation.IsFailure)
-            return validation;
-
-        emails.Clear();
-        emails.AddRange(requestedEmails);
-        return Result.Success();
-    }
-
-    public Result<Maybe<string>> SetNotes(string note) =>
-        Result.Success(Notes = NormalizeNotes(note));
-
-    private static Maybe<string> NormalizeNotes(string? notes) =>
-        string.IsNullOrWhiteSpace(notes)
-            ? Maybe<string>.None
-            : notes.Trim().Truncate(NoteMaximumLength);
+    public Result<Note> SetNotes(Note note) =>
+        Result.Success(Notes = note);
 
     public Result SetAddress(Address address) =>
-        Result.Success(Address = address);
+        Result.Success()
+            .Tap(() => Address = address);
 
     public Result ClearAddress() =>
-        Result.Success(Address = Maybe<Address>.None);
+        Result.Success()
+            .Tap(() => Address = Maybe<Address>.None);
 
     public bool HasPhone(Phone phone) =>
-        Phones.Any(existingPhone =>
+        phones.Any(existingPhone =>
             existingPhone.Number == phone.Number);
 
     public bool HasPrimaryPhone() =>
-        Phones.Any(existingPhone =>
-            existingPhone.IsPrimary);
+        phones.Any(phone => phone.IsPrimary);
 
     public bool IsUniqueContactableEmail(Email email) =>
-        !Emails.Any(existingEmail =>
+        !emails.Any(existingEmail =>
             existingEmail.Address == email.Address);
 
     public bool HasPrimaryEmail() =>
-        Emails.Any(email =>
-            email.IsPrimary);
+        emails.Any(email => email.IsPrimary);
 
-    private static Result ValidateContacts<TContact, TValue>(
-        IReadOnlyList<TContact>? contacts,
-        Func<TContact, TValue> getValue,
-        Func<TContact, bool> isPrimary)
-        where TContact : class
-    {
-        if (contacts is null)
-            return Result.Failure(RequiredMessage);
+    protected static Result<(
+        IReadOnlyList<Phone> Phones,
+        IReadOnlyList<Email> Emails)> ValidateContactCollections(
+            IReadOnlyList<Phone> phones,
+            IReadOnlyList<Email> emails) =>
+        ValidateContactList(
+                phones,
+                phone => phone.Number,
+                phone => phone.IsPrimary)
+            .Bind(validPhones =>
+                ValidateContactList(
+                        emails,
+                        email => email.Address,
+                        email => email.IsPrimary)
+                    .Map(validEmails => (
+                        Phones: validPhones,
+                        Emails: validEmails)));
 
-        if (contacts.Any(contact => contact is null))
-            return Result.Failure(RequiredMessage);
+    private static Result<IReadOnlyList<TContact>>
+        ValidateContactList<TContact, TValue>(
+            IReadOnlyList<TContact> contacts,
+            Func<TContact, TValue> getValue,
+            Func<TContact, bool> isPrimary)
+        where TContact : class =>
+        Maybe.From(contacts)
+            .ToResult(RequiredMessage)
+            .Ensure(
+                contactList =>
+                    contactList.All(contact => contact is not null),
+                RequiredMessage)
+            .Ensure(
+                contactList =>
+                    contactList
+                        .GroupBy(getValue)
+                        .All(group => group.Count() == 1),
+                NonuniqueMessage)
+            .Ensure(
+                contactList =>
+                    contactList.Count(isPrimary) <= 1,
+                PrimaryExistsMessage);
 
-        if (contacts.GroupBy(getValue).Any(group => group.Count() > 1))
-            return Result.Failure(NonuniqueMessage);
-
-        if (contacts.Count(isPrimary) > 1)
-            return Result.Failure(PrimaryExistsMessage);
-
-        return Result.Success();
-    }
-
-    // EF requires a parameterless constructor
-    protected Contactable()
-    {
-        phones = [];
-        emails = [];
-    }
+    // Required by Entity Framework.
+    protected Contactable() { }
 }

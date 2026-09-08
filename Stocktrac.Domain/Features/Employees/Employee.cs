@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Employees;
@@ -23,7 +24,7 @@ public class Employee : Entity
     public Person PersonEmployed { get; private set; }
     public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
     private readonly List<RoleAssignment> roleAssignments = [];
-    public Maybe<string> Notes { get; private set; }
+    public Maybe<Note> Notes { get; private set; }
     public SSN SSN { get; private set; }
     public Maybe<string> CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object
     public DateTime Hired { get; private set; }
@@ -37,7 +38,7 @@ public class Employee : Entity
         List<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
-        string? notes,
+        Note notes,
         string? certificationNumber,
         string? printedName,
         EmployeeExpenseCategory expenseCategory,
@@ -46,7 +47,7 @@ public class Employee : Entity
         PersonEmployed = personEmployed;
         SSN = ssn;
         Hired = hired;
-        Notes = ToMaybe(notes);
+        Notes = notes;
         CertificationNumber = ToMaybe(certificationNumber);
         PrintedName = ToMaybe(printedName);
         ExpenseCategory = expenseCategory;
@@ -71,13 +72,12 @@ public class Employee : Entity
         List<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
-        string? notes = null,
+        Note notes,
         string? certificationNumber = null,
         string? printedName = null,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
     {
-        var normalizedNotes = (notes ?? string.Empty).Trim().Truncate(MaximumNoteLength);
         var normalizedCertificationNumber = certificationNumber?.Trim() ?? string.Empty;
         var normalizedPrintedName = printedName?.Trim() ?? string.Empty;
         return Result.Combine(
@@ -93,7 +93,7 @@ public class Employee : Entity
                 roleAssignments,
                 ssn,
                 hired,
-                normalizedNotes,
+                notes,
                 normalizedCertificationNumber,
                 normalizedPrintedName,
                 expenseCategory,
@@ -150,21 +150,11 @@ public class Employee : Entity
         return Result.Success(hired);
     }
 
-    public Result<DateTime> SetExited(DateTime exited)
-    {
-        if (!IsEmploymentDateWithinAllowedRange(exited))
-        {
-            return Result.Failure<DateTime>(DateRangeMessage);
-        }
-
-        if (exited < Hired)
-        {
-            return Result.Failure<DateTime>(DateRangeMessage);
-        }
-
-        Exited = exited;
-        return Result.Success(exited);
-    }
+    public Result<DateTime> SetExited(DateTime exited) =>
+        Result.Success(exited)
+            .Ensure(IsEmploymentDateWithinAllowedRange, DateRangeMessage)
+            .Ensure(value => value >= Hired, DateRangeMessage)
+            .Tap(value => Exited = value);
 
     private static bool IsEmploymentDateWithinAllowedRange(DateTime employmentDate) =>
         employmentDate >= StartDateMinimum &&
@@ -173,8 +163,8 @@ public class Employee : Entity
     private static Maybe<string> ToMaybe(string? value) =>
         string.IsNullOrWhiteSpace(value) ? Maybe<string>.None : value;
 
-    public Result<Maybe<string>> SetNotes(string notes) =>
-        Result.Success(Notes = ToMaybe(notes.Trim().Truncate(MaximumNoteLength)));
+    public Result<Maybe<Note>> SetNotes(Note notes) =>
+        Result.Success(Notes = notes);
 
     public Result<SSN> SetSSN(SSN ssn) =>
         Result.Success(SSN = ssn);
@@ -212,10 +202,10 @@ public class Employee : Entity
     {
         roleAssignments = [];
         var personName = PersonName.Create("LastName", "FirstName").Value;
-        PersonEmployed = Person.Create(personName, string.Empty).Value;
+        PersonEmployed = Person.Create(personName, Note.Create(string.Empty).Value, [], [], Maybe<Birthday>.None, Maybe<Address>.None, Maybe<DriversLicense>.None).Value;
         SSN = SSN.Create(string.Empty).Value;
         Hired = DateTime.Today;
-        Notes = Maybe<string>.None;
+        Notes = Maybe<Note>.None;
         CertificationNumber = Maybe<string>.None;
         PrintedName = Maybe<string>.None;
     }

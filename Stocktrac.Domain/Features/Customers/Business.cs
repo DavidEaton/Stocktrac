@@ -18,10 +18,10 @@ public class Business : Contactable, ICustomerEntity
     private Business(
         BusinessName name,
         Maybe<Address> address,
-        string? notes = null,
-        Maybe<Person> contact = default,
-        IReadOnlyList<Phone>? phones = null,
-        IReadOnlyList<Email>? emails = null)
+        Note notes,
+        Maybe<Person> contact,
+        IReadOnlyList<Phone> phones,
+        IReadOnlyList<Email> emails)
         : base(notes, address, phones, emails)
     {
         Name = name;
@@ -31,10 +31,10 @@ public class Business : Contactable, ICustomerEntity
     public static Result<Business> Create(
         BusinessName name,
         Maybe<Address> address,
-        string? notes = null,
-        Person? contact = null,
-        IReadOnlyList<Email>? emails = null,
-        IReadOnlyList<Phone>? phones = null)
+        Note notes,
+        Maybe<Person> contact,
+        IReadOnlyList<Email> emails,
+        IReadOnlyList<Phone> phones)
     {
         // ValueObject parameters are already validated by BusinessValidator,
         // which runs within the asp.net request pipeline, invoking each
@@ -47,7 +47,7 @@ public class Business : Contactable, ICustomerEntity
                 Environment.NewLine,
                 Result.FailureIf(name is null, InvalidMessage))
             .Map(() => new Business(
-                name!, address, notes, ToMaybe(contact), phones, emails));
+                name!, address, notes, contact, phones, emails));
     }
 
     private static Maybe<Person> ToMaybe(Person? contact) =>

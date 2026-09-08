@@ -45,8 +45,7 @@ public class DriversLicenseShould
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(string.Join(
             Environment.NewLine,
-            DriversLicense.RequiredMessage,
-            DriversLicense.RequiredMessage,
+            DriversLicense.RequiredMessage + " (2×)",
             DriversLicense.StateInvalidMessage));
     }
 
