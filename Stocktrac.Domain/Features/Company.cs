@@ -21,9 +21,8 @@ public class Company : Entity
     public static Result<Company> Create(Business business, long seed) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(business is null, RequiredMessage),
                 Result.FailureIf(seed <= MinimumValue, MinimumValueMessage))
-            .Map(() => new Company(business!, seed));
+            .Map(() => new Company(business, seed));
 
     public Result<long> SetInvoiceNumberSeed(long seed) =>
         seed <= MinimumValue || seed > long.MaxValue

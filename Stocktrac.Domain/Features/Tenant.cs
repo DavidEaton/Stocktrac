@@ -44,13 +44,13 @@ public sealed class Tenant : Entity<Guid>
     }
 
     public static Result<Tenant> Create(
-        string? name,
-        string? companyName,
-        string? logoUrl = null)
+        string name,
+        string companyName,
+        Maybe<string> logoUrl = default)
     {
-        var normalizedName = name?.Trim() ?? string.Empty;
-        var normalizedCompanyName = companyName?.Trim() ?? string.Empty;
-        var normalizedLogoUrl = NormalizeOptionalValue(logoUrl);
+        var normalizedName = name.Trim();
+        var normalizedCompanyName = companyName.Trim();
+        var normalizedLogoUrl = logoUrl.Map(value => value.Trim());
 
         return Result.Combine(
                 Environment.NewLine,
@@ -58,13 +58,13 @@ public sealed class Tenant : Entity<Guid>
                 Result.FailureIf(normalizedName.Length is < MinimumNameLength or > MaximumNameLength, InvalidNameLengthMessage),
                 Result.FailureIf(string.IsNullOrWhiteSpace(normalizedCompanyName), CompanyNameRequiredMessage),
                 Result.FailureIf(normalizedCompanyName.Length is < MinimumCompanyNameLength or > MaximumCompanyNameLength, InvalidCompanyNameLengthMessage),
-                Result.FailureIf(normalizedLogoUrl?.Length > MaximumLogoUrlLength, InvalidLogoUrlLengthMessage))
-            .Map(() => new Tenant(Guid.NewGuid(), normalizedName, normalizedCompanyName, ToMaybe(normalizedLogoUrl)));
+                Result.FailureIf(normalizedLogoUrl.HasValue && normalizedLogoUrl.Value.Length > MaximumLogoUrlLength, InvalidLogoUrlLengthMessage))
+            .Map(() => new Tenant(Guid.NewGuid(), normalizedName, normalizedCompanyName, normalizedLogoUrl));
     }
 
-    public Result SetName(string? name)
+    public Result SetName(string name)
     {
-        name = name?.Trim() ?? string.Empty;
+        name = name.Trim();
 
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure(NameRequiredMessage);
@@ -75,9 +75,9 @@ public sealed class Tenant : Entity<Guid>
             : Result.Success(Name = name);
     }
 
-    public Result SetCompanyName(string? companyName)
+    public Result SetCompanyName(string companyName)
     {
-        companyName = companyName?.Trim() ?? string.Empty;
+        companyName = companyName.Trim();
 
         if (string.IsNullOrWhiteSpace(companyName))
             return Result.Failure(CompanyNameRequiredMessage);
@@ -88,22 +88,16 @@ public sealed class Tenant : Entity<Guid>
             : Result.Success(CompanyName = companyName);
     }
 
-    public Result SetLogoUrl(string? logoUrl)
+    public Result SetLogoUrl(string logoUrl)
     {
-        logoUrl = NormalizeOptionalValue(logoUrl);
+        logoUrl = logoUrl.Trim();
 
-        return logoUrl?.Length > MaximumLogoUrlLength
+        return logoUrl.Length > MaximumLogoUrlLength
             ? Result.Failure(InvalidLogoUrlLengthMessage)
-            : Result.Success(LogoUrl = ToMaybe(logoUrl));
+            : Result.Success(LogoUrl = logoUrl);
     }
 
-    private static string? NormalizeOptionalValue(string? value) =>
-        string.IsNullOrWhiteSpace(value)
-            ? null
-            : value.Trim();
-
-    private static Maybe<string> ToMaybe(string? value) =>
-        value is null ? Maybe<string>.None : value;
+    public void ClearLogoUrl() => LogoUrl = Maybe<string>.None;
 
     // Required by Entity Framework.
     private Tenant()

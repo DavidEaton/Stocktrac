@@ -28,18 +28,9 @@ public sealed record Address
         Result.Combine(
             Environment.NewLine,
             Result.FailureIf(
-                addressLine1 is null,
-                AddressRequiredMessage),
-            Result.FailureIf(
-                city is null,
-                CityRequiredMessage),
-            Result.FailureIf(
                 !Enum.IsDefined(state),
-                StateInvalidMessage),
-            Result.FailureIf(
-                postalCode is null,
-                PostalCodeRequiredMessage))
-        .Map(() => new Address(addressLine1!, city!, state, postalCode!, addressLine2));
+                StateInvalidMessage))
+        .Map(() => new Address(addressLine1, city, state, postalCode, addressLine2));
 
     public Result<Address> NewAddressLine1(AddressLine newAddressLine) =>
         Create(newAddressLine, City, State, PostalCode, AddressLine2);
@@ -55,6 +46,9 @@ public sealed record Address
 
     public Result<Address> NewAddressLine2(AddressLine newAddressLine2) =>
         Create(AddressLine1, City, State, PostalCode, newAddressLine2);
+
+    public Result<Address> ClearAddressLine2() =>
+        Create(AddressLine1, City, State, PostalCode, Maybe<AddressLine>.None);
 
     public override string ToString() =>
         AddressFull;

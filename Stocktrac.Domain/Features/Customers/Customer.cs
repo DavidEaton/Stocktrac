@@ -38,21 +38,15 @@ public class Customer : Entity
         ContactPreferences = contactPreferences;
     }
 
-    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, CustomerCode? code) =>
+    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, Maybe<CustomerCode> code) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(entity is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
-            .Bind(() => ContactPreferences.Create(true, true, true)
-                .Map(preferences => new Customer(entity!, customerType, ToMaybe(code), preferences)));
-
-    private static Maybe<CustomerCode> ToMaybe(CustomerCode? code)
-    {
-        if (code is null)
-            return Maybe<CustomerCode>.None;
-
-        return code;
-    }
+            .Map(() => new Customer(
+                entity,
+                customerType,
+                code,
+                ContactPreferences.Create(true, true, true)));
 
     public void SetAddress(Address address)
     {
@@ -133,9 +127,6 @@ public class Customer : Entity
 
     public Result<Vehicle> AddVehicle(Vehicle vehicle)
     {
-        if (vehicle is null)
-            return Result.Failure<Vehicle>(RequiredMessage);
-
         if (CustomerHasVehicle(vehicle))
             return Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.");
 
@@ -145,24 +136,20 @@ public class Customer : Entity
 
     public Result<Vehicle> RemoveVehicle(Vehicle vehicle)
     {
-        if (vehicle is null)
-            return Result.Failure<Vehicle>(RequiredMessage);
-
-        vehicles.Remove(vehicle);
-        return Result.Success(vehicle);
+        return vehicles.Remove(vehicle)
+            ? Result.Success(vehicle)
+            : Result.Failure<Vehicle>(Contactable.NotFoundMessage);
     }
 
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result<Maybe<CustomerCode>> SetCode(CustomerCode? code) =>
-        Result.Success(Code = ToMaybe(code));
+    public void SetCode(CustomerCode code) => Code = code;
+
+    public void ClearCode() => Code = Maybe<CustomerCode>.None;
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {
-        if (entity is null)
-            return Result.Failure<ICustomerEntity>(RequiredMessage);
-
         switch (entity.EntityType)
         {
             case EntityType.Person or EntityType.Business:

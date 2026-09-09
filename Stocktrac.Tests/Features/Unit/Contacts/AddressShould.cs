@@ -144,6 +144,18 @@ public class AddressShould
     }
 
     [Fact]
+    public void ReturnAbsentAddressLine2_On_ClearAddressLine2()
+    {
+        var original = ValidAddress(AddressLine.Create("Suite 9").Value);
+
+        var result = original.ClearAddressLine2();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.AddressLine2.HasNoValue.ShouldBeTrue();
+        AssertOnlyExpectedValueChanged(original, result.Value, nameof(Address.AddressLine2));
+    }
+
+    [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenAllValuesAreEqual()
     {
         var first = ValidAddress(Maybe<AddressLine>.None);

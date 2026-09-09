@@ -28,19 +28,18 @@ public class CreditCard : Entity
         CreditCardName name,
         CreditCardFeeType feeType,
         Fee fee,
-        DateTime? addedToDeposit) =>
+        Maybe<DateTime> addedToDeposit) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(name is null, CreditCardName.RequiredMessage),
                 ValidateFeeType(feeType))
             .Map(() => new CreditCard(
-                name!,
+                name,
                 feeType,
                 fee,
-                ToMaybe(addedToDeposit)));
+                addedToDeposit));
 
-    public Result<CreditCard> SetName(string? name) =>
-        CreditCardName.Create(name).Map(SetNameValue);
+    public Result<CreditCard> SetName(string name) =>
+        CreditCardName.Create(name.Trim()).Map(SetNameValue);
 
     public Result<CreditCard> SetName(CreditCardName name) =>
         CreditCardName.Create(name.Value).Map(SetNameValue);
@@ -48,11 +47,13 @@ public class CreditCard : Entity
     public Result<CreditCard> SetFeeType(CreditCardFeeType feeType) =>
         ValidateFeeType(feeType).Map(SetFeeTypeValue);
 
-    public Result<CreditCard> SetFee(Fee fee) =>
-        Result.Success(Copy(fee: fee));
+    public CreditCard SetFee(Fee fee) => Copy(fee: fee);
 
-    public Result<CreditCard> SetAddedToDeposit(DateTime addedToDeposit) =>
-        Result.Success(Copy(addedToDeposit: addedToDeposit));
+    public CreditCard SetAddedToDeposit(DateTime addedToDeposit) =>
+        Copy(addedToDeposit: addedToDeposit);
+
+    public CreditCard ClearAddedToDeposit() =>
+        Copy(addedToDeposit: Maybe<DateTime>.None);
 
     private static Result<CreditCardFeeType> ValidateFeeType(CreditCardFeeType feeType) =>
         Enum.IsDefined(feeType)
@@ -64,9 +65,6 @@ public class CreditCard : Entity
 
     private CreditCard SetFeeTypeValue(CreditCardFeeType feeType) =>
         Copy(feeType: feeType);
-
-    private static Maybe<DateTime> ToMaybe(DateTime? value) =>
-        value.HasValue ? value.Value : Maybe<DateTime>.None;
 
     private CreditCard Copy(
         CreditCardName? name = null,

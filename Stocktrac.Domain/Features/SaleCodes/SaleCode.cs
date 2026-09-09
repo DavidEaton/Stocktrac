@@ -47,17 +47,16 @@ namespace Stocktrac.Domain.Features.SaleCodes
             SaleCodeShopSupplies shopSupplies,
             IReadOnlyList<string> saleCodes)
         {
-            var normalizedName = name?.Trim() ?? string.Empty;
-            var normalizedCode = code?.Trim().ToUpperInvariant() ?? string.Empty;
+            var normalizedName = name.Trim();
+            var normalizedCode = code.Trim().ToUpperInvariant();
             return Result.Combine(
                     Environment.NewLine,
                     Result.FailureIf(normalizedName.Length is < MinimumLength or > NameMaximumLength, InvalidLengthMessage(MinimumLength, NameMaximumLength)),
                     Result.FailureIf(normalizedCode.Length is < MinimumLength or > CodeMaximumLength, InvalidLengthMessage(MinimumLength, CodeMaximumLength)),
                     Result.FailureIf(laborRate < MinimumValue, MinimumValueMessage),
                     Result.FailureIf(desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue, InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue)),
-                    Result.FailureIf(shopSupplies is null, RequiredMessage),
                     Result.FailureIf(saleCodes.Contains(normalizedCode, StringComparer.OrdinalIgnoreCase), NonuniqueMessage))
-                .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies!));
+                .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies));
         }
 
         public Result<string> SetName(string name)
@@ -65,7 +64,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
             if (string.IsNullOrWhiteSpace(name))
                 return Result.Failure<string>(RequiredMessage);
 
-            name = (name ?? string.Empty).Trim();
+            name = name.Trim();
 
             if (name.Length > NameMaximumLength || name.Length < MinimumLength)
                 return Result.Failure<string>(InvalidLengthMessage(MinimumLength, NameMaximumLength));
@@ -78,7 +77,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
             if (string.IsNullOrWhiteSpace(code))
                 return Result.Failure<string>(RequiredMessage);
 
-            code = (code ?? string.Empty).Trim().ToUpper();
+            code = code.Trim().ToUpper();
 
             if (code.Length > CodeMaximumLength || code.Length < MinimumLength)
                 return Result.Failure<string>(InvalidLengthMessage(MinimumLength, CodeMaximumLength));
@@ -99,10 +98,8 @@ namespace Stocktrac.Domain.Features.SaleCodes
                 ? Result.Failure<double>(InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue))
                 : Result.Success(DesiredMargin = desiredMargin);
 
-        public Result<SaleCodeShopSupplies> SetShopSupplies(SaleCodeShopSupplies shopSupplies) =>
-            shopSupplies is null
-                ? Result.Failure<SaleCodeShopSupplies>(RequiredMessage)
-                : Result.Success(ShopSupplies = shopSupplies);
+        public void SetShopSupplies(SaleCodeShopSupplies shopSupplies) =>
+            ShopSupplies = shopSupplies;
 
         // EF requires a parameterless constructor
         private SaleCode()

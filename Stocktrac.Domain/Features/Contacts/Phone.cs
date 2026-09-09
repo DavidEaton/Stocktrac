@@ -23,7 +23,7 @@ public class Phone : Entity, IHasPrimary
 
     public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary)
     {
-        var normalized = number?.Trim() ?? string.Empty;
+        var normalized = number.Trim();
         return Result.Combine(
                 Environment.NewLine,
                 Result.FailureIf(!Enum.IsDefined(phoneType), PhoneTypeInvalidMessage),
@@ -45,7 +45,7 @@ public class Phone : Entity, IHasPrimary
 
     public Result<Phone> SetNumber(string number)
     {
-        number = (number ?? string.Empty).Trim();
+        number = number.Trim();
 
         var phoneAttribute = new PhoneAttribute();
 
@@ -60,8 +60,7 @@ public class Phone : Entity, IHasPrimary
             ? Result.Failure<Phone>(PhoneTypeInvalidMessage)
             : Result.Success(Copy(phoneType: phoneType));
 
-    public Result<Phone> SetIsPrimary(bool isPrimary) =>
-        Result.Success(Copy(isPrimary: isPrimary));
+    public Phone SetIsPrimary(bool isPrimary) => Copy(isPrimary: isPrimary);
 
     private Phone Copy(string? number = null, PhoneType? phoneType = null, bool? isPrimary = null) =>
         new(number ?? Number, phoneType ?? PhoneType, isPrimary ?? IsPrimary) { Id = Id };

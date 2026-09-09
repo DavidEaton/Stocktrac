@@ -20,7 +20,7 @@ public class Email : Entity, IHasPrimary
         (Address, IsPrimary) = (address, isPrimary);
 
     public static Result<Email> Create(string address, bool isPrimary) =>
-        Result.Success(address?.Trim() ?? string.Empty)
+        Result.Success(address.Trim())
             .Ensure(value => !string.IsNullOrWhiteSpace(value), EmptyMessage)
             .Ensure(value => value.Length >= MinimumLength, MinimumLengthMessage)
             .Ensure(value => value.Length <= MaximumLength, MaximumLengthMessage)
@@ -32,7 +32,7 @@ public class Email : Entity, IHasPrimary
         if (string.IsNullOrWhiteSpace(address))
             return Result.Failure<string>(EmptyMessage);
 
-        address = (address ?? string.Empty).Trim();
+        address = address.Trim();
 
         if (address.Length < MinimumLength)
             return Result.Failure<string>(MinimumLengthMessage);
@@ -48,8 +48,7 @@ public class Email : Entity, IHasPrimary
         return Result.Success(Address = address);
     }
 
-    public Result<bool> SetIsPrimary(bool isPrimary) =>
-        Result.Success(IsPrimary = isPrimary);
+    public void SetIsPrimary(bool isPrimary) => IsPrimary = isPrimary;
 
     public override string ToString() =>
         Address;

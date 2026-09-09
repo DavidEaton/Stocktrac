@@ -35,12 +35,12 @@ public class Employee : Entity
     public double BenefitLoad { get; private set; } = 0.0; // TODO: This should be defined and probably a value object 
 
     private Employee(Person personEmployed,
-        List<RoleAssignment> roleAssignments,
+        IReadOnlyList<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
         Note notes,
-        string? certificationNumber,
-        string? printedName,
+        Maybe<string> certificationNumber,
+        Maybe<string> printedName,
         EmployeeExpenseCategory expenseCategory,
         double benefitLoad)
     {
@@ -48,74 +48,66 @@ public class Employee : Entity
         SSN = ssn;
         Hired = hired;
         Notes = notes;
-        CertificationNumber = ToMaybe(certificationNumber);
-        PrintedName = ToMaybe(printedName);
+        CertificationNumber = certificationNumber;
+        PrintedName = printedName;
         ExpenseCategory = expenseCategory;
         BenefitLoad = benefitLoad;
 
-        if (roleAssignments is not null)
-            foreach (var assignment in roleAssignments)
-                AddRoleAssignment(assignment);
+        this.roleAssignments.AddRange(roleAssignments);
     }
 
     public Result<RoleAssignment> AddRoleAssignment(RoleAssignment assignment)
     {
-        if (assignment is null)
-            return Result.Failure<RoleAssignment>(RequiredMessage);
-
         roleAssignments.Add(assignment);
         return Result.Success(assignment);
     }
 
     public static Result<Employee> Create(
         Person hiredPerson,
-        List<RoleAssignment> roleAssignments,
+        IReadOnlyList<RoleAssignment> roleAssignments,
         SSN ssn,
         DateTime hired,
         Note notes,
-        string? certificationNumber = null,
-        string? printedName = null,
+        Maybe<string> certificationNumber = default,
+        Maybe<string> printedName = default,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
     {
-        var normalizedCertificationNumber = certificationNumber?.Trim() ?? string.Empty;
-        var normalizedPrintedName = printedName?.Trim() ?? string.Empty;
         return Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(hiredPerson is null, RequiredMessage),
                 Result.FailureIf(hired < StartDateMinimum || hired > EndDateMaximum, DateRangeMessage),
-                ValidateCertificationNumber(normalizedCertificationNumber),
-                ValidatePrintedName(normalizedPrintedName),
+                ValidateCertificationNumber(certificationNumber),
+                ValidatePrintedName(printedName),
                 ValidateExpenseCategory(expenseCategory),
                 ValidateBenefitLoad(benefitLoad))
             .Map(() => new Employee(
-                hiredPerson!,
+                hiredPerson,
                 roleAssignments,
                 ssn,
                 hired,
                 notes,
-                normalizedCertificationNumber,
-                normalizedPrintedName,
+                certificationNumber,
+                printedName,
                 expenseCategory,
                 benefitLoad));
     }
 
-    private static Result ValidateCertificationNumber(string? certificationNumber)
+    private static Result ValidateCertificationNumber(Maybe<string> certificationNumber)
     {
-        if (string.IsNullOrWhiteSpace(certificationNumber))
+        if (certificationNumber.HasNoValue)
             return Result.Success();
 
-        return certificationNumber.Trim().Length <= MaximumCertificationNumberLength
+        return certificationNumber.Value.Trim().Length <= MaximumCertificationNumberLength
             ? Result.Success()
             : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumCertificationNumberLength));
     }
 
-    private static Result ValidatePrintedName(string? printedName)
+    private static Result ValidatePrintedName(Maybe<string> printedName)
     {
-        if (string.IsNullOrWhiteSpace(printedName))
+        if (printedName.HasNoValue)
             return Result.Success();
 
-        return printedName.Trim().Length <= MaximumPrintedNameLength
+        return printedName.Value.Trim().Length <= MaximumPrintedNameLength
             ? Result.Success()
             : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
     }
@@ -160,32 +152,33 @@ public class Employee : Entity
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    private static Maybe<string> ToMaybe(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? Maybe<string>.None : value;
+    public void SetNotes(Note notes) => Notes = notes;
 
-    public Result<Maybe<Note>> SetNotes(Note notes) =>
-        Result.Success(Notes = notes);
+    public void ClearNotes() => Notes = Maybe<Note>.None;
 
-    public Result<SSN> SetSSN(SSN ssn) =>
-        Result.Success(SSN = ssn);
+    public void SetSSN(SSN ssn) => SSN = ssn;
 
-    public Result SetCertificationNumber(string? certificationNumber)
+    public Result SetCertificationNumber(string certificationNumber)
     {
-        certificationNumber = certificationNumber?.Trim() ?? string.Empty;
+        certificationNumber = certificationNumber.Trim();
 
         return certificationNumber.Length > MaximumCertificationNumberLength
             ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
-            : Result.Success(CertificationNumber = ToMaybe(certificationNumber));
+            : Result.Success(CertificationNumber = certificationNumber);
     }
+
+    public void ClearCertificationNumber() => CertificationNumber = Maybe<string>.None;
 
     public Result<Maybe<string>> SetPrintedName(string printedName)
     {
-        printedName = printedName?.Trim() ?? string.Empty;
+        printedName = printedName.Trim();
 
         return printedName.Length <= MaximumPrintedNameLength
-            ? Result.Success(PrintedName = ToMaybe(printedName))
+            ? Result.Success(PrintedName = printedName)
             : Result.Failure<Maybe<string>>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
     }
+
+    public void ClearPrintedName() => PrintedName = Maybe<string>.None;
 
     public Result<EmployeeExpenseCategory> SetExpenseCategory(EmployeeExpenseCategory expenseCategory) =>
         Enum.IsDefined(expenseCategory)

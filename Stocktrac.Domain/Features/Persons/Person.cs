@@ -38,18 +38,15 @@ public class Person : Contactable, ICustomerEntity
             .Map(contacts => new Person(
                 name, notes, address, contacts, driversLicense, birthday));
 
-    public Result<PersonName> SetName(PersonName name) =>
-        Result.Success(Name = name);
+    public void SetName(PersonName name) => Name = name;
 
-    public Result<Maybe<Birthday>> SetBirthday(Birthday birthday) =>
-        Result.Success(Birthday = birthday);
+    public void SetBirthday(Birthday birthday) => Birthday = birthday;
 
     public void RemoveBirthday() => Birthday = Maybe<Birthday>.None;
 
     public void RemoveDriversLicense() => DriversLicense = Maybe<DriversLicense>.None;
 
-    public Result<Maybe<DriversLicense>> SetDriversLicense(DriversLicense driversLicense) =>
-        Result.Success(DriversLicense = driversLicense);
+    public void SetDriversLicense(DriversLicense driversLicense) => DriversLicense = driversLicense;
 
     public override string ToString() =>
         Name.ToString();

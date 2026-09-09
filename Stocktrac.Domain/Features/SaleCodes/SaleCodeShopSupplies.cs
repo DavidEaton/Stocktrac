@@ -72,11 +72,9 @@ namespace Stocktrac.Domain.Features.SaleCodes
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MaximumCharge = maximumCharge);
 
-        public Result<bool> SetIncludeParts(bool includeParts) =>
-            Result.Success(IncludeParts = includeParts);
+        public void SetIncludeParts(bool includeParts) => IncludeParts = includeParts;
 
-        public Result<bool> SetIncludeLabor(bool includeLabor) =>
-            Result.Success(IncludeLabor = includeLabor);
+        public void SetIncludeLabor(bool includeLabor) => IncludeLabor = includeLabor;
 
         // EF requires a parameterless constructor
         protected SaleCodeShopSupplies() { }

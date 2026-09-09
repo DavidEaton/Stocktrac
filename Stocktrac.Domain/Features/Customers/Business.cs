@@ -42,16 +42,10 @@ public class Business : Contactable, ICustomerEntity
         // Only the primitive type (vs. ValueObject type) Notes property is
         // transformed and validated (parsed) here in the domain class that
         // creates it.
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(name is null, InvalidMessage))
-            .Bind(() => ValidateContactCollections(phones, emails))
+        return ValidateContactCollections(phones, emails)
             .Map(contacts => new Business(
-                name!, address, notes, contact, contacts));
+                name, address, notes, contact, contacts));
     }
-
-    private static Maybe<Person> ToMaybe(Person? contact) =>
-        contact is null ? Maybe<Person>.None : contact;
 
     // BusinessName has already been validated; no need to validate
     public void SetName(BusinessName name) =>

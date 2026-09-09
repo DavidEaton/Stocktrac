@@ -6,7 +6,10 @@ namespace Stocktrac.Domain.Features.Contacts
     {
         public const int MaximumLength = 10000;
         public static readonly string MaximumLengthMessage = $"Notes must be {MaximumLength} or fewer characters in length.";
-        public string Value { get; }
+        // A nullable backing field is required because default(Note) cannot invoke a
+        // struct constructor. The public domain value is nevertheless always non-null.
+        private readonly string? value;
+        public string Value => value ?? string.Empty;
 
         public static Result<Note> Create(string? notes) =>
             Result.Success(Normalize(notes))
@@ -15,7 +18,7 @@ namespace Stocktrac.Domain.Features.Contacts
                     MaximumLengthMessage)
                 .Map(value => new Note(value));
 
-        private Note(string note) => Value = note;
+        private Note(string note) => value = note;
 
         private static string Normalize(string? notes) =>
             notes?.Trim() ?? string.Empty;
