@@ -4,20 +4,15 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public abstract class Contactable : Entity, IContactable
 {
-    public static readonly string RequiredMessage =
-        "Please complete all required entries.";
+    public static readonly string RequiredMessage = "Please complete all required entries.";
 
-    public static readonly string NonuniqueMessage =
-        "Duplicate entry; each must be unique.";
+    public static readonly string NonuniqueMessage = "Duplicate entry; each must be unique.";
 
-    public static readonly string PrimaryExistsMessage =
-        "Primary has already been entered.";
+    public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
 
-    public static readonly string InvalidValueMessage =
-        "Invalid value.";
+    public static readonly string InvalidValueMessage = "Invalid value.";
 
-    public static readonly string NotFoundMessage =
-        "Entry not found.";
+    public static readonly string NotFoundMessage = "Entry not found.";
 
     private readonly List<Phone> phones = [];
 
