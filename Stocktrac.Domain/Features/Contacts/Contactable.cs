@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public abstract class Contactable : Entity, IContactable
+public abstract partial class Contactable : Entity, IContactable
 {
     public const string NonuniqueMessage = "Duplicate entry; each must be unique.";
     public const string PrimaryExistsMessage = "A primary contact already exists.";
@@ -148,17 +148,6 @@ public abstract class Contactable : Entity, IContactable
                 contactList =>
                     contactList.Count(isPrimary) <= 1,
                 MultiplePrimariesMessage);
-
-    protected sealed class ValidatedContactCollections
-    {
-        public IReadOnlyList<Phone> Phones { get; }
-        public IReadOnlyList<Email> Emails { get; }
-
-        private ValidatedContactCollections(
-            IReadOnlyList<Phone> phones,
-            IReadOnlyList<Email> emails) =>
-            (Phones, Emails) = (phones, emails);
-    }
 
     // Required by Entity Framework.
     protected Contactable() { }

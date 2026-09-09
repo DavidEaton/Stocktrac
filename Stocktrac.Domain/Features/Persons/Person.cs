@@ -12,7 +12,7 @@ public class Person : Contactable, ICustomerEntity
     public Maybe<DriversLicense> DriversLicense { get; private set; }
     public EntityType EntityType => EntityType.Person;
 
-    internal Person(
+    private Person(
         PersonName name,
         Note notes,
         Maybe<Address> address,
