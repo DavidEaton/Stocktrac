@@ -54,13 +54,22 @@ public class Customer : Entity
         return code;
     }
 
-    public Result SetAddress(Address address) =>
-        CustomerEntity switch
+    public void SetAddress(Address address)
+    {
+        switch (CustomerEntity)
         {
-            Person person => person.SetAddress(address),
-            Business business => business.SetAddress(address),
-            _ => Result.Failure(UnsupportedEntityTypeMessage),
-        };
+            case Person person:
+                person.SetAddress(address);
+                break;
+
+            case Business business:
+                business.SetAddress(address);
+                break;
+
+            default:
+                throw new InvalidOperationException(UnsupportedEntityTypeMessage);
+        }
+    }
 
     public void ClearAddress()
     {

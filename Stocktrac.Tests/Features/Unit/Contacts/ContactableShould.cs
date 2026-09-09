@@ -36,14 +36,46 @@ public class ContactableShould
     }
 
     [Fact]
-    public void ReturnRequiredError_WhenContactIsNull()
+    public void RemoveContacts_ByTheirIdentifyingValues()
+    {
+        var person = CreatePerson(
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)],
+            emails: [CreateEmail("person@example.com", false)]);
+
+        var phoneWithDifferentDetails = CreatePhone(
+            "555-111-1111",
+            PhoneType.Home,
+            true);
+        var emailWithDifferentDetails = CreateEmail("person@example.com", true);
+
+        person.RemovePhone(phoneWithDifferentDetails).IsSuccess.ShouldBeTrue();
+        person.RemoveEmail(emailWithDifferentDetails).IsSuccess.ShouldBeTrue();
+        person.Phones.ShouldBeEmpty();
+        person.Emails.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void IdentifyContacts_ByPhoneNumberAndEmailAddress()
+    {
+        var person = CreatePerson(
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)],
+            emails: [CreateEmail("person@example.com", false)]);
+
+        person.HasPhoneNumber("555-111-1111").ShouldBeTrue();
+        person.HasPhoneNumber("555-222-2222").ShouldBeFalse();
+        person.HasEmailAddress("person@example.com").ShouldBeTrue();
+        person.HasEmailAddress("other@example.com").ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Throw_WhenContactIsNull()
     {
         var person = CreatePerson(emails: [], phones: []);
 
-        person.AddPhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.RemovePhone(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.AddEmail(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.RemoveEmail(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        Should.Throw<NullReferenceException>(() => person.AddPhone(null!));
+        Should.Throw<NullReferenceException>(() => person.RemovePhone(null!));
+        Should.Throw<NullReferenceException>(() => person.AddEmail(null!));
+        Should.Throw<NullReferenceException>(() => person.RemoveEmail(null!));
     }
 
     [Fact]
@@ -86,15 +118,15 @@ public class ContactableShould
     }
 
     [Fact]
-    public void SetAndClearAddress_WhenAddressIsValidAndRejectNullAddress()
+    public void SetAndClearAddress_WhenAddressIsValid()
     {
         var person = CreatePerson(emails: [], phones: []);
         var address = CreateAddress("123 Main St", "Anytown", State.NY, "12345");
 
-        person.SetAddress(address).IsSuccess.ShouldBe(true);
+        person.SetAddress(address);
         person.Address.ShouldBe(address);
         person.Address.ShouldBe(address);
-        person.ClearAddress().IsSuccess.ShouldBe(true);
+        person.ClearAddress();
         person.Address.HasValue.ShouldBe(false);
     }
 
@@ -176,17 +208,36 @@ public class ContactableShould
             CreateEmail("second@example.com", true)
         ]);
 
-        result.Error.ShouldBe(Contactable.PrimaryExistsMessage);
+        result.Error.ShouldBe(Contactable.MultiplePrimariesMessage);
         person.Emails.ShouldBe([original]);
     }
 
     [Fact]
-    public void RejectNullReplacementCollections()
+    public void RejectInvalidCollections_BeforeConstructingPerson()
+    {
+        var result = Person.Create(
+            PersonName.Create("Doe", "Jane").Value,
+            Note.Create("Some notes.").Value,
+            [
+                CreateEmail("first@example.com", true),
+                CreateEmail("second@example.com", true)
+            ],
+            [],
+            Maybe<Birthday>.None,
+            Maybe<Address>.None,
+            Maybe<DriversLicense>.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Contactable.MultiplePrimariesMessage);
+    }
+
+    [Fact]
+    public void Throw_WhenReplacementCollectionIsNull()
     {
         var person = CreatePerson(emails: [], phones: []);
 
-        person.ReplacePhones(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.ReplaceEmails(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        Should.Throw<ArgumentNullException>(() => person.ReplacePhones(null!));
+        Should.Throw<ArgumentNullException>(() => person.ReplaceEmails(null!));
     }
 
     private static Person CreatePerson(

@@ -16,11 +16,10 @@ public class Person : Contactable, ICustomerEntity
         PersonName name,
         Note notes,
         Maybe<Address> address,
-        IReadOnlyList<Email> emails,
-        IReadOnlyList<Phone> phones,
+        ValidatedContactCollections contacts,
         Maybe<DriversLicense> driversLicense,
         Maybe<Birthday> birthday)
-        : base(notes, address, phones, emails)
+        : base(notes, address, contacts)
     {
         Name = name;
         Birthday = birthday;
@@ -35,7 +34,9 @@ public class Person : Contactable, ICustomerEntity
         Maybe<Birthday> birthday,
         Maybe<Address> address,
         Maybe<DriversLicense> driversLicense) =>
-            Result.Success(new Person(name, notes, address, emails, phones, driversLicense, birthday));
+        ValidateContactCollections(phones, emails)
+            .Map(contacts => new Person(
+                name, notes, address, contacts, driversLicense, birthday));
 
     public Result<PersonName> SetName(PersonName name) =>
         Result.Success(Name = name);

@@ -20,9 +20,8 @@ public class Business : Contactable, ICustomerEntity
         Maybe<Address> address,
         Note notes,
         Maybe<Person> contact,
-        IReadOnlyList<Phone> phones,
-        IReadOnlyList<Email> emails)
-        : base(notes, address, phones, emails)
+        ValidatedContactCollections contacts)
+        : base(notes, address, contacts)
     {
         Name = name;
         Contact = contact;
@@ -46,8 +45,9 @@ public class Business : Contactable, ICustomerEntity
         return Result.Combine(
                 Environment.NewLine,
                 Result.FailureIf(name is null, InvalidMessage))
-            .Map(() => new Business(
-                name!, address, notes, contact, phones, emails));
+            .Bind(() => ValidateContactCollections(phones, emails))
+            .Map(contacts => new Business(
+                name!, address, notes, contact, contacts));
     }
 
     private static Maybe<Person> ToMaybe(Person? contact) =>
