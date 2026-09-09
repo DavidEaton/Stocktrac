@@ -23,10 +23,8 @@ public sealed record DriversLicense
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(number is null, RequiredMessage),
-                Result.FailureIf(validRange is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(state), StateInvalidMessage))
-            .Map(() => new DriversLicense(number!, state, validRange!));
+            .Map(() => new DriversLicense(number, state, validRange));
 
     public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);

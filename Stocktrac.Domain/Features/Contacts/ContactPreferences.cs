@@ -1,5 +1,3 @@
-﻿using CSharpFunctionalExtensions;
-
 namespace Stocktrac.Domain.Features.Contacts;
 
 public readonly record struct ContactPreferences
@@ -15,15 +13,15 @@ public readonly record struct ContactPreferences
         AllowSms = allowSms;
     }
 
-    public static Result<ContactPreferences> Create(bool allowMail, bool allowEmail, bool allowSms) =>
-        Result.Success(new ContactPreferences(allowMail, allowEmail, allowSms));
+    public static ContactPreferences Create(bool allowMail, bool allowEmail, bool allowSms) =>
+        new(allowMail, allowEmail, allowSms);
 
-    public Result<ContactPreferences> NewAllowMail(bool allowMail) =>
-        Result.Success(new ContactPreferences(allowMail, AllowEmail, AllowSms));
+    public ContactPreferences NewAllowMail(bool allowMail) =>
+        new(allowMail, AllowEmail, AllowSms);
 
-    public Result<ContactPreferences> NewAllowEmail(bool allowEmail) =>
-        Result.Success(new ContactPreferences(AllowMail, allowEmail, AllowSms));
+    public ContactPreferences NewAllowEmail(bool allowEmail) =>
+        new(AllowMail, allowEmail, AllowSms);
 
-    public Result<ContactPreferences> NewAllowSms(bool allowSms) =>
-        Result.Success(new ContactPreferences(AllowMail, AllowEmail, allowSms));
+    public ContactPreferences NewAllowSms(bool allowSms) =>
+        new(AllowMail, AllowEmail, allowSms);
 }

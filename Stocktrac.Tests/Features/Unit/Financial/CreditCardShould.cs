@@ -1,4 +1,5 @@
 using Shouldly;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Financial;
 
 namespace Stocktrac.Tests.Features.Unit.Financial;
@@ -32,7 +33,7 @@ public class CreditCardShould
             CreateName("Visa"),
             (CreditCardFeeType)999,
             Fee.Default,
-            null);
+            Maybe<DateTime>.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCard.InvalidFeeTypeMessage);
@@ -51,10 +52,9 @@ public class CreditCardShould
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void PreserveName_On_SetName_WhenStringIsMissing(string? name)
+    public void PreserveName_On_SetName_WhenStringIsMissing(string name)
     {
         var card = CreateCreditCard();
 
@@ -141,8 +141,7 @@ public class CreditCardShould
 
         var result = card.SetFee(fee);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Fee.ShouldBe(fee);
+        result.Fee.ShouldBe(fee);
         card.Fee.ShouldBe(Fee.Default);
     }
 
@@ -154,9 +153,20 @@ public class CreditCardShould
 
         var result = card.SetAddedToDeposit(depositedAt);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.AddedToDeposit.Value.ShouldBe(depositedAt);
+        result.AddedToDeposit.Value.ShouldBe(depositedAt);
         card.AddedToDeposit.Value.ShouldBe(DateTime.MinValue);
+    }
+
+    [Fact]
+    public void RemoveDepositDate_On_ClearAddedToDeposit()
+    {
+        var card = CreateCreditCard();
+
+        var result = card.ClearAddedToDeposit();
+
+        result.AddedToDeposit.HasNoValue.ShouldBeTrue();
+        result.IsAddedToDeposit.ShouldBeFalse();
+        card.AddedToDeposit.HasValue.ShouldBeTrue();
     }
 
     [Fact]
@@ -166,7 +176,7 @@ public class CreditCardShould
             CreateName("Visa"),
             CreditCardFeeType.Flat,
             Fee.Default,
-            null).Value.AddedToDeposit.HasNoValue.ShouldBeTrue();
+            Maybe<DateTime>.None).Value.AddedToDeposit.HasNoValue.ShouldBeTrue();
         CreateCreditCard().IsAddedToDeposit.ShouldBeTrue();
     }
 

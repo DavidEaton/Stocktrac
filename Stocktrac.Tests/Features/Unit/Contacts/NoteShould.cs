@@ -6,6 +6,11 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class NoteShould
 {
     [Fact]
+    public void ExposeEmptyNonNullValue_WhenDefaultConstructed()
+    {
+        default(Note).Value.ShouldBe(string.Empty);
+    }
+    [Fact]
     public void NormalizeWhitespace_WhenCreated()
     {
         var result = Note.Create("   ");

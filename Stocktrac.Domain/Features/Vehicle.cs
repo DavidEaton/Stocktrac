@@ -22,29 +22,29 @@ public class Vehicle : Entity
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
     public static readonly string InvalidPlateStateProvinceMessage = $"Plate State/Province is invalid.";
 
-    public string VIN { get; private set; } // Refactor to ValueObject
+    public Maybe<string> VIN { get; private set; } // Refactor to ValueObject
     public Maybe<int> Year { get; private set; }
     public string Make { get; private set; }
     public string Model { get; private set; }
     public bool NonTraditionalVehicle { get; private set; } = false; // We need to allow for non-traditional vehicles. For example, they may be servicing a trailer and just type in TRAILER for the Make and nothing else.
-    public string Plate { get; private set; }
+    public Maybe<string> Plate { get; private set; }
     public Maybe<State> PlateStateProvince { get; private set; }
-    public string UnitNumber { get; private set; }
-    public string Color { get; private set; }
+    public Maybe<string> UnitNumber { get; private set; }
+    public Maybe<string> Color { get; private set; }
     public bool Active { get; private set; } = true;
 
     public override string ToString() => $"{Year.GetValueOrDefault()} {Make} {Model}";
 
     private Vehicle(
-        string vin,
+        Maybe<string> vin,
         Maybe<int> year,
         string make,
         string model,
         bool nonTraditionalVehicle,
-        string plate,
+        Maybe<string> plate,
         Maybe<State> plateStateProvince,
-        string unitNumber,
-        string color,
+        Maybe<string> unitNumber,
+        Maybe<string> color,
         bool active)
     {
         VIN = vin;
@@ -60,25 +60,26 @@ public class Vehicle : Entity
     }
 
     public static Result<Vehicle> Create(
-        string vin,
-        int? year,
+        Maybe<string> vin,
+        Maybe<int> year,
         string make,
         string model,
-        string plate,
-        State? plateStateProvince,
-        string unitNumber,
-        string color,
+        Maybe<string> plate,
+        Maybe<State> plateStateProvince,
+        Maybe<string> unitNumber,
+        Maybe<string> color,
         bool active = true,
         bool nonTraditionalVehicle = false)
     {
-        var normalizedMake = (make ?? string.Empty).Trim();
-        var normalizedModel = (model ?? string.Empty).Trim();
-        var normalizedPlate = (plate ?? string.Empty).Trim();
-        var normalizedUnitNumber = (unitNumber ?? string.Empty).Trim();
-        var normalizedColor = (color ?? string.Empty).Trim();
+        var normalizedMake = make.Trim();
+        var normalizedModel = model.Trim();
+        var normalizedVin = vin.Map(value => value.Trim());
+        var normalizedPlate = plate.Map(value => value.Trim());
+        var normalizedUnitNumber = unitNumber.Map(value => value.Trim());
+        var normalizedColor = color.Map(value => value.Trim());
         return Result.Combine(
                 Environment.NewLine,
-                ValidateVin(vin, nonTraditionalVehicle),
+                ValidateVin(normalizedVin, nonTraditionalVehicle),
                 ValidateMakeModel(normalizedMake, normalizedModel, nonTraditionalVehicle),
                 ValidateYear(year),
                 ValidatePlate(normalizedPlate),
@@ -86,13 +87,13 @@ public class Vehicle : Entity
                 ValidateUnitNumber(normalizedUnitNumber),
                 ValidateColor(normalizedColor))
             .Map(() => new Vehicle(
-                vin,
-                ToMaybe(year),
+                normalizedVin,
+                year,
                 normalizedMake,
                 normalizedModel,
                 nonTraditionalVehicle,
                 normalizedPlate,
-                ToMaybe(plateStateProvince),
+                plateStateProvince,
                 normalizedUnitNumber,
                 normalizedColor,
                 active));
@@ -118,77 +119,74 @@ public class Vehicle : Entity
     }
 
     private static Result ValidateVin(
-        string? vin,
+        Maybe<string> vin,
         bool nonTraditionalVehicle)
     {
-        if (vin is null)
+        if (vin.HasNoValue)
         {
             return nonTraditionalVehicle
                 ? Result.Success()
                 : Result.Failure(InvalidVinMessage);
         }
 
-        if (vin.Length != VinRequiredLength)
+        if (vin.Value.Length != VinRequiredLength)
             return Result.Failure(InvalidVinMessage);
 
         return Result.Success();
     }
 
-    private static Result ValidateYear(int? year) =>
-        year > DateTime.Today.Year + 1 || year < YearMinimum
+    private static Result ValidateYear(Maybe<int> year) =>
+        year.HasValue && (year.Value > DateTime.Today.Year + 1 || year.Value < YearMinimum)
             ? Result.Failure(InvalidYearMessage)
             : Result.Success();
 
-    private static Result ValidatePlate(string? plate)
+    private static Result ValidatePlate(Maybe<string> plate)
     {
-        plate = plate?.Trim() ?? string.Empty;
-        return plate.Length > MaximumPlateLength
+        return plate.HasValue && plate.Value.Length > MaximumPlateLength
             ? Result.Failure(
                 InvalidMaximumLengthMessage(MaximumPlateLength))
             : Result.Success();
     }
 
-    private static Result ValidatePlateStateProvince(State? plateStateProvince) =>
-        plateStateProvince is null || Enum.IsDefined(plateStateProvince.Value)
+    private static Result ValidatePlateStateProvince(Maybe<State> plateStateProvince) =>
+        plateStateProvince.HasNoValue || Enum.IsDefined(plateStateProvince.Value)
             ? Result.Success()
             : Result.Failure(InvalidPlateStateProvinceMessage);
 
-    private static Maybe<int> ToMaybe(int? value) =>
-        value.HasValue ? value.Value : Maybe<int>.None;
-
-    private static Maybe<State> ToMaybe(State? value) =>
-        value.HasValue ? value.Value : Maybe<State>.None;
-
-    private static Result ValidateUnitNumber(string? unitNumber)
+    private static Result ValidateUnitNumber(Maybe<string> unitNumber)
     {
-        unitNumber = unitNumber?.Trim() ?? string.Empty;
-        return unitNumber.Length > MaximumUnitNumberLength
+        return unitNumber.HasValue && unitNumber.Value.Length > MaximumUnitNumberLength
             ? Result.Failure(
                 InvalidMaximumLengthMessage(MaximumUnitNumberLength))
             : Result.Success();
     }
 
-    private static Result ValidateColor(string? color)
+    private static Result ValidateColor(Maybe<string> color)
     {
-        color = color?.Trim() ?? string.Empty;
-        return color.Length > MaximumColorLength
+        return color.HasValue && color.Value.Length > MaximumColorLength
             ? Result.Failure(
                 InvalidMaximumLengthMessage(MaximumColorLength))
             : Result.Success();
     }
 
-    public Result<string> SetVin(string vin)
+    public Result<Maybe<string>> SetVin(string vin)
     {
-        vin = (vin ?? string.Empty).Trim();
+        vin = vin.Trim();
         return vin.Length.Equals(VinRequiredLength)
             ? Result.Success(VIN = vin)
-            : Result.Failure<string>(InvalidVinMessage);
+            : Result.Failure<Maybe<string>>(InvalidVinMessage);
     }
 
-    public Result<Maybe<int>> SetYear(int? year) =>
+    public Result ClearVin() => NonTraditionalVehicle
+        ? Result.Success().Tap(() => VIN = Maybe<string>.None)
+        : Result.Failure(InvalidVinMessage);
+
+    public Result<Maybe<int>> SetYear(int year) =>
         year > DateTime.Today.Year + 1 || year < YearMinimum
             ? Result.Failure<Maybe<int>>(InvalidYearMessage)
-            : Result.Success(Year = ToMaybe(year));
+            : Result.Success(Year = year);
+
+    public void ClearYear() => Year = Maybe<int>.None;
 
     public Result<string> SetMake(string make)
     {
@@ -206,53 +204,62 @@ public class Vehicle : Entity
             : Result.Success(Model = model);
     }
 
-    public Result<string> SetPlate(string? plate)
+    public Result<Maybe<string>> SetPlate(string plate)
     {
-        plate = plate?.Trim() ?? string.Empty;
+        plate = plate.Trim();
         return plate.Length > MaximumPlateLength
-            ? Result.Failure<string>(
+            ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumPlateLength))
             : Result.Success(Plate = plate);
     }
 
-    public Result<Maybe<State>> SetPlateStateProvince(State? plateStateProvince) =>
-        plateStateProvince is not null && !Enum.IsDefined(plateStateProvince.Value)
-            ? Result.Failure<Maybe<State>>(InvalidPlateStateProvinceMessage)
-            : Result.Success(PlateStateProvince = ToMaybe(plateStateProvince));
+    public void ClearPlate() => Plate = Maybe<string>.None;
 
-    public Result<string> SetUnitNumber(string? unitNumber)
+    public Result<Maybe<State>> SetPlateStateProvince(State plateStateProvince) =>
+        !Enum.IsDefined(plateStateProvince)
+            ? Result.Failure<Maybe<State>>(InvalidPlateStateProvinceMessage)
+            : Result.Success(PlateStateProvince = plateStateProvince);
+
+    public void ClearPlateStateProvince() => PlateStateProvince = Maybe<State>.None;
+
+    public Result<Maybe<string>> SetUnitNumber(string unitNumber)
     {
-        unitNumber = unitNumber?.Trim() ?? string.Empty;
+        unitNumber = unitNumber.Trim();
         return unitNumber.Length > MaximumUnitNumberLength
-            ? Result.Failure<string>(
+            ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumUnitNumberLength))
             : Result.Success(UnitNumber = unitNumber);
     }
 
-    public Result<string> SetColor(string? color)
+    public void ClearUnitNumber() => UnitNumber = Maybe<string>.None;
+
+    public Result<Maybe<string>> SetColor(string color)
     {
-        color = color?.Trim() ?? string.Empty;
+        color = color.Trim();
         return color.Length > MaximumColorLength
-            ? Result.Failure<string>(
+            ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumColorLength))
             : Result.Success(Color = color);
     }
 
-    public Result<bool> SetActive(bool active = true) =>
-        Result.Success(Active = active);
+    public void ClearColor() => Color = Maybe<string>.None;
 
-    public Result<bool> SetNonTraditionalVehicle(bool nonTraditionalVehicle) =>
-        // TODO: MUST update properties to be valid if the vehicle is now a non-traditional vehicle
-        Result.Success(NonTraditionalVehicle = nonTraditionalVehicle);
+    public void SetActive(bool active = true) => Active = active;
+
+    public Result SetNonTraditionalVehicle(bool nonTraditionalVehicle) =>
+        Result.Combine(
+                ValidateVin(VIN, nonTraditionalVehicle),
+                ValidateMakeModel(Make, Model, nonTraditionalVehicle))
+            .Tap(() => NonTraditionalVehicle = nonTraditionalVehicle);
 
     // EF requires a parameterless constructor
     private Vehicle()
     {
         Make = string.Empty;
         Model = string.Empty;
-        Plate = string.Empty;
-        UnitNumber = string.Empty;
-        Color = string.Empty;
-        VIN = string.Empty;
+        Plate = Maybe<string>.None;
+        UnitNumber = Maybe<string>.None;
+        Color = Maybe<string>.None;
+        VIN = Maybe<string>.None;
     }
 }

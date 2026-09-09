@@ -68,7 +68,7 @@ public class PhoneShould
     public void ReturnUpdatedCopy_On_SetIsPrimary_WhenValueIsProvided(bool primary)
     {
         var original = ValidPhone();
-        var updated = original.SetIsPrimary(primary).Value;
+        var updated = original.SetIsPrimary(primary);
 
         updated.IsPrimary.ShouldBe(primary);
         original.IsPrimary.ShouldBeFalse();
