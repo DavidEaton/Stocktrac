@@ -4,15 +4,10 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public abstract class Contactable : Entity, IContactable
 {
-    public static readonly string RequiredMessage = "Please complete all required entries.";
-
-    public static readonly string NonuniqueMessage = "Duplicate entry; each must be unique.";
-
-    public static readonly string PrimaryExistsMessage = "Primary has already been entered.";
-
-    public static readonly string InvalidValueMessage = "Invalid value.";
-
-    public static readonly string NotFoundMessage = "Entry not found.";
+    public const string NonuniqueMessage = "Duplicate entry; each must be unique.";
+    public const string PrimaryExistsMessage = "A primary contact already exists.";
+    public const string MultiplePrimariesMessage = "Only one contact may be primary.";
+    public const string NotFoundMessage = "Entry not found.";
 
     private readonly List<Phone> phones = [];
 
@@ -29,20 +24,18 @@ public abstract class Contactable : Entity, IContactable
     protected Contactable(
         Note notes,
         Maybe<Address> address,
-        IReadOnlyList<Phone> phones,
-        IReadOnlyList<Email> emails)
+        ValidatedContactCollections contacts)
     {
         Notes = notes;
         Address = address;
-        this.phones = [.. phones];
-        this.emails = [.. emails];
+        phones = [.. contacts.Phones];
+        emails = [.. contacts.Emails];
     }
 
     public Result<Phone> AddPhone(Phone phone) =>
-        Maybe.From(phone)
-            .ToResult(RequiredMessage)
+        Result.Success(phone)
             .Ensure(
-                requestedPhone => !HasPhone(requestedPhone),
+                requestedPhone => !HasPhoneNumber(requestedPhone.Number),
                 NonuniqueMessage)
             .Ensure(
                 requestedPhone =>
@@ -51,12 +44,10 @@ public abstract class Contactable : Entity, IContactable
             .Tap(phones.Add);
 
     public Result<Phone> RemovePhone(Phone phone) =>
-        Maybe.From(phone)
-            .ToResult(RequiredMessage)
-            .Ensure(
-                phones.Contains,
-                NotFoundMessage)
-            .Tap(requestedPhone => phones.Remove(requestedPhone));
+        Result.Success(phone)
+            .Ensure(requestedPhone => HasPhoneNumber(requestedPhone.Number), NotFoundMessage)
+            .Tap(requestedPhone =>
+                phones.RemoveAll(existingPhone => existingPhone.Number == requestedPhone.Number));
 
     public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones) =>
         ValidateContactList(
@@ -72,10 +63,9 @@ public abstract class Contactable : Entity, IContactable
             });
 
     public Result<Email> AddEmail(Email email) =>
-        Maybe.From(email)
-            .ToResult(RequiredMessage)
+        Result.Success(email)
             .Ensure(
-                IsUniqueContactableEmail,
+                requestedEmail => !HasEmailAddress(requestedEmail.Address),
                 NonuniqueMessage)
             .Ensure(
                 requestedEmail =>
@@ -84,12 +74,10 @@ public abstract class Contactable : Entity, IContactable
             .Tap(emails.Add);
 
     public Result<Email> RemoveEmail(Email email) =>
-        Maybe.From(email)
-            .ToResult(RequiredMessage)
-            .Ensure(
-                emails.Contains,
-                NotFoundMessage)
-            .Tap(requestedEmail => emails.Remove(requestedEmail));
+        Result.Success(email)
+            .Ensure(requestedEmail => HasEmailAddress(requestedEmail.Address), NotFoundMessage)
+            .Tap(requestedEmail =>
+                emails.RemoveAll(existingEmail => existingEmail.Address == requestedEmail.Address));
 
     public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails) =>
         ValidateContactList(
@@ -104,34 +92,30 @@ public abstract class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public Result<Note> SetNotes(Note note) =>
-        Result.Success(Notes = note);
+    public void SetNotes(Note note) =>
+        Notes = note;
 
-    public Result SetAddress(Address address) =>
-        Result.Success()
-            .Tap(() => Address = address);
+    public void SetAddress(Address address) =>
+        Address = address;
 
-    public Result ClearAddress() =>
-        Result.Success()
-            .Tap(() => Address = Maybe<Address>.None);
+    public void ClearAddress() =>
+        Address = Maybe<Address>.None;
 
-    public bool HasPhone(Phone phone) =>
+    public bool HasPhoneNumber(string number) =>
         phones.Any(existingPhone =>
-            existingPhone.Number == phone.Number);
+            existingPhone.Number == number);
 
     public bool HasPrimaryPhone() =>
         phones.Any(phone => phone.IsPrimary);
 
-    public bool IsUniqueContactableEmail(Email email) =>
-        !emails.Any(existingEmail =>
-            existingEmail.Address == email.Address);
+    public bool HasEmailAddress(string address) =>
+        emails.Any(existingEmail =>
+            existingEmail.Address == address);
 
     public bool HasPrimaryEmail() =>
         emails.Any(email => email.IsPrimary);
 
-    protected static Result<(
-        IReadOnlyList<Phone> Phones,
-        IReadOnlyList<Email> Emails)> ValidateContactCollections(
+    protected static Result<ValidatedContactCollections> ValidateContactCollections(
             IReadOnlyList<Phone> phones,
             IReadOnlyList<Email> emails) =>
         ValidateContactList(
@@ -143,9 +127,9 @@ public abstract class Contactable : Entity, IContactable
                         emails,
                         email => email.Address,
                         email => email.IsPrimary)
-                    .Map(validEmails => (
-                        Phones: validPhones,
-                        Emails: validEmails)));
+                    .Map(validEmails => new ValidatedContactCollections(
+                        validPhones,
+                        validEmails)));
 
     private static Result<IReadOnlyList<TContact>>
         ValidateContactList<TContact, TValue>(
@@ -153,12 +137,7 @@ public abstract class Contactable : Entity, IContactable
             Func<TContact, TValue> getValue,
             Func<TContact, bool> isPrimary)
         where TContact : class =>
-        Maybe.From(contacts)
-            .ToResult(RequiredMessage)
-            .Ensure(
-                contactList =>
-                    contactList.All(contact => contact is not null),
-                RequiredMessage)
+        Result.Success(contacts)
             .Ensure(
                 contactList =>
                     contactList
@@ -168,7 +147,18 @@ public abstract class Contactable : Entity, IContactable
             .Ensure(
                 contactList =>
                     contactList.Count(isPrimary) <= 1,
-                PrimaryExistsMessage);
+                MultiplePrimariesMessage);
+
+    protected sealed class ValidatedContactCollections
+    {
+        public IReadOnlyList<Phone> Phones { get; }
+        public IReadOnlyList<Email> Emails { get; }
+
+        private ValidatedContactCollections(
+            IReadOnlyList<Phone> phones,
+            IReadOnlyList<Email> emails) =>
+            (Phones, Emails) = (phones, emails);
+    }
 
     // Required by Entity Framework.
     protected Contactable() { }

@@ -12,11 +12,11 @@ public interface IContactable
 
     IReadOnlyList<Email> Emails { get; }
 
-    Result<Note> SetNotes(Note note);
+    void SetNotes(Note note);
 
-    Result SetAddress(Address address);
+    void SetAddress(Address address);
 
-    Result ClearAddress();
+    void ClearAddress();
 
     Result<Phone> AddPhone(Phone phone);
 
@@ -30,11 +30,11 @@ public interface IContactable
 
     Result ReplaceEmails(IReadOnlyList<Email> emails);
 
-    bool HasPhone(Phone phone);
+    bool HasPhoneNumber(string number);
 
     bool HasPrimaryPhone();
 
-    bool IsUniqueContactableEmail(Email email);
+    bool HasEmailAddress(string address);
 
     bool HasPrimaryEmail();
 }

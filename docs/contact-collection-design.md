@@ -12,7 +12,8 @@ separate `ContactDetails` domain value object. Address changes continue to use
 Each replacement method treats its argument as the complete requested state:
 
 - an empty collection clears the existing collection;
-- a null collection or null member is rejected;
+- null collections and null members violate the non-nullable API contract and
+  result in an exception;
 - duplicate phone numbers or email addresses are rejected;
 - more than one primary item is rejected; and
 - validation happens before mutation, so a failed replacement preserves the
