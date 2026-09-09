@@ -19,8 +19,8 @@ public class Employee : Entity
     public static readonly string RequiredMessage = $"Please include all required items.";
     public static readonly string DateRangeMessage = $"Employment date(s) invalid.";
     public static readonly string InvalidExpenseCategoryMessage = $"Expense category is invalid.";
-    public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}";
-    public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length";
+    public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}.";
+    public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
     public Person PersonEmployed { get; private set; }
     public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
     private readonly List<RoleAssignment> roleAssignments = [];

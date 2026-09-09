@@ -6,9 +6,9 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public class Phone : Entity, IHasPrimary
 {
-    public static readonly string InvalidMessage = "Phone number and/or its format is invalid";
-    public static readonly string EmptyMessage = "Phone number cannot be empty";
-    public static readonly string PhoneTypeInvalidMessage = $"Please enter a valid Phone Type";
+    public static readonly string InvalidMessage = "Phone number and/or its format is invalid.";
+    public static readonly string EmptyMessage = "Phone number cannot be empty.";
+    public static readonly string PhoneTypeInvalidMessage = $"Please enter a valid Phone Type.";
 
     public string Number { get; private set; } = string.Empty;
     public PhoneType PhoneType { get; private set; } = PhoneType.Unknown;

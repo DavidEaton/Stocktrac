@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Contacts;
 public sealed record DateTimeRange
 {
     public static readonly string RequiredMessage = $"Please include all required items.";
-    public static readonly string EndBeforeStartMessage = "End date cannot occur before Start date";
+    public static readonly string EndBeforeStartMessage = "End date cannot occur before Start date.";
     public static readonly string DateCalculationMessage = "The requested date range is outside the supported range.";
 
     public DateTime Start { get; } = DateTime.Today;

@@ -6,7 +6,7 @@ namespace Stocktrac.Domain.Features.Persons;
 
 public class Person : Contactable, ICustomerEntity
 {
-    public const string NameRequiredMessage = "Person name is required";
+    public const string NameRequiredMessage = "Person name is required.";
     public PersonName Name { get; private set; }
     public Maybe<Birthday> Birthday { get; private set; }
     public Maybe<DriversLicense> DriversLicense { get; private set; }

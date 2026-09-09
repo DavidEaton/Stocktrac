@@ -17,7 +17,7 @@ namespace Stocktrac.Domain.Features.Persons
                     Environment.NewLine,
                     Result.FailureIf(
                         date < MinimumDate || date > MaximumDate,
-                        $"Birthday must be between {MinimumDate:d} and {MaximumDate:d}"))
+                        $"Birthday must be between {MinimumDate:d} and {MaximumDate:d}."))
                 .Map(() => new Birthday(date));
 
         public static implicit operator DateTime(Birthday birthday) =>

@@ -6,8 +6,8 @@ public sealed record PersonName
 {
     public const int MinimumLength = 1;
     public const int MaximumLength = 255;
-    public static readonly string InvalidLengthMessage = $"First, last and middle names must be between {MinimumLength} character(s) {MaximumLength} and in length";
-    public static readonly string RequiredMessage = $"First and last names are required";
+    public static readonly string InvalidLengthMessage = $"First, last and middle names must be between {MinimumLength} character(s) {MaximumLength} and in length.";
+    public static readonly string RequiredMessage = $"First and last names are required.";
 
     private PersonName(string lastName, string firstName, string? middleName = null)
     {
