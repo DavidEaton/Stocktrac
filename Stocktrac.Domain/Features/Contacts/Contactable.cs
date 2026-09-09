@@ -14,10 +14,10 @@ public abstract class Contactable : Entity, IContactable
         "Primary has already been entered.";
 
     public static readonly string InvalidValueMessage =
-        "Invalid value";
+        "Invalid value.";
 
     public static readonly string NotFoundMessage =
-        "Entry not found";
+        "Entry not found.";
 
     private readonly List<Phone> phones = [];
 

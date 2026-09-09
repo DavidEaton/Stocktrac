@@ -128,7 +128,7 @@ public class Customer : Entity
             return Result.Failure<Vehicle>(RequiredMessage);
 
         if (CustomerHasVehicle(vehicle))
-            return Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}");
+            return Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.");
 
         vehicles.Add(vehicle);
         return Result.Success(vehicle);

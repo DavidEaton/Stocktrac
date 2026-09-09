@@ -14,13 +14,13 @@ public class Vehicle : Entity
     public const int MaximumUnitNumberLength = 20;
     public const int MaximumColorLength = 12;
 
-    public static readonly string InvalidVinMessage = $"VIN was invalid";
+    public static readonly string InvalidVinMessage = $"VIN was invalid.";
     public const int YearMinimum = 1896; // First year of production commercial vehicles
-    public static readonly string InvalidYearMessage = $"Year must be between {YearMinimum} and {DateTime.Today.Year + 1}";
-    public static readonly string InvalidLengthMessage = $"Make, Model must be between {MinimumMakeModelLength} and {MaximumMakeModelLength} characters in length";
-    public static readonly string NonTraditionalVehicleInvalidMakeModelMessage = $"Please enter Make or Model";
-    public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length";
-    public static readonly string InvalidPlateStateProvinceMessage = $"Plate State/Province is invalid";
+    public static readonly string InvalidYearMessage = $"Year must be between {YearMinimum} and {DateTime.Today.Year + 1}.";
+    public static readonly string InvalidLengthMessage = $"Make, Model must be between {MinimumMakeModelLength} and {MaximumMakeModelLength} characters in length.";
+    public static readonly string NonTraditionalVehicleInvalidMakeModelMessage = $"Please enter Make or Model.";
+    public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
+    public static readonly string InvalidPlateStateProvinceMessage = $"Plate State/Province is invalid.";
 
     public string VIN { get; private set; } // Refactor to ValueObject
     public Maybe<int> Year { get; private set; }
