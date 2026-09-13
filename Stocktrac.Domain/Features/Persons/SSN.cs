@@ -26,7 +26,7 @@ public sealed record SSN
     private SSN(string value) =>
         Value = value;
 
-    public static Result<SSN> Create(string? value)
+    public static Result<SSN> Create(string value)
     {
         var input = value?.Trim() ?? string.Empty;
         var normalized = Normalize(input);

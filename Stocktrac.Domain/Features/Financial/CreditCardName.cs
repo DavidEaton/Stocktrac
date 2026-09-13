@@ -15,7 +15,7 @@ public sealed record CreditCardName
     private CreditCardName(string value) =>
         Value = value;
 
-    public static Result<CreditCardName> Create(string? name)
+    public static Result<CreditCardName> Create(string name)
     {
         var normalized = name?.Trim() ?? string.Empty;
         return Result.Combine(

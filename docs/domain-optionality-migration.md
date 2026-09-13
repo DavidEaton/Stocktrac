@@ -7,7 +7,7 @@ the result of applying its acceptance criteria.
 | Classification | Members and APIs | Migration result |
 | --- | --- | --- |
 | Genuine optional state | customer code; tenant logo; employee notes, certification, exit date and printed name; business contact; credit-card deposit date; vehicle VIN/year/plate/jurisdiction/unit/color; address line 2; person middle name, birthday and driver's license | Domain state uses `Maybe<T>` and mutations have distinct set and clear operations. |
-| Required state | company/business, customer entity, person name, employee/person/SSN, role period, credit-card name/fee, address components, sale-code supplies | Non-nullable signatures are trusted. Domain factories no longer turn null contract violations into validation failures in the migrated paths. |
+| Required state | company/business, customer entity, person name, employee/person/SSN, role period, credit-card name/fee, address components, sale-code supplies | Non-nullable signatures preserve compiler diagnostics. Domain factories may still turn null contract violations into validation failures as a defensive runtime safeguard. |
 | Collections | contacts, vehicles, employee roles and sale codes | Exposed collections remain non-null snapshots. Contact construction and replacement continue to validate uniqueness and primary cardinality before mutation. |
 | Failures | enum/range/length/uniqueness/not-found rules and mode transitions | `Result` remains where a domain rule can fail; unconditional setters no longer manufacture success-only results. |
 | Boundary input | nullable strings and nullable value types supplied by transports | `OptionalInput` converts nullable transport values to trimmed `Maybe<T>` values before domain invocation. |
@@ -19,7 +19,7 @@ the result of applying its acceptance criteria.
 - **Pass:** migrated public optional properties expose absence through `Maybe<T>`.
 - **Pass:** migrated optional mutations provide explicit set and clear behavior.
 - **Pass:** business contacts and employee exit dates now also have explicit clear operations and presence/absence tests.
-- **Pass:** migrated non-nullable parameters do not produce failures solely for null input.
+- **Pass:** required parameters are non-nullable even where implementations defensively produce failures for null input.
 - **Pass:** unconditional preference, person, primary-flag, boolean, fee, and assignment operations do not return success-only `Result` values.
 - **Pass:** contact collection construction and replacement validate uniqueness and primary cardinality before mutation.
 - **Pass:** nullable transport normalization now has an application-boundary home rather than an entity helper.

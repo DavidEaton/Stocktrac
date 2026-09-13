@@ -26,7 +26,7 @@ public readonly record struct CurrencyCode
     private CurrencyCode(string code) =>
         _nonDefaultCode = code == DefaultCode ? null : code;
 
-    public static Result<CurrencyCode> Create(string? code) =>
+    public static Result<CurrencyCode> Create(string code) =>
         Result.Success(NormalizeCode(code))
             .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
             .Ensure(value => value.Length == CodeLength, InvalidMessage)

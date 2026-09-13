@@ -11,7 +11,7 @@ namespace Stocktrac.Domain.Features.Contacts
         private readonly string? value;
         public string Value => value ?? string.Empty;
 
-        public static Result<Note> Create(string? notes) =>
+        public static Result<Note> Create(string notes) =>
             Result.Success(Normalize(notes))
                 .Ensure(
                     value => value.Length <= MaximumLength,

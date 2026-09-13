@@ -13,7 +13,7 @@ namespace Stocktrac.Domain.Features.Contacts
         private City(string value) =>
             Value = value;
 
-        public static Result<City> Create(string? value)
+        public static Result<City> Create(string value)
         {
             var normalized = value?.Trim() ?? string.Empty;
 
