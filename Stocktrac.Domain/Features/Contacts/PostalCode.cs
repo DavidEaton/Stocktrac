@@ -12,7 +12,7 @@ public sealed record PostalCode
     private PostalCode(string value) =>
         Value = value;
 
-    public static Result<PostalCode> Create(string? value)
+    public static Result<PostalCode> Create(string value)
     {
         var normalized = value?.Trim() ?? string.Empty;
         return Result.Combine(

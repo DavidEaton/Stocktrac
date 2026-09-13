@@ -11,7 +11,7 @@ public sealed record CustomerCode
     private CustomerCode(string value) =>
         Value = value;
 
-    public static Result<CustomerCode> Create(string? value)
+    public static Result<CustomerCode> Create(string value)
     {
         var normalized = value?.Trim() ?? string.Empty;
         return Result.Combine(

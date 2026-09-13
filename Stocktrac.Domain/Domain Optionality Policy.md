@@ -16,10 +16,12 @@ application boundaries.
 > Nullable values may still be accepted or encountered at application,
 > framework, serialization, and persistence boundaries.
 
-Domain APIs trust their non-nullable signatures. Passing `null` to a
-non-nullable domain parameter is a programming error, not a validation outcome,
-and callers must not expect a failure `Result` for it. Code at an external
-boundary is responsible for handling nullable input before it calls the domain.
+Domain APIs declare required inputs as non-nullable so nullable-aware callers
+receive compiler diagnostics when they might pass `null`. Domain objects may
+still guard against `null` at runtime and return a validation failure; that
+defensive behavior does not make `null` part of the accepted contract. Code at
+an external boundary remains responsible for handling nullable input before it
+calls the domain.
 
 ## Required practices
 
@@ -52,15 +54,11 @@ public void RemoveBirthday() =>
 ### Required domain members
 
 Use a non-nullable type when a value is required for a valid domain object.
-Domain construction and mutation APIs may assume that non-nullable arguments
-are non-null. They must still validate domain rules that can be violated by
-otherwise well-formed input before committing state. A successfully created
-domain object must satisfy its invariants.
-
-Do not use `Maybe.From`, `Result.FailureIf`, or similar checks merely to convert
-an invalid `null` call into an expected domain failure. A dereference or an
-explicit argument exception is appropriate when a caller violates a
-non-nullable contract.
+Domain construction and mutation APIs must declare required arguments as
+non-nullable. They must validate domain rules before committing state, and may
+also retain defensive null checks for callers that bypass nullable analysis.
+Such checks are runtime safeguards, not permission to pass `null`. A
+successfully created domain object must satisfy its invariants.
 
 ### Collections
 
@@ -120,14 +118,14 @@ Honor platform contracts such as `Equals(object? obj)` and APIs whose defined
 representation of missing data is `null`. Do not replace their signatures with
 `Maybe<T>` when doing so would violate or obscure the contract.
 
-### Input validation and defensive checks at boundaries
+### Input validation and defensive checks
 
-Boundary-facing methods may defensively check for `null`. Their parameter should
-normally be declared nullable so the signature accurately communicates the
-input contract. Such checks protect the domain from callers that originate in
-languages and frameworks without equivalent nullability guarantees. Domain
-methods with non-nullable parameters do not add defensive `Maybe` or `Result`
-checks for programmer errors.
+Boundary-facing methods may declare nullable transport input because absence is
+part of that boundary contract. Domain methods may also defensively check for
+`null`, especially for callers from languages and frameworks without equivalent
+nullability guarantees, but required domain parameters remain non-nullable.
+This preserves compiler diagnostics for ordinary C# callers while keeping the
+runtime guard.
 
 ### Persistence and serialization
 
@@ -173,8 +171,8 @@ When creating or reviewing domain code, verify that:
 - [ ] Every public domain member has an intentional absence model.
 - [ ] Optional domain members use `Maybe<T>` and explicit `None` semantics.
 - [ ] Required domain members cannot be absent after successful construction.
-- [ ] Non-nullable domain parameters are trusted; boundary code handles nullable
-      input before invoking them.
+- [ ] Required domain parameters are non-nullable, even when their implementations
+      retain defensive null guards.
 - [ ] Collections are non-null and use an empty collection for zero items.
 - [ ] Every constructor path receives collections that have already passed the
       aggregate's uniqueness and primary-cardinality validation.
@@ -198,8 +196,8 @@ or `null` token:
    optional, collection, failure, boundary input, or implementation detail.
 2. Convert genuine optional domain properties to `Maybe<T>`.
 3. Add explicit set and clear operations where behavior changes domain state.
-4. Normalize nullable input in boundary-facing factories and application-layer
-   mappers before invoking non-nullable domain APIs.
+4. Normalize nullable input in application-layer mappers before invoking
+   non-nullable domain APIs; keep any domain null checks strictly defensive.
 5. Add persistence conversions where infrastructure cannot map `Maybe<T>`
    directly.
 6. Update tests to assert presence, absence, validation, and round-trip

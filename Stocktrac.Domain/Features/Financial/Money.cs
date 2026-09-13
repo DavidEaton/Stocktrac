@@ -18,7 +18,7 @@ public readonly record struct Money
     public static Money Create(Amount amount, CurrencyCode currencyCode) =>
         new(amount, currencyCode);
 
-    public static Result<Money> Create(decimal amount, string? currencyCode) =>
+    public static Result<Money> Create(decimal amount, string currencyCode) =>
         CurrencyCode.Create(currencyCode).Map(
             code => Create(Amount.FromDecimal(amount), code));
 
