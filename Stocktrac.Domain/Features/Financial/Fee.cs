@@ -14,6 +14,6 @@ public readonly record struct Fee
     private Fee(Money amount) =>
         _amount = amount;
 
-    public static Result<Fee> Create(decimal amount, string? currencyCode) =>
+    public static Result<Fee> Create(decimal amount, string currencyCode) =>
         Money.Create(amount, currencyCode).Map(money => new Fee(money));
 }

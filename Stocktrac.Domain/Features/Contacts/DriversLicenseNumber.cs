@@ -14,7 +14,7 @@ namespace Stocktrac.Domain.Features.Contacts
         private DriversLicenseNumber(string number) =>
             Number = number;
 
-        public static Result<DriversLicenseNumber> Create(string? number)
+        public static Result<DriversLicenseNumber> Create(string number)
         {
             var normalized = number?.Trim() ?? string.Empty;
             return Result.Combine(
