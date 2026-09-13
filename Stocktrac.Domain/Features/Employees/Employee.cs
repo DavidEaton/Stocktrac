@@ -148,6 +148,8 @@ public class Employee : Entity
             .Ensure(value => value >= Hired, DateRangeMessage)
             .Tap(value => Exited = value);
 
+    public void ClearExited() => Exited = Maybe<DateTime>.None;
+
     private static bool IsEmploymentDateWithinAllowedRange(DateTime employmentDate) =>
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;

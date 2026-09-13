@@ -55,6 +55,9 @@ public class Business : Contactable, ICustomerEntity
     public void SetContact(Person contact) =>
         Contact = contact;
 
+    public void ClearContact() =>
+            Contact = Maybe<Person>.None;
+
     // Code that pollutes our domain class (very minor impact in this case), but
     // is necessary for EntityFramework, makes our model <100% persistence ignorant.
 
