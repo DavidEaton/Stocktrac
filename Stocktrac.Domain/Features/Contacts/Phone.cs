@@ -6,9 +6,8 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public class Phone : Entity, IHasPrimary
 {
-    public static readonly string InvalidMessage = "Phone number and/or its format is invalid.";
-    public static readonly string EmptyMessage = "Phone number cannot be empty.";
-    public static readonly string PhoneTypeInvalidMessage = $"Please enter a valid Phone Type.";
+    public const string InvalidMessage = "Please enter a valid Number.";
+    public const string PhoneTypeInvalidMessage = "Please enter a valid Type.";
 
     public string Number { get; private set; } = string.Empty;
     public PhoneType PhoneType { get; private set; } = PhoneType.Unknown;
@@ -21,14 +20,26 @@ public class Phone : Entity, IHasPrimary
         IsPrimary = isPrimary;
     }
 
-    public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary)
+    public static Result<Phone> Create(
+        string number,
+        PhoneType phoneType,
+        bool isPrimary)
     {
-        var normalized = number.Trim();
+        var normalizedNumber = number?.Trim() ?? string.Empty;
+
         return Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(!Enum.IsDefined(phoneType), PhoneTypeInvalidMessage),
-                Result.FailureIf(!new PhoneAttribute().IsValid(normalized), InvalidMessage))
-            .Map(() => new Phone(normalized, phoneType, isPrimary));
+                Result.FailureIf(
+                    string.IsNullOrWhiteSpace(normalizedNumber) ||
+                    !new PhoneAttribute().IsValid(normalizedNumber),
+                    InvalidMessage),
+                Result.FailureIf(
+                    !Enum.IsDefined(phoneType),
+                    PhoneTypeInvalidMessage))
+            .Map(() => new Phone(
+                normalizedNumber,
+                phoneType,
+                isPrimary));
     }
 
     public override string ToString()

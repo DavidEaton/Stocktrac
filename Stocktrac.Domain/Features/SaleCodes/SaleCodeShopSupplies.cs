@@ -5,8 +5,8 @@ namespace Stocktrac.Domain.Features.SaleCodes
     public class SaleCodeShopSupplies : Entity
     {
         public static readonly double MinimumValue = 0;
-        public static readonly string MinimumValueMessage = $"Value(s) cannot be negative.";
-        public static readonly string RequiredMessage = $"Please include all required items.";
+        public const string MinimumValueMessage = "Value(s) cannot be negative.";
+        public const string RequiredMessage = "Please include all required items.";
 
         public double Percentage { get; private set; }
         public double MinimumJobAmount { get; private set; }

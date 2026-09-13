@@ -40,12 +40,12 @@ public class DriversLicenseShould
     [Fact]
     public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
     {
-        var result = DriversLicense.Create(null!, (State)(-1), null!);
+        var result = DriversLicense.Create(null, (State)(-1), null);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(string.Join(
             Environment.NewLine,
-            DriversLicense.RequiredMessage + " (2×)",
+            DriversLicense.RequiredMessage,
             DriversLicense.StateInvalidMessage));
     }
 

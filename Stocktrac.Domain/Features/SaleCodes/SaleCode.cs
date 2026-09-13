@@ -16,9 +16,9 @@ namespace Stocktrac.Domain.Features.SaleCodes
         public static readonly double MaximumDesiredMarginValue = 100;
         public static string InvalidLengthMessage(int minLength, int maxLength) => $"Value must be between {minLength} and {maxLength} characters.";
         public static string InvalidValueMessage(double minValue, double maxValue) => $"Value must be between {minValue} and {maxValue}.";
-        public static readonly string RequiredMessage = $"Please include all required items.";
-        public static readonly string MinimumValueMessage = $"Value(s) cannot be negative.";
-        public static readonly string NonuniqueMessage = $"Code is already in use and must be unique.";
+        public const string RequiredMessage = "Please include all required items.";
+        public const string MinimumValueMessage = "Value(s) cannot be negative.";
+        public const string NonuniqueMessage = "Code is already in use and must be unique.";
 
         public string Name { get; private set; }
         public string Code { get; private set; }

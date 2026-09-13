@@ -12,10 +12,10 @@ public sealed class Tenant : Entity<Guid>
     public const int MaximumCompanyNameLength = 2048;
     public const int MaximumLogoUrlLength = 4096;
 
-    public static readonly string NameRequiredMessage =
+    public const string NameRequiredMessage =
         "Tenant name is required.";
 
-    public static readonly string CompanyNameRequiredMessage =
+    public const string CompanyNameRequiredMessage =
         "Company name is required.";
 
     public static readonly string InvalidNameLengthMessage =

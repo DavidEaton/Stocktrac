@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Contacts;
 public sealed record DriversLicense
 {
     public const string RequiredMessage = "Driver's license details are required.";
-    public static readonly string StateInvalidMessage = $"Please enter a valid State.";
+    public const string StateInvalidMessage = "Please enter a valid State.";
     public DriversLicenseNumber Number { get; }
     public DateTimeRange ValidDateRange { get; }
     public State State { get; }
@@ -23,8 +23,9 @@ public sealed record DriversLicense
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
         Result.Combine(
                 Environment.NewLine,
+                Result.FailureIf(number is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(state), StateInvalidMessage))
-            .Map(() => new DriversLicense(number, state, validRange));
+            .Map(() => new DriversLicense(number!, state, validRange));
 
     public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);

@@ -7,7 +7,7 @@ public sealed record BusinessName
     public const int MinimumLength = 2;
     public const int MaximumLength = 255;
     public static readonly string InvalidLengthMessage = $"Business Name must be between {MinimumLength} and {MaximumLength} character(s) in length.";
-    public static readonly string RequiredMessage = $"Business Name is required.";
+    public const string RequiredMessage = "Business Name is required.";
 
     public string Name { get; }
 

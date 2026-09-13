@@ -8,10 +8,10 @@ public class Customer : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly string DuplicateItemMessagePrefix = $"Customer already has this ";
-    public static readonly string UnknownCustomerTypeMessage = $"Unknown type.";
-    public static readonly string RequiredMessage = "Please include all required items.";
-    public static readonly string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
+    public const string DuplicateItemMessagePrefix = "Customer already has this ";
+    public const string UnknownCustomerTypeMessage = "Unknown type.";
+    public const string RequiredMessage = "Please include all required items.";
+    public const string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
 
     public CustomerType CustomerType { get; private set; }
     public Maybe<CustomerCode> Code { get; private set; }

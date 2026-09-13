@@ -8,7 +8,7 @@ public class Business : Contactable, ICustomerEntity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static readonly string InvalidMessage = $"Invalid business.";
+    public const string InvalidMessage = "Invalid business.";
 
     public BusinessName Name { get; private set; }
     public Maybe<Person> Contact { get; private set; }

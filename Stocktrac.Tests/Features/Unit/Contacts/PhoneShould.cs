@@ -19,9 +19,28 @@ public class PhoneShould
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("not a phone")]
-    public void ReturnInvalidError_On_Create_WhenNumberIsInvalid(string? number) =>
-        Phone.Create(number!, PhoneType.Home, false).Error.ShouldBe(Phone.InvalidMessage);
+    public void ReturnEmptyAndInvalidErrors_OnCreate_WhenNumberIsEmpty(
+        string? number)
+    {
+        var expected = Phone.InvalidMessage;
+
+        var result = Phone.Create(number, PhoneType.Home, false);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(expected);
+    }
+
+    [Fact]
+    public void ReturnInvalidError_OnCreate_WhenNumberHasInvalidFormat()
+    {
+        var result = Phone.Create(
+            "not a phone",
+            PhoneType.Home,
+            false);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Phone.InvalidMessage);
+    }
 
     [Fact]
     public void ReturnPhoneTypeError_On_Create_WhenPhoneTypeIsUndefined() =>

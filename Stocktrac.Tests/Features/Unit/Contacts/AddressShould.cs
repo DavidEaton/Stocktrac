@@ -148,11 +148,10 @@ public class AddressShould
     {
         var original = ValidAddress(AddressLine.Create("Suite 9").Value);
 
-        var result = original.ClearAddressLine2();
+        var edited = original.ClearAddressLine2();
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.AddressLine2.HasNoValue.ShouldBeTrue();
-        AssertOnlyExpectedValueChanged(original, result.Value, nameof(Address.AddressLine2));
+        edited.AddressLine2.HasNoValue.ShouldBeTrue();
+        AssertOnlyExpectedValueChanged(original, edited, nameof(Address.AddressLine2));
     }
 
     [Fact]

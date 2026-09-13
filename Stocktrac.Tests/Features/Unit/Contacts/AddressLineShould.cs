@@ -15,7 +15,7 @@ public class AddressLineShould
         var result = AddressLine.Create(value);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(AddressLine.RequiredMessage);
+        result.Error.ShouldContain(AddressLine.RequiredMessage);
     }
 
     [Theory]

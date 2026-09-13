@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Employees
 {
     public class RoleAssignment : Entity
     {
-        public static readonly string RequiredMessage = $"Please include all required items.";
+        public const string RequiredMessage = "Please include all required items.";
         public EmploymentRole Role { get; private set; }
         public DateTimeRange PeriodAssigned { get; private set; }
         public bool IsActive =>

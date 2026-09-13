@@ -66,7 +66,7 @@ public class EmailShould
     public void ReturnFailureResult_On_Create_WhenAddressIsNull()
     {
         var result = Email.Create(
-            address: null!,
+            address: null,
             isPrimary: true);
 
         result.IsFailure.ShouldBe(true);

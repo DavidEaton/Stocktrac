@@ -16,9 +16,9 @@ public class Employee : Entity
     public const int MaximumPrintedNameLength = 50;
     public static readonly double MinimumBenefitLoad = 0.0;
     public static readonly double MaximumBenefitLoad = 100.0;
-    public static readonly string RequiredMessage = $"Please include all required items.";
-    public static readonly string DateRangeMessage = $"Employment date(s) invalid.";
-    public static readonly string InvalidExpenseCategoryMessage = $"Expense category is invalid.";
+    public const string RequiredMessage = "Please include all required items.";
+    public const string DateRangeMessage = "Employment date(s) invalid.";
+    public const string InvalidExpenseCategoryMessage = "Expense category is invalid.";
     public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}.";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
     public Person PersonEmployed { get; private set; }

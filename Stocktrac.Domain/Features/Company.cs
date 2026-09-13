@@ -11,7 +11,7 @@ public class Company : Entity
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public static readonly long MinimumValue = 0;
     public static readonly string MinimumValueMessage = $"Invoice Number Starting value must be >= {MinimumValue}.";
-    public static readonly string RequiredMessage = $"Please include all required items.";
+    public const string RequiredMessage = "Please include all required items.";
 
     public Business Business { get; private set; }
     public long NextInvoiceNumberOrSeed { get; private set; } = 0;
