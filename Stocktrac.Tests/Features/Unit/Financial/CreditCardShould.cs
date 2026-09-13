@@ -40,11 +40,11 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void TrimAndSetName_On_SetName_WhenStringIsValid()
+    public void TrimAndReplaceName_On_WithName_WhenStringIsValid()
     {
         var card = CreateCreditCard();
 
-        var result = card.SetName("  Mastercard  ");
+        var result = card.WithName("  Mastercard  ");
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Name.ShouldBe(CreateName("Mastercard"));
@@ -54,11 +54,11 @@ public class CreditCardShould
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void PreserveName_On_SetName_WhenStringIsMissing(string name)
+    public void PreserveName_On_WithName_WhenStringIsMissing(string name)
     {
         var card = CreateCreditCard();
 
-        var result = card.SetName(name);
+        var result = card.WithName(name);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.RequiredMessage);
@@ -66,11 +66,11 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void PreserveName_On_SetName_WhenStringIsTooLong()
+    public void PreserveName_On_WithName_WhenStringIsTooLong()
     {
         var card = CreateCreditCard();
 
-        var result = card.SetName(new string('a', CreditCardName.MaximumLength + 1));
+        var result = card.WithName(new string('a', CreditCardName.MaximumLength + 1));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
@@ -80,12 +80,12 @@ public class CreditCardShould
     [Theory]
     [InlineData(CreditCardName.MinimumLength)]
     [InlineData(CreditCardName.MaximumLength)]
-    public void SetName_On_SetName_WhenStringIsAtLengthBoundary(int length)
+    public void ReplaceName_On_WithName_WhenStringIsAtLengthBoundary(int length)
     {
         var card = CreateCreditCard();
         var name = new string('a', length);
 
-        var result = card.SetName(name);
+        var result = card.WithName(name);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Name.Value.ShouldBe(name);
@@ -93,12 +93,12 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void ReplaceName_On_SetName_WhenGivenCreditCardName()
+    public void ReplaceName_On_WithName_WhenGivenCreditCardName()
     {
         var card = CreateCreditCard();
         var name = CreateName("Mastercard");
 
-        var result = card.SetName(name);
+        var result = card.WithName(name);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Name.ShouldBe(name);
@@ -109,12 +109,12 @@ public class CreditCardShould
     [InlineData((int)CreditCardFeeType.None)]
     [InlineData((int)CreditCardFeeType.Percentage)]
     [InlineData((int)CreditCardFeeType.Flat)]
-    public void SetFeeType_On_SetFeeType_WhenFeeTypeIsDefined(int feeTypeValue)
+    public void ReplaceFeeType_On_WithFeeType_WhenFeeTypeIsDefined(int feeTypeValue)
     {
         var card = CreateCreditCard();
         var feeType = (CreditCardFeeType)feeTypeValue;
         
-        var result = card.SetFeeType(feeType);
+        var result = card.WithFeeType(feeType);
         
         result.IsSuccess.ShouldBeTrue();
         result.Value.FeeType.ShouldBe(feeType);
@@ -122,11 +122,11 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void PreserveFeeType_On_SetFeeType_WhenFeeTypeIsUndefined()
+    public void PreserveFeeType_On_WithFeeType_WhenFeeTypeIsUndefined()
     {
         var card = CreateCreditCard();
 
-        var result = card.SetFeeType((CreditCardFeeType)999);
+        var result = card.WithFeeType((CreditCardFeeType)999);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCard.InvalidFeeTypeMessage);
@@ -134,35 +134,35 @@ public class CreditCardShould
     }
 
     [Fact]
-    public void ReplaceFee_On_SetFee()
+    public void ReplaceFee_On_WithFee()
     {
         var card = CreateCreditCard();
         var fee = Fee.Create(3m, "CAD").Value;
 
-        var result = card.SetFee(fee);
+        var result = card.WithFee(fee);
 
         result.Fee.ShouldBe(fee);
         card.Fee.ShouldBe(Fee.Default);
     }
 
     [Fact]
-    public void ReplaceDepositDate_On_SetAddedToDeposit()
+    public void ReplaceDepositDate_On_WithAddedToDeposit()
     {
         var card = CreateCreditCard();
         var depositedAt = new DateTime(2026, 8, 30, 10, 15, 0, DateTimeKind.Utc);
 
-        var result = card.SetAddedToDeposit(depositedAt);
+        var result = card.WithAddedToDeposit(depositedAt);
 
         result.AddedToDeposit.Value.ShouldBe(depositedAt);
         card.AddedToDeposit.Value.ShouldBe(DateTime.MinValue);
     }
 
     [Fact]
-    public void RemoveDepositDate_On_ClearAddedToDeposit()
+    public void RemoveDepositDate_On_WithoutAddedToDeposit()
     {
         var card = CreateCreditCard();
 
-        var result = card.ClearAddedToDeposit();
+        var result = card.WithoutAddedToDeposit();
 
         result.AddedToDeposit.HasNoValue.ShouldBeTrue();
         result.IsAddedToDeposit.ShouldBeFalse();

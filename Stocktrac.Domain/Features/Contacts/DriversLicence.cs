@@ -27,12 +27,12 @@ public sealed record DriversLicense
                 Result.FailureIf(!Enum.IsDefined(state), StateInvalidMessage))
             .Map(() => new DriversLicense(number!, state, validRange));
 
-    public Result<DriversLicense> NewNumber(DriversLicenseNumber newNumber) =>
+    public Result<DriversLicense> WithNumber(DriversLicenseNumber newNumber) =>
         Create(newNumber, State, ValidDateRange);
 
-    public Result<DriversLicense> NewState(State newState) =>
+    public Result<DriversLicense> WithState(State newState) =>
         Create(Number, newState, ValidDateRange);
 
-    public Result<DriversLicense> NewValidDateRange(DateTimeRange dateRange) =>
+    public Result<DriversLicense> WithValidDateRange(DateTimeRange dateRange) =>
         Create(Number, State, dateRange);
 }
