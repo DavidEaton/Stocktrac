@@ -65,9 +65,11 @@ public class EmailShould
     [Fact]
     public void ReturnFailureResult_On_Create_WhenAddressIsNull()
     {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         var result = Email.Create(
             address: null,
             isPrimary: true);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(Email.EmptyMessage);

@@ -24,7 +24,9 @@ public class PhoneShould
     {
         var expected = Phone.InvalidMessage;
 
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = Phone.Create(number, PhoneType.Home, false);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(expected);

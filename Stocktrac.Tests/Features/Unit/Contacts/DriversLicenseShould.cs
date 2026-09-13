@@ -40,7 +40,9 @@ public class DriversLicenseShould
     [Fact]
     public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
     {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         var result = DriversLicense.Create(null, (State)(-1), null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(string.Join(

@@ -12,6 +12,17 @@ public static class DomainExtensions
             : Result.Success(value);
     }
 
+    extension(string value)
+    {
+        public bool IsNonEmptyString() => !string.IsNullOrWhiteSpace(value);
+    }
+
+    extension(int value)
+    {
+        public bool IsWithin(int minimum, int maximum) =>
+            value >= minimum && value <= maximum;
+    }
+
     extension(AddressLine line)
     {
         internal Result<AddressLine> AsValidLine() =>
