@@ -66,12 +66,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_NewAddressLine1_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_WithAddressLine1_WithoutChangingOtherValues()
     {
         var original = ValidAddress(AddressLine.Create("Suite 1").Value);
         var replacement = AddressLine.Create("456 Oak Ave").Value;
 
-        var result = original.NewAddressLine1(replacement);
+        var result = original.WithAddressLine1(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.AddressLine1.ShouldBe(replacement);
@@ -79,12 +79,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_NewCity_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_WithCity_WithoutChangingOtherValues()
     {
         var original = ValidAddress(AddressLine.Create("Suite 1").Value);
         var replacement = City.Create("Buffalo").Value;
 
-        var result = original.NewCity(replacement);
+        var result = original.WithCity(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.City.ShouldBe(replacement);
@@ -92,11 +92,11 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_NewState_WhenStateIsDefined()
+    public void ReturnUpdatedCopy_On_WithState_WhenStateIsDefined()
     {
         var original = ValidAddress(AddressLine.Create("Suite 1").Value);
 
-        var result = original.NewState(State.TX);
+        var result = original.WithState(State.TX);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.State.ShouldBe(State.TX);
@@ -106,11 +106,11 @@ public class AddressShould
     [Theory]
     [InlineData(-1)]
     [InlineData(64)]
-    public void ReturnStateError_On_NewState_WhenStateIsUndefined(int state)
+    public void ReturnStateError_On_WithState_WhenStateIsUndefined(int state)
     {
         var original = ValidAddress(Maybe<AddressLine>.None);
 
-        var result = original.NewState((State)state);
+        var result = original.WithState((State)state);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Address.StateInvalidMessage);
@@ -118,12 +118,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_NewPostalCode_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_WithPostalCode_WithoutChangingOtherValues()
     {
         var original = ValidAddress(AddressLine.Create("Suite 1").Value);
         var replacement = PostalCode.Create("90210").Value;
 
-        var result = original.NewPostalCode(replacement);
+        var result = original.WithPostalCode(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.PostalCode.ShouldBe(replacement);
@@ -131,12 +131,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_NewAddressLine2_WhenValueIsPresent()
+    public void ReturnUpdatedCopy_On_WithAddressLine2_WhenValueIsPresent()
     {
         var original = ValidAddress(Maybe<AddressLine>.None);
         var replacement = AddressLine.Create("Suite 9").Value;
 
-        var result = original.NewAddressLine2(replacement);
+        var result = original.WithAddressLine2(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.AddressLine2.ShouldBe(replacement);
@@ -144,11 +144,11 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnAbsentAddressLine2_On_ClearAddressLine2()
+    public void ReturnAbsentAddressLine2_On_WithoutAddressLine2()
     {
         var original = ValidAddress(AddressLine.Create("Suite 9").Value);
 
-        var edited = original.ClearAddressLine2();
+        var edited = original.WithoutAddressLine2();
 
         edited.AddressLine2.HasNoValue.ShouldBeTrue();
         AssertOnlyExpectedValueChanged(original, edited, nameof(Address.AddressLine2));
@@ -163,7 +163,7 @@ public class AddressShould
         first.ShouldBe(second);
         (first == second).ShouldBeTrue();
         first.GetHashCode().ShouldBe(second.GetHashCode());
-        first.ShouldNotBe(first.NewState(State.TX).Value);
+        first.ShouldNotBe(first.WithState(State.TX).Value);
     }
 
     private static void AssertOnlyExpectedValueChanged(Address original, Address updated, string member)

@@ -50,12 +50,12 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReplaceNumberAndPreserveOtherComponents_On_NewNumber_WhenNumberIsProvided()
+    public void ReplaceNumberAndPreserveOtherComponents_On_WithNumber_WhenNumberIsProvided()
     {
         var original = CreateLicense();
         var replacement = CreateNumber("B987654");
 
-        var result = original.NewNumber(replacement);
+        var result = original.WithNumber(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Number.ShouldBe(replacement);
@@ -65,11 +65,11 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReplaceStateAndPreserveOtherComponents_On_NewState_WhenStateIsDefined()
+    public void ReplaceStateAndPreserveOtherComponents_On_WithState_WhenStateIsDefined()
     {
         var original = CreateLicense();
 
-        var result = original.NewState(State.NY);
+        var result = original.WithState(State.NY);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.State.ShouldBe(State.NY);
@@ -81,21 +81,21 @@ public class DriversLicenseShould
     [Theory]
     [InlineData(-1)]
     [InlineData(64)]
-    public void ReturnStateInvalidError_On_NewState_WhenStateIsUndefined(int stateValue)
+    public void ReturnStateInvalidError_On_WithState_WhenStateIsUndefined(int stateValue)
     {
-        var result = CreateLicense().NewState((State)stateValue);
+        var result = CreateLicense().WithState((State)stateValue);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicense.StateInvalidMessage);
     }
 
     [Fact]
-    public void ReplaceValidDateRangeAndPreserveOtherComponents_On_NewValidDateRange_WhenRangeIsProvided()
+    public void ReplaceValidDateRangeAndPreserveOtherComponents_On_WithValidDateRange_WhenRangeIsProvided()
     {
         var original = CreateLicense();
         var replacement = CreateRange(Start.AddDays(1), Start.AddYears(5));
 
-        var result = original.NewValidDateRange(replacement);
+        var result = original.WithValidDateRange(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ValidDateRange.ShouldBeEquivalentTo(replacement);

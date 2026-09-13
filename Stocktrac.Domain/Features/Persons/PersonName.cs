@@ -39,16 +39,16 @@ public sealed record PersonName
             .Map(() => new PersonName(normalizedLastName, normalizedFirstName, normalizedMiddleName));
     }
 
-    public Result<PersonName> NewLastName(string newLastName) =>
+    public Result<PersonName> WithLastName(string newLastName) =>
         Create(newLastName, FirstName, MiddleName);
 
-    public Result<PersonName> NewFirstName(string newFirstName) =>
+    public Result<PersonName> WithFirstName(string newFirstName) =>
         Create(LastName, newFirstName, MiddleName);
 
-    public Result<PersonName> NewMiddleName(string newMiddleName) =>
+    public Result<PersonName> WithMiddleName(string newMiddleName) =>
         Create(LastName, FirstName, newMiddleName);
 
-    public Result<PersonName> ClearMiddleName() =>
+    public Result<PersonName> WithoutMiddleName() =>
         Create(LastName, FirstName, Maybe<string>.None);
 
     public string LastFirstMiddle =>

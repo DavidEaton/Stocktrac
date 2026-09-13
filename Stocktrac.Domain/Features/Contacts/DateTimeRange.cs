@@ -32,21 +32,21 @@ public sealed record DateTimeRange
             : Result.Success((int)minutes);
     }
 
-    public Result<DateTimeRange> NewStart(DateTime newStart) =>
+    public Result<DateTimeRange> WithStart(DateTime newStart) =>
         newStart >= End
             ? Result.Failure<DateTimeRange>(RequiredMessage)
             : Create(newStart, End);
 
-    public Result<DateTimeRange> NewEnd(DateTime newEnd) =>
+    public Result<DateTimeRange> WithEnd(DateTime newEnd) =>
         Start >= newEnd
             ? Result.Failure<DateTimeRange>(RequiredMessage)
             : Create(Start, newEnd);
 
-    public Result<DateTimeRange> ClearEnd() =>
+    public Result<DateTimeRange> WithoutEnd() =>
         Result.Success(
             new DateTimeRange(Start, DateTime.MaxValue));
 
-    public Result<DateTimeRange> NewDuration(TimeSpan newDuration) =>
+    public Result<DateTimeRange> WithDuration(TimeSpan newDuration) =>
         Create(Start, newDuration);
 
     public static Result<DateTimeRange> CreateDaysRange(DateTime start, int days) =>

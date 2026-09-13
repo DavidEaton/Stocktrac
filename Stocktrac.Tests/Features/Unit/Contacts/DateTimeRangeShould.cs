@@ -55,10 +55,10 @@ public class DateTimeRangeShould
     }
 
     [Fact]
-    public void ReturnCopy_On_NewStart_WhenNewStartPrecedesEnd()
+    public void ReturnCopy_On_WithStart_WhenStartPrecedesEnd()
     {
         var original = DateTimeRange.Create(Start, Start.AddHours(2)).Value;
-        var updated = original.NewStart(Start.AddHours(1)).Value;
+        var updated = original.WithStart(Start.AddHours(1)).Value;
 
         updated.Start.ShouldBe(Start.AddHours(1));
         updated.End.ShouldBe(original.End);
@@ -68,27 +68,27 @@ public class DateTimeRangeShould
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
-    public void ReturnRequiredError_On_NewStart_WhenNewStartDoesNotPrecedeEnd(int hours) =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.NewStart(Start.AddHours(hours)).Error
+    public void ReturnRequiredError_On_WithStart_WhenStartDoesNotPrecedeEnd(int hours) =>
+        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithStart(Start.AddHours(hours)).Error
             .ShouldBe(DateTimeRange.RequiredMessage);
 
     [Fact]
-    public void ReturnCopy_On_NewEnd_WhenNewEndFollowsStart() =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.NewEnd(Start.AddHours(3)).Value.End
+    public void ReturnCopy_On_WithEnd_WhenEndFollowsStart() =>
+        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithEnd(Start.AddHours(3)).Value.End
             .ShouldBe(Start.AddHours(3));
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void ReturnRequiredError_On_NewEnd_WhenNewEndDoesNotFollowStart(int hours) =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.NewEnd(Start.AddHours(hours)).Error
+    public void ReturnRequiredError_On_WithEnd_WhenEndDoesNotFollowStart(int hours) =>
+        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithEnd(Start.AddHours(hours)).Error
             .ShouldBe(DateTimeRange.RequiredMessage);
 
     [Fact]
-    public void SetMaximumEnd_On_ClearEnd_WhenRangeIsFinite()
+    public void SetMaximumEnd_On_WithoutEnd_WhenRangeIsFinite()
     {
         var original = DateTimeRange.Create(Start, Start.AddHours(2)).Value;
-        var updated = original.ClearEnd().Value;
+        var updated = original.WithoutEnd().Value;
 
         updated.Start.ShouldBe(Start);
         updated.End.ShouldBe(DateTime.MaxValue);
@@ -96,8 +96,8 @@ public class DateTimeRangeShould
     }
 
     [Fact]
-    public void ReplaceDuration_On_NewDuration_WhenDurationIsValid() =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.NewDuration(TimeSpan.FromDays(1)).Value.End
+    public void ReplaceDuration_On_WithDuration_WhenDurationIsValid() =>
+        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithDuration(TimeSpan.FromDays(1)).Value.End
             .ShouldBe(Start.AddDays(1));
 
     [Fact]

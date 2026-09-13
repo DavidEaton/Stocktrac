@@ -38,21 +38,21 @@ public class CreditCard : Entity
                 fee,
                 addedToDeposit));
 
-    public Result<CreditCard> SetName(string name) =>
-        CreditCardName.Create(name.Trim()).Map(SetNameValue);
+    public Result<CreditCard> WithName(string name) =>
+        CreditCardName.Create(name.Trim()).Map(WithNameValue);
 
-    public Result<CreditCard> SetName(CreditCardName name) =>
-        CreditCardName.Create(name.Value).Map(SetNameValue);
+    public Result<CreditCard> WithName(CreditCardName name) =>
+        CreditCardName.Create(name.Value).Map(WithNameValue);
 
-    public Result<CreditCard> SetFeeType(CreditCardFeeType feeType) =>
-        ValidateFeeType(feeType).Map(SetFeeTypeValue);
+    public Result<CreditCard> WithFeeType(CreditCardFeeType feeType) =>
+        ValidateFeeType(feeType).Map(WithFeeTypeValue);
 
-    public CreditCard SetFee(Fee fee) => Copy(fee: fee);
+    public CreditCard WithFee(Fee fee) => Copy(fee: fee);
 
-    public CreditCard SetAddedToDeposit(DateTime addedToDeposit) =>
+    public CreditCard WithAddedToDeposit(DateTime addedToDeposit) =>
         Copy(addedToDeposit: addedToDeposit);
 
-    public CreditCard ClearAddedToDeposit() =>
+    public CreditCard WithoutAddedToDeposit() =>
         Copy(addedToDeposit: Maybe<DateTime>.None);
 
     private static Result<CreditCardFeeType> ValidateFeeType(CreditCardFeeType feeType) =>
@@ -60,10 +60,10 @@ public class CreditCard : Entity
             ? Result.Success(feeType)
             : Result.Failure<CreditCardFeeType>(InvalidFeeTypeMessage);
 
-    private CreditCard SetNameValue(CreditCardName name) =>
+    private CreditCard WithNameValue(CreditCardName name) =>
         Copy(name: name);
 
-    private CreditCard SetFeeTypeValue(CreditCardFeeType feeType) =>
+    private CreditCard WithFeeTypeValue(CreditCardFeeType feeType) =>
         Copy(feeType: feeType);
 
     private CreditCard Copy(

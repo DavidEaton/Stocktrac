@@ -54,10 +54,10 @@ public class PhoneShould
         Phone.Create(number, PhoneType.Home, false).Value.ToString().ShouldBe(formatted);
 
     [Fact]
-    public void ReturnUpdatedCopy_On_SetNumber_WhenNumberIsValid()
+    public void ReturnUpdatedCopy_On_WithNumber_WhenNumberIsValid()
     {
         var original = ValidPhone();
-        var updated = original.SetNumber(" 555-987-6543 ").Value;
+        var updated = original.WithNumber(" 555-987-6543 ").Value;
 
         updated.Number.ShouldBe("555-987-6543");
         updated.PhoneType.ShouldBe(original.PhoneType);
@@ -66,28 +66,28 @@ public class PhoneShould
     }
 
     [Fact]
-    public void ReturnErrorAndLeaveOriginalUnchanged_On_SetNumber_WhenNumberIsInvalid()
+    public void ReturnErrorAndLeaveOriginalUnchanged_On_WithNumber_WhenNumberIsInvalid()
     {
         var original = ValidPhone();
-        original.SetNumber("invalid").Error.ShouldBe(Phone.InvalidMessage);
+        original.WithNumber("invalid").Error.ShouldBe(Phone.InvalidMessage);
         original.Number.ShouldBe("555-123-4567");
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_SetPhoneType_WhenPhoneTypeIsDefined() =>
-        ValidPhone().SetPhoneType(PhoneType.Work).Value.PhoneType.ShouldBe(PhoneType.Work);
+    public void ReturnUpdatedCopy_On_WithPhoneType_WhenPhoneTypeIsDefined() =>
+        ValidPhone().WithPhoneType(PhoneType.Work).Value.PhoneType.ShouldBe(PhoneType.Work);
 
     [Fact]
-    public void ReturnError_On_SetPhoneType_WhenPhoneTypeIsUndefined() =>
-        ValidPhone().SetPhoneType((PhoneType)(-1)).Error.ShouldBe(Phone.PhoneTypeInvalidMessage);
+    public void ReturnError_On_WithPhoneType_WhenPhoneTypeIsUndefined() =>
+        ValidPhone().WithPhoneType((PhoneType)(-1)).Error.ShouldBe(Phone.PhoneTypeInvalidMessage);
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ReturnUpdatedCopy_On_SetIsPrimary_WhenValueIsProvided(bool primary)
+    public void ReturnUpdatedCopy_On_WithIsPrimary_WhenValueIsProvided(bool primary)
     {
         var original = ValidPhone();
-        var updated = original.SetIsPrimary(primary);
+        var updated = original.WithIsPrimary(primary);
 
         updated.IsPrimary.ShouldBe(primary);
         original.IsPrimary.ShouldBeFalse();

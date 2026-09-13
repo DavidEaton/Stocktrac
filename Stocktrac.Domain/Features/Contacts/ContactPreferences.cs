@@ -16,12 +16,12 @@ public readonly record struct ContactPreferences
     public static ContactPreferences Create(bool allowMail, bool allowEmail, bool allowSms) =>
         new(allowMail, allowEmail, allowSms);
 
-    public ContactPreferences NewAllowMail(bool allowMail) =>
+    public ContactPreferences WithAllowMail(bool allowMail) =>
         new(allowMail, AllowEmail, AllowSms);
 
-    public ContactPreferences NewAllowEmail(bool allowEmail) =>
+    public ContactPreferences WithAllowEmail(bool allowEmail) =>
         new(AllowMail, allowEmail, AllowSms);
 
-    public ContactPreferences NewAllowSms(bool allowSms) =>
+    public ContactPreferences WithAllowSms(bool allowSms) =>
         new(AllowMail, AllowEmail, allowSms);
 }

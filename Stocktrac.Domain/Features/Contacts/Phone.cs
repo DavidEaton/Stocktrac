@@ -54,7 +54,7 @@ public class Phone : Entity, IHasPrimary
         };
     }
 
-    public Result<Phone> SetNumber(string number)
+    public Result<Phone> WithNumber(string number)
     {
         number = number.Trim();
 
@@ -66,12 +66,12 @@ public class Phone : Entity, IHasPrimary
         return Result.Success(Copy(number: number));
     }
 
-    public Result<Phone> SetPhoneType(PhoneType phoneType) =>
+    public Result<Phone> WithPhoneType(PhoneType phoneType) =>
         !Enum.IsDefined(phoneType)
             ? Result.Failure<Phone>(PhoneTypeInvalidMessage)
             : Result.Success(Copy(phoneType: phoneType));
 
-    public Phone SetIsPrimary(bool isPrimary) => Copy(isPrimary: isPrimary);
+    public Phone WithIsPrimary(bool isPrimary) => Copy(isPrimary: isPrimary);
 
     private Phone Copy(string? number = null, PhoneType? phoneType = null, bool? isPrimary = null) =>
         new(number ?? Number, phoneType ?? PhoneType, isPrimary ?? IsPrimary) { Id = Id };
