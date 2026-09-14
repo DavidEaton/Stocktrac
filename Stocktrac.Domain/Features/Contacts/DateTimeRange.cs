@@ -22,27 +22,6 @@ public sealed record DateTimeRange
     public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
         CalculateEnd(start, () => start.Add(duration));
 
-    public Result<int> DurationInMinutes()
-        => Result.Success((End - Start).TotalMinutes)
-            .Ensure(minutes => minutes is >= int.MinValue and <= int.MaxValue, DateCalculationMessage)
-            .Map(minutes => (int)minutes);
-
-    public Result<DateTimeRange> WithStart(DateTime newStart) =>
-        Result.Success(newStart)
-            .Ensure(start => start < End, RequiredMessage)
-            .Bind(start => Create(start, End));
-
-    public Result<DateTimeRange> WithEnd(DateTime newEnd) =>
-        Result.Success(newEnd)
-            .Ensure(end => Start < end, RequiredMessage)
-            .Bind(end => Create(Start, end));
-
-    public Result<DateTimeRange> WithoutEnd() =>
-        Result.Success(new DateTimeRange(Start, DateTime.MaxValue));
-
-    public Result<DateTimeRange> WithDuration(TimeSpan newDuration) =>
-        Create(Start, newDuration);
-
     public static Result<DateTimeRange> CreateDaysRange(DateTime start, int days) =>
         CalculateEnd(start, () => start.AddDays(days));
 
