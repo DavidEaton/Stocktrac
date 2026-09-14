@@ -35,28 +35,16 @@ public class Business : Contactable, ICustomerEntity
         IReadOnlyList<Email> emails,
         IReadOnlyList<Phone> phones)
     {
-        // ValueObject parameters are already validated by BusinessValidator,
-        // which runs within the asp.net request pipeline, invoking each
-        // ValueObject's contract validator. For example, AddressValidator :
-        // AbstractValidator<AddressRequest>
-        // Only the primitive type (vs. ValueObject type) Notes property is
-        // transformed and validated (parsed) here in the domain class that
-        // creates it.
         return ValidateContactCollections(phones, emails)
             .Map(contacts => new Business(
                 name, address, notes, contact, contacts));
     }
 
-    // BusinessName has already been validated; no need to validate
-    public void SetName(BusinessName name) =>
-        Name = name;
+    public void SetName(BusinessName name) => Name = name;
 
-    // Person has already been validated; no need to validate
-    public void SetContact(Person contact) =>
-        Contact = contact;
+    public void SetContact(Person contact) => Contact = contact;
 
-    public void ClearContact() =>
-            Contact = Maybe<Person>.None;
+    public void ClearContact() => Contact = Maybe<Person>.None;
 
     // Code that pollutes our domain class (very minor impact in this case), but
     // is necessary for EntityFramework, makes our model <100% persistence ignorant.

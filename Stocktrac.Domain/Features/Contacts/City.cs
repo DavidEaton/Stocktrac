@@ -10,8 +10,7 @@ namespace Stocktrac.Domain.Features.Contacts
         public const string RequiredMessage = "City is required.";
         public string Value { get; }
 
-        private City(string value) =>
-            Value = value;
+        private City(string value) => Value = value;
 
         public static Result<City> Create(string value) =>
             Result.Success(value)
@@ -20,7 +19,6 @@ namespace Stocktrac.Domain.Features.Contacts
                 .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
                 .Map(normalized => new City(normalized));
 
-        public override string ToString() =>
-            Value;
+        public override string ToString() => Value;
     }
 }

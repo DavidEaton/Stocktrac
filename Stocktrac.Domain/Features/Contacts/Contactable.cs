@@ -92,28 +92,23 @@ public abstract partial class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public void SetNotes(Note note) =>
-        Notes = note;
+    public void SetNotes(Note note) => Notes = note;
 
-    public void SetAddress(Address address) =>
-        Address = address;
+    public void SetAddress(Address address) => Address = address;
 
-    public void ClearAddress() =>
-        Address = Maybe<Address>.None;
+    public void ClearAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
         phones.Any(existingPhone =>
             existingPhone.Number == number);
 
-    public bool HasPrimaryPhone() =>
-        phones.Any(phone => phone.IsPrimary);
+    public bool HasPrimaryPhone() => phones.Any(phone => phone.IsPrimary);
 
     public bool HasEmailAddress(string address) =>
         emails.Any(existingEmail =>
             existingEmail.Address == address);
 
-    public bool HasPrimaryEmail() =>
-        emails.Any(email => email.IsPrimary);
+    public bool HasPrimaryEmail() => emails.Any(email => email.IsPrimary);
 
     protected static Result<ValidatedContactCollections> ValidateContactCollections(
             IReadOnlyList<Phone> phones,

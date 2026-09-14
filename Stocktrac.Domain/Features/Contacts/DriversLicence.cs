@@ -6,9 +6,9 @@ public sealed record DriversLicense
 {
     public const string RequiredMessage = "Driver's license details are required.";
     public const string StateInvalidMessage = "Please enter a valid State.";
-    public DriversLicenseNumber Number { get; }
-    public DateTimeRange ValidDateRange { get; }
-    public State State { get; }
+    public DriversLicenseNumber Number { get; private set; }
+    public DateTimeRange ValidDateRange { get; private set; }
+    public State State { get; private set; }
 
     private DriversLicense(
         DriversLicenseNumber number,

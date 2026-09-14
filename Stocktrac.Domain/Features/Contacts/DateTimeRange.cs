@@ -52,19 +52,11 @@ public sealed record DateTimeRange
     public static Result<DateTimeRange> CreateMonthsRange(DateTime start, int months) =>
         CalculateEnd(start, () => start.AddMonths(months));
 
-    private static Result<DateTimeRange> CalculateEnd(DateTime start, Func<DateTime> calculation)
-    {
-        try
-        {
-            return Create(start, calculation());
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            return Result.Failure<DateTimeRange>(DateCalculationMessage);
-        }
-        catch (OverflowException)
-        {
-            return Result.Failure<DateTimeRange>(DateCalculationMessage);
-        }
-    }
+    private static Result<DateTimeRange> CalculateEnd(
+        DateTime start,
+        Func<DateTime> calculation) =>
+        Result.Try(
+                calculation,
+                _ => DateCalculationMessage)
+            .Bind(end => Create(start, end));
 }

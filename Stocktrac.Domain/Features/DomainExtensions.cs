@@ -1,7 +1,8 @@
 using CSharpFunctionalExtensions;
+using Stocktrac.Domain.Features.Contacts;
 using System.ComponentModel.DataAnnotations;
 
-namespace Stocktrac.Domain.Features.Contacts;
+namespace Stocktrac.Domain.Features;
 
 public static class DomainExtensions
 {
