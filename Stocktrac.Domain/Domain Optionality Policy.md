@@ -89,21 +89,17 @@ primary-cardinality, or not-found outcomes are expected domain failures.
 
 ### Mutation method names
 
-Use `Set...` and `Clear...` for entity methods that mutate the current instance.
-These names make the state change explicit at the call site: `Set...` assigns a
-value, while `Clear...` removes an optional value.
-
-Reserve `With...` and `Without...` for immutable value-object operations that
-return a new instance and leave the original unchanged. Using those names for
-in-place entity mutation is misleading because callers commonly understand the
-`With...` convention as copy-with behavior.
+Use `With...` and `Without...` for operations involving domain value objects,
+even when the value is held by an entity. These names distinguish assigning or
+removing a modeled domain value from operations involving entity references or
+primitive state.
 
 ```csharp
-// Entity: mutates this instance.
-customer.SetAddress(address);
-customer.ClearAddress();
+// Entity operation involving an Address value object.
+customer.WithAddress(address);
+customer.WithoutAddress();
 
-// Value object: returns a changed copy.
+// Immutable value object: returns a changed copy.
 DateTimeRange extended = period.WithEnd(newEnd);
 ```
 
@@ -199,8 +195,8 @@ When creating or reviewing domain code, verify that:
 - [ ] Failures use `Result`, not `None`, when callers need an error reason.
 - [ ] Unconditional assignments and clear operations do not return success-only
       results.
-- [ ] Entity mutations use `Set...`/`Clear...`; immutable copy operations use
-      `With...`/`Without...`.
+- [ ] Operations involving domain value objects use `With...`/`Without...` naming.
+      Operations involving entity references retain explicit entity-oriented names.
 - [ ] Nullable boundary input is validated or normalized before entering the
       domain model.
 - [ ] Persistence and serialization concerns do not leak nullable state into

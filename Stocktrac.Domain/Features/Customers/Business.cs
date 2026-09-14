@@ -40,7 +40,7 @@ public class Business : Contactable, ICustomerEntity
                 name, address, notes, contact, contacts));
     }
 
-    public void SetName(BusinessName name) => Name = name;
+    public void WithName(BusinessName name) => Name = name;
 
     public void SetContact(Person contact) => Contact = contact;
 
