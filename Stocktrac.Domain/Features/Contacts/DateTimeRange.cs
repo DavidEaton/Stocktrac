@@ -15,36 +15,30 @@ public sealed record DateTimeRange
         (Start, End) = (start, end);
 
     public static Result<DateTimeRange> Create(DateTime start, DateTime end) =>
-        Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(start >= end, EndBeforeStartMessage))
-            .Map(() => new DateTimeRange(start, end));
+        Result.Success((Start: start, End: end))
+            .Ensure(range => range.Start < range.End, EndBeforeStartMessage)
+            .Map(range => new DateTimeRange(range.Start, range.End));
 
     public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
         CalculateEnd(start, () => start.Add(duration));
 
     public Result<int> DurationInMinutes()
-    {
-        var minutes = (End - Start).TotalMinutes;
-
-        return minutes is < int.MinValue or > int.MaxValue
-            ? Result.Failure<int>(DateCalculationMessage)
-            : Result.Success((int)minutes);
-    }
+        => Result.Success((End - Start).TotalMinutes)
+            .Ensure(minutes => minutes is >= int.MinValue and <= int.MaxValue, DateCalculationMessage)
+            .Map(minutes => (int)minutes);
 
     public Result<DateTimeRange> WithStart(DateTime newStart) =>
-        newStart >= End
-            ? Result.Failure<DateTimeRange>(RequiredMessage)
-            : Create(newStart, End);
+        Result.Success(newStart)
+            .Ensure(start => start < End, RequiredMessage)
+            .Bind(start => Create(start, End));
 
     public Result<DateTimeRange> WithEnd(DateTime newEnd) =>
-        Start >= newEnd
-            ? Result.Failure<DateTimeRange>(RequiredMessage)
-            : Create(Start, newEnd);
+        Result.Success(newEnd)
+            .Ensure(end => Start < end, RequiredMessage)
+            .Bind(end => Create(Start, end));
 
     public Result<DateTimeRange> WithoutEnd() =>
-        Result.Success(
-            new DateTimeRange(Start, DateTime.MaxValue));
+        Result.Success(new DateTimeRange(Start, DateTime.MaxValue));
 
     public Result<DateTimeRange> WithDuration(TimeSpan newDuration) =>
         Create(Start, newDuration);
