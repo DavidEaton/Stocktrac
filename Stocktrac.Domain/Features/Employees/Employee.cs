@@ -154,11 +154,11 @@ public class Employee : Entity
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    public void SetNotes(Note notes) => Notes = notes;
+    public void WithNotes(Note notes) => Notes = notes;
 
-    public void ClearNotes() => Notes = Maybe<Note>.None;
+    public void WithoutNotes() => Notes = Maybe<Note>.None;
 
-    public void SetSSN(SSN ssn) => SSN = ssn;
+    public void WithSSN(SSN ssn) => SSN = ssn;
 
     public Result SetCertificationNumber(string certificationNumber)
     {

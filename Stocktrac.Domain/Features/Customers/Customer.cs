@@ -48,16 +48,16 @@ public class Customer : Entity
                 code,
                 ContactPreferences.Create(true, true, true)));
 
-    public void SetAddress(Address address)
+    public void WithAddress(Address address)
     {
         switch (CustomerEntity)
         {
             case Person person:
-                person.SetAddress(address);
+                person.WithAddress(address);
                 break;
 
             case Business business:
-                business.SetAddress(address);
+                business.WithAddress(address);
                 break;
 
             default:
@@ -65,16 +65,16 @@ public class Customer : Entity
         }
     }
 
-    public void ClearAddress()
+    public void WithoutAddress()
     {
         switch (CustomerEntity)
         {
             case Person person:
-                person.ClearAddress();
+                person.WithoutAddress();
                 break;
 
             case Business business:
-                business.ClearAddress();
+                business.WithoutAddress();
                 break;
 
             default:
@@ -144,9 +144,9 @@ public class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public void SetCode(CustomerCode code) => Code = code;
+    public void WithCode(CustomerCode code) => Code = code;
 
-    public void ClearCode() => Code = Maybe<CustomerCode>.None;
+    public void WithoutCode() => Code = Maybe<CustomerCode>.None;
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {

@@ -92,11 +92,11 @@ public abstract partial class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public void SetNotes(Note note) => Notes = note;
+    public void WithNotes(Note note) => Notes = note;
 
-    public void SetAddress(Address address) => Address = address;
+    public void WithAddress(Address address) => Address = address;
 
-    public void ClearAddress() => Address = Maybe<Address>.None;
+    public void WithoutAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
         phones.Any(existingPhone =>

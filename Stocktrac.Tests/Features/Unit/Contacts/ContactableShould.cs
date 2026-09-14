@@ -118,15 +118,15 @@ public class ContactableShould
     }
 
     [Fact]
-    public void SetAndClearAddress_WhenAddressIsValid()
+    public void WithAndWithoutAddress_WhenAddressIsValid()
     {
         var person = CreatePerson(emails: [], phones: []);
         var address = CreateAddress("123 Main St", "Anytown", State.NY, "12345");
 
-        person.SetAddress(address);
+        person.WithAddress(address);
         person.Address.ShouldBe(address);
         person.Address.ShouldBe(address);
-        person.ClearAddress();
+        person.WithoutAddress();
         person.Address.HasValue.ShouldBe(false);
     }
 
