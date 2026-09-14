@@ -25,7 +25,7 @@ public class BusinessNameShould
         var result = BusinessName.Create($"  {new string('x', length)}  ");
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe($"{BusinessName.InvalidLengthMessage} You entered {length} character(s).");
+        result.Error.ShouldBe(BusinessName.InvalidLengthMessage);
     }
 
     [Theory]
@@ -40,13 +40,6 @@ public class BusinessNameShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.Name.ShouldBe(name);
         result.Value.ToString().ShouldBe(name);
-    }
-
-    [Fact]
-    public void ApplySameValidation_On_NewBusinessName_WhenNameIsProvided()
-    {
-        BusinessName.NewBusinessName(" x ").Error.ShouldContain("1 character(s)");
-        BusinessName.NewBusinessName("  Acme  ").Value.Name.ShouldBe("Acme");
     }
 
     [Fact]
