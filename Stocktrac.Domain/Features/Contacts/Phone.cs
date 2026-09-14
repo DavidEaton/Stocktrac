@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace Stocktrac.Domain.Features.Contacts;
@@ -23,24 +22,12 @@ public class Phone : Entity, IHasPrimary
     public static Result<Phone> Create(
         string number,
         PhoneType phoneType,
-        bool isPrimary)
-    {
-        var normalizedNumber = number?.Trim() ?? string.Empty;
-
-        return Result.Combine(
+        bool isPrimary) =>
+        Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(
-                    string.IsNullOrWhiteSpace(normalizedNumber) ||
-                    !new PhoneAttribute().IsValid(normalizedNumber),
-                    InvalidMessage),
-                Result.FailureIf(
-                    !Enum.IsDefined(phoneType),
-                    PhoneTypeInvalidMessage))
-            .Map(() => new Phone(
-                normalizedNumber,
-                phoneType,
-                isPrimary));
-    }
+                number.AsValidPhoneNumber(),
+                phoneType.AsValidPhoneType())
+            .Map(() => new Phone(number.Trim(), phoneType, isPrimary));
 
     public override string ToString()
     {
@@ -54,22 +41,13 @@ public class Phone : Entity, IHasPrimary
         };
     }
 
-    public Result<Phone> WithNumber(string number)
-    {
-        number = number.Trim();
-
-        var phoneAttribute = new PhoneAttribute();
-
-        if (!phoneAttribute.IsValid(number))
-            return Result.Failure<Phone>(InvalidMessage);
-
-        return Result.Success(Copy(number: number));
-    }
+    public Result<Phone> WithNumber(string number) =>
+        number.AsValidPhoneNumber()
+            .Map(validNumber => Copy(number: validNumber));
 
     public Result<Phone> WithPhoneType(PhoneType phoneType) =>
-        !Enum.IsDefined(phoneType)
-            ? Result.Failure<Phone>(PhoneTypeInvalidMessage)
-            : Result.Success(Copy(phoneType: phoneType));
+        phoneType.AsValidPhoneType()
+            .Map(validPhoneType => Copy(phoneType: validPhoneType));
 
     public Phone WithIsPrimary(bool isPrimary) => Copy(isPrimary: isPrimary);
 

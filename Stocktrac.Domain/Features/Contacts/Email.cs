@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
@@ -20,33 +19,12 @@ public class Email : Entity, IHasPrimary
         (Address, IsPrimary) = (address, isPrimary);
 
     public static Result<Email> Create(string address, bool isPrimary) =>
-        Result.Success(address?.Trim() ?? string.Empty)
-            .Ensure(value => !string.IsNullOrWhiteSpace(value), EmptyMessage)
-            .Ensure(value => value.Length >= MinimumLength, MinimumLengthMessage)
-            .Ensure(value => value.Length <= MaximumLength, MaximumLengthMessage)
-            .Ensure(value => new EmailAddressAttribute().IsValid(value), InvalidMessage)
-            .Map(value => new Email(value, isPrimary));
+        address.AsValidEmailAddress()
+            .Map(validAddress => new Email(validAddress, isPrimary));
 
-    public Result<string> SetAddress(string address)
-    {
-        if (string.IsNullOrWhiteSpace(address))
-            return Result.Failure<string>(EmptyMessage);
-
-        address = address.Trim();
-
-        if (address.Length < MinimumLength)
-            return Result.Failure<string>(MinimumLengthMessage);
-
-        if (address.Length > MaximumLength)
-            return Result.Failure<string>(MaximumLengthMessage);
-
-        var emailAddressAttribute = new EmailAddressAttribute();
-
-        if (!emailAddressAttribute.IsValid(address))
-            return Result.Failure<string>(InvalidMessage);
-
-        return Result.Success(Address = address);
-    }
+    public Result<string> SetAddress(string address) =>
+        address.AsValidEmailAddress()
+            .Tap(validAddress => Address = validAddress);
 
     public void SetIsPrimary(bool isPrimary) => IsPrimary = isPrimary;
 

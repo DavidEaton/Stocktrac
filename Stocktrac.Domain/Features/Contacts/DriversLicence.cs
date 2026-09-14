@@ -23,16 +23,19 @@ public sealed record DriversLicense
     public static Result<DriversLicense> Create(DriversLicenseNumber number, State state, DateTimeRange validRange) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(number is null, RequiredMessage),
-                Result.FailureIf(!Enum.IsDefined(state), StateInvalidMessage))
-            .Map(() => new DriversLicense(number!, state, validRange));
+                number.AsValidDriversLicenseNumber(validRange),
+                state.AsValidDriversLicenseState())
+            .Map(() => new DriversLicense(number!, state, validRange!));
 
     public Result<DriversLicense> WithNumber(DriversLicenseNumber newNumber) =>
-        Create(newNumber, State, ValidDateRange);
+        newNumber.AsValidDriversLicenseNumber(ValidDateRange)
+            .Map(validNumber => this with { Number = validNumber });
 
     public Result<DriversLicense> WithState(State newState) =>
-        Create(Number, newState, ValidDateRange);
+        newState.AsValidDriversLicenseState()
+            .Map(validState => this with { State = validState });
 
     public Result<DriversLicense> WithValidDateRange(DateTimeRange dateRange) =>
-        Create(Number, State, dateRange);
+        Number.AsValidDriversLicenseNumber(dateRange)
+            .Map(_ => this with { ValidDateRange = dateRange });
 }
