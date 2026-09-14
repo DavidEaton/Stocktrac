@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
+using Stocktrac.Domain.Features.Persons;
 using System.ComponentModel.DataAnnotations;
 
 namespace Stocktrac.Domain.Features;
@@ -95,6 +96,24 @@ public static class DomainExtensions
             !Enum.IsDefined(state)
                 ? Result.Failure<State>(DriversLicense.StateInvalidMessage)
                 : Result.Success(state);
+    }
+
+    extension(string value)
+    {
+        internal Result<string> AsValidRequiredPersonNamePart() =>
+            Result.Success(value)
+                .Map(input => input?.Trim() ?? string.Empty)
+                .Ensure(normalized => normalized.IsNonEmptyString(), PersonName.RequiredMessage)
+                .Ensure(
+                    normalized => normalized.Length.IsWithin(PersonName.MinimumLength, PersonName.MaximumLength),
+                    PersonName.InvalidLengthMessage);
+
+        internal Result<string> AsValidOptionalPersonNamePart() =>
+            Result.Success(value)
+                .Map(input => input?.Trim() ?? string.Empty)
+                .Ensure(
+                    normalized => normalized.Length.IsWithin(PersonName.MinimumLength, PersonName.MaximumLength),
+                    PersonName.InvalidLengthMessage);
     }
 
 }

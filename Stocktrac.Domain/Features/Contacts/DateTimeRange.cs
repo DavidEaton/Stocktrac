@@ -8,8 +8,8 @@ public sealed record DateTimeRange
     public const string EndBeforeStartMessage = "End date cannot occur before Start date.";
     public const string DateCalculationMessage = "The requested date range is outside the supported range.";
 
-    public DateTime Start { get; } = DateTime.Today;
-    public DateTime End { get; } = DateTime.MaxValue;
+    public DateTime Start { get; private set; } = DateTime.Today;
+    public DateTime End { get; private set; } = DateTime.MaxValue;
 
     private DateTimeRange(DateTime start, DateTime end) =>
         (Start, End) = (start, end);
@@ -38,4 +38,10 @@ public sealed record DateTimeRange
                 calculation,
                 _ => DateCalculationMessage)
             .Bind(end => Create(start, end));
+
+    internal DateTimeRange WithStartValue(DateTime start) =>
+        this with { Start = start };
+
+    internal DateTimeRange WithEndValue(DateTime end) =>
+        this with { End = end };
 }

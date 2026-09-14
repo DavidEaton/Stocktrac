@@ -16,9 +16,9 @@ public sealed record PersonName
         MiddleName = middleName;
     }
 
-    public string LastName { get; }
-    public string FirstName { get; }
-    public Maybe<string> MiddleName { get; }
+    public string LastName { get; private set; }
+    public string FirstName { get; private set; }
+    public Maybe<string> MiddleName { get; private set; }
 
     public static Result<PersonName> Create(string lastName, string firstName, Maybe<string> middleName = default)
     {
@@ -40,16 +40,19 @@ public sealed record PersonName
     }
 
     public Result<PersonName> WithLastName(string newLastName) =>
-        Create(newLastName, FirstName, MiddleName);
+        newLastName.AsValidRequiredPersonNamePart()
+            .Map(validLastName => this with { LastName = validLastName });
 
     public Result<PersonName> WithFirstName(string newFirstName) =>
-        Create(LastName, newFirstName, MiddleName);
+        newFirstName.AsValidRequiredPersonNamePart()
+            .Map(validFirstName => this with { FirstName = validFirstName });
 
     public Result<PersonName> WithMiddleName(string newMiddleName) =>
-        Create(LastName, FirstName, newMiddleName);
+        newMiddleName.AsValidOptionalPersonNamePart()
+            .Map(validMiddleName => this with { MiddleName = validMiddleName });
 
     public Result<PersonName> WithoutMiddleName() =>
-        Create(LastName, FirstName, Maybe<string>.None);
+        Result.Success(this with { MiddleName = Maybe<string>.None });
 
     public string LastFirstMiddle =>
         MiddleName.HasNoValue
