@@ -16,22 +16,23 @@ public static class DateTimeRangeExtensions
             ? Result.Failure<DateTimeRange>(DateTimeRange.RequiredMessage)
             : Result.Success(newStart)
             .Ensure(start => start < range.End, DateTimeRange.RequiredMessage)
-            .Bind(start => DateTimeRange.Create(start, range.End));
+            .Map(range.WithStartValue);
 
     public static Result<DateTimeRange> WithEnd(this DateTimeRange range, DateTime newEnd) =>
         range is null
             ? Result.Failure<DateTimeRange>(DateTimeRange.RequiredMessage)
             : Result.Success(newEnd)
             .Ensure(end => range.Start < end, DateTimeRange.RequiredMessage)
-            .Bind(end => DateTimeRange.Create(range.Start, end));
+            .Map(range.WithEndValue);
 
     public static Result<DateTimeRange> WithoutEnd(this DateTimeRange range) =>
         range is null
             ? Result.Failure<DateTimeRange>(DateTimeRange.RequiredMessage)
-            : DateTimeRange.Create(range.Start, DateTime.MaxValue);
+            : Result.Success(range.WithEndValue(DateTime.MaxValue));
 
     public static Result<DateTimeRange> WithDuration(this DateTimeRange range, TimeSpan newDuration) =>
         range is null
             ? Result.Failure<DateTimeRange>(DateTimeRange.RequiredMessage)
-            : DateTimeRange.Create(range.Start, newDuration);
+            : DateTimeRange.Create(range.Start, newDuration)
+                .Map(updated => range.WithEndValue(updated.End));
 }
