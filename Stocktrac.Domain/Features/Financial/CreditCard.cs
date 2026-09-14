@@ -5,6 +5,7 @@ namespace Stocktrac.Domain.Features.Financial;
 public class CreditCard : Entity
 {
     public const string InvalidFeeTypeMessage = "A valid credit card fee type is required.";
+    public const string RequiredMessage = "Please include all required items.";
 
     public CreditCardName Name { get; private set; }
     public CreditCardFeeType FeeType { get; private set; }
@@ -31,6 +32,8 @@ public class CreditCard : Entity
         Maybe<DateTime> addedToDeposit) =>
         Result.Combine(
                 Environment.NewLine,
+                Result.FailureIf(name is null, RequiredMessage),
+                Result.FailureIf(fee is null, RequiredMessage),
                 ValidateFeeType(feeType))
             .Map(() => new CreditCard(
                 name,
@@ -39,15 +42,18 @@ public class CreditCard : Entity
                 addedToDeposit));
 
     public Result<CreditCard> WithName(string name) =>
-        CreditCardName.Create(name.Trim()).Map(WithNameValue);
+        CreditCardName.Create(name?.Trim() ?? string.Empty).Map(WithNameValue);
 
     public Result<CreditCard> WithName(CreditCardName name) =>
-        CreditCardName.Create(name.Value).Map(WithNameValue);
+        name is null
+            ? Result.Failure<CreditCard>(RequiredMessage)
+            : CreditCardName.Create(name.Value).Map(WithNameValue);
 
     public Result<CreditCard> WithFeeType(CreditCardFeeType feeType) =>
         ValidateFeeType(feeType).Map(WithFeeTypeValue);
 
-    public CreditCard WithFee(Fee fee) => Copy(fee: fee);
+    public Result<CreditCard> WithFee(Fee fee) =>
+        fee is null ? Result.Failure<CreditCard>(RequiredMessage) : Result.Success(Copy(fee: fee));
 
     public CreditCard WithAddedToDeposit(DateTime addedToDeposit) =>
         Copy(addedToDeposit: addedToDeposit);

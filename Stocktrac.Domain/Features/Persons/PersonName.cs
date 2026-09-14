@@ -22,8 +22,8 @@ public sealed record PersonName
 
     public static Result<PersonName> Create(string lastName, string firstName, Maybe<string> middleName = default)
     {
-        var normalizedLastName = lastName.Trim();
-        var normalizedFirstName = firstName.Trim();
+        var normalizedLastName = lastName?.Trim() ?? string.Empty;
+        var normalizedFirstName = firstName?.Trim() ?? string.Empty;
         var normalizedMiddleName = middleName.Map(value => value.Trim());
 
         return Result.Combine(

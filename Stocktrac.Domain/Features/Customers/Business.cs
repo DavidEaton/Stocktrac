@@ -35,14 +35,20 @@ public class Business : Contactable, ICustomerEntity
         IReadOnlyList<Email> emails,
         IReadOnlyList<Phone> phones)
     {
-        return ValidateContactCollections(phones, emails)
+        return Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(name is null, InvalidMessage),
+                Result.FailureIf(notes is null, Contactable.RequiredMessage))
+            .Bind(() => ValidateContactCollections(phones, emails))
             .Map(contacts => new Business(
                 name, address, notes, contact, contacts));
     }
 
-    public void WithName(BusinessName name) => Name = name;
+    public Result WithName(BusinessName name) =>
+        name is null ? Result.Failure(InvalidMessage) : Result.Success().Tap(() => Name = name);
 
-    public void SetContact(Person contact) => Contact = contact;
+    public Result SetContact(Person contact) =>
+        contact is null ? Result.Failure(InvalidMessage) : Result.Success().Tap(() => Contact = contact);
 
     public void ClearContact() => Contact = Maybe<Person>.None;
 
