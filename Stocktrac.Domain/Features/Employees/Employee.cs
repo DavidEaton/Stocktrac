@@ -58,6 +58,9 @@ public class Employee : Entity
 
     public Result<RoleAssignment> AddRoleAssignment(RoleAssignment assignment)
     {
+        if (assignment is null)
+            return Result.Failure<RoleAssignment>(RequiredMessage);
+
         roleAssignments.Add(assignment);
         return Result.Success(assignment);
     }
@@ -75,6 +78,10 @@ public class Employee : Entity
     {
         return Result.Combine(
                 Environment.NewLine,
+                Result.FailureIf(hiredPerson is null, RequiredMessage),
+                Result.FailureIf(roleAssignments is null || roleAssignments.Any(role => role is null), RequiredMessage),
+                Result.FailureIf(ssn is null, RequiredMessage),
+                Result.FailureIf(notes is null, RequiredMessage),
                 Result.FailureIf(hired < StartDateMinimum || hired > EndDateMaximum, DateRangeMessage),
                 ValidateCertificationNumber(certificationNumber),
                 ValidatePrintedName(printedName),
@@ -121,7 +128,7 @@ public class Employee : Entity
 
     private static Result ValidateBenefitLoad(double benefitLoad)
     {
-        return benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
+        return double.IsFinite(benefitLoad) && benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
             ? Result.Success()
             : Result.Failure<double>(BenefitLoadMessage);
     }
@@ -154,15 +161,17 @@ public class Employee : Entity
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    public void WithNotes(Note notes) => Notes = notes;
+    public Result WithNotes(Note notes) =>
+        notes is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Notes = notes);
 
     public void WithoutNotes() => Notes = Maybe<Note>.None;
 
-    public void WithSSN(SSN ssn) => SSN = ssn;
+    public Result WithSSN(SSN ssn) =>
+        ssn is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => SSN = ssn);
 
     public Result SetCertificationNumber(string certificationNumber)
     {
-        certificationNumber = certificationNumber.Trim();
+        certificationNumber = certificationNumber?.Trim() ?? string.Empty;
 
         return certificationNumber.Length > MaximumCertificationNumberLength
             ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
@@ -173,7 +182,7 @@ public class Employee : Entity
 
     public Result<Maybe<string>> SetPrintedName(string printedName)
     {
-        printedName = printedName.Trim();
+        printedName = printedName?.Trim() ?? string.Empty;
 
         return printedName.Length <= MaximumPrintedNameLength
             ? Result.Success(PrintedName = printedName)
@@ -188,7 +197,7 @@ public class Employee : Entity
             : Result.Failure<EmployeeExpenseCategory>(InvalidExpenseCategoryMessage);
 
     public Result<double> SetBenefitLoad(double benefitLoad) =>
-        benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
+        double.IsFinite(benefitLoad) && benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
             ? Result.Success(BenefitLoad = benefitLoad)
             : Result.Failure<double>(BenefitLoadMessage);
 

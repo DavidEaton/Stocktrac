@@ -71,8 +71,8 @@ public class Vehicle : Entity
         bool active = true,
         bool nonTraditionalVehicle = false)
     {
-        var normalizedMake = make.Trim();
-        var normalizedModel = model.Trim();
+        var normalizedMake = make?.Trim() ?? string.Empty;
+        var normalizedModel = model?.Trim() ?? string.Empty;
         var normalizedVin = vin.Map(value => value.Trim());
         var normalizedPlate = plate.Map(value => value.Trim());
         var normalizedUnitNumber = unitNumber.Map(value => value.Trim());
@@ -171,7 +171,7 @@ public class Vehicle : Entity
 
     public Result<Maybe<string>> SetVin(string vin)
     {
-        vin = vin.Trim();
+        vin = vin?.Trim() ?? string.Empty;
         return vin.Length.Equals(VinRequiredLength)
             ? Result.Success(VIN = vin)
             : Result.Failure<Maybe<string>>(InvalidVinMessage);
@@ -206,7 +206,7 @@ public class Vehicle : Entity
 
     public Result<Maybe<string>> SetPlate(string plate)
     {
-        plate = plate.Trim();
+        plate = plate?.Trim() ?? string.Empty;
         return plate.Length > MaximumPlateLength
             ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumPlateLength))
@@ -224,7 +224,7 @@ public class Vehicle : Entity
 
     public Result<Maybe<string>> SetUnitNumber(string unitNumber)
     {
-        unitNumber = unitNumber.Trim();
+        unitNumber = unitNumber?.Trim() ?? string.Empty;
         return unitNumber.Length > MaximumUnitNumberLength
             ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumUnitNumberLength))
@@ -235,7 +235,7 @@ public class Vehicle : Entity
 
     public Result<Maybe<string>> SetColor(string color)
     {
-        color = color.Trim();
+        color = color?.Trim() ?? string.Empty;
         return color.Length > MaximumColorLength
             ? Result.Failure<Maybe<string>>(
                 InvalidMaximumLengthMessage(MaximumColorLength))

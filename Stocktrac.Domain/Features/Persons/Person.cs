@@ -34,19 +34,32 @@ public class Person : Contactable, ICustomerEntity
         Maybe<Birthday> birthday,
         Maybe<Address> address,
         Maybe<DriversLicense> driversLicense) =>
-        ValidateContactCollections(phones, emails)
+        Result.Combine(
+                Environment.NewLine,
+                Result.FailureIf(name is null, NameRequiredMessage),
+                Result.FailureIf(notes is null, Contactable.RequiredMessage))
+            .Bind(() => ValidateContactCollections(phones, emails))
             .Map(contacts => new Person(
                 name, notes, address, contacts, driversLicense, birthday));
 
-    public void WithName(PersonName name) => Name = name;
+    public Result WithName(PersonName name) =>
+        name is null
+            ? Result.Failure(NameRequiredMessage)
+            : Result.Success().Tap(() => Name = name);
 
-    public void WithBirthday(Birthday birthday) => Birthday = birthday;
+    public Result WithBirthday(Birthday birthday) =>
+        birthday is null
+            ? Result.Failure(Contactable.RequiredMessage)
+            : Result.Success().Tap(() => Birthday = birthday);
 
     public void RemoveBirthday() => Birthday = Maybe<Birthday>.None;
 
     public void RemoveDriversLicense() => DriversLicense = Maybe<DriversLicense>.None;
 
-    public void WithDriversLicense(DriversLicense driversLicense) => DriversLicense = driversLicense;
+    public Result WithDriversLicense(DriversLicense driversLicense) =>
+        driversLicense is null
+            ? Result.Failure(Contactable.RequiredMessage)
+            : Result.Success().Tap(() => DriversLicense = driversLicense);
 
     public override string ToString() =>
         Name.ToString();

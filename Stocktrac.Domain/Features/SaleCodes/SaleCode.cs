@@ -47,15 +47,17 @@ namespace Stocktrac.Domain.Features.SaleCodes
             SaleCodeShopSupplies shopSupplies,
             IReadOnlyList<string> saleCodes)
         {
-            var normalizedName = name.Trim();
-            var normalizedCode = code.Trim().ToUpperInvariant();
+            var normalizedName = name?.Trim() ?? string.Empty;
+            var normalizedCode = code?.Trim().ToUpperInvariant() ?? string.Empty;
             return Result.Combine(
                     Environment.NewLine,
+                    Result.FailureIf(shopSupplies is null, RequiredMessage),
+                    Result.FailureIf(saleCodes is null || saleCodes.Any(value => value is null), RequiredMessage),
                     Result.FailureIf(normalizedName.Length is < MinimumLength or > NameMaximumLength, InvalidLengthMessage(MinimumLength, NameMaximumLength)),
                     Result.FailureIf(normalizedCode.Length is < MinimumLength or > CodeMaximumLength, InvalidLengthMessage(MinimumLength, CodeMaximumLength)),
-                    Result.FailureIf(laborRate < MinimumValue, MinimumValueMessage),
-                    Result.FailureIf(desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue, InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue)),
-                    Result.FailureIf(saleCodes.Contains(normalizedCode, StringComparer.OrdinalIgnoreCase), NonuniqueMessage))
+                    Result.FailureIf(!double.IsFinite(laborRate) || laborRate < MinimumValue, MinimumValueMessage),
+                    Result.FailureIf(!double.IsFinite(desiredMargin) || desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue, InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue)),
+                    Result.FailureIf(saleCodes?.Contains(normalizedCode, StringComparer.OrdinalIgnoreCase) == true, NonuniqueMessage))
                 .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies));
         }
 
@@ -82,6 +84,9 @@ namespace Stocktrac.Domain.Features.SaleCodes
             if (code.Length > CodeMaximumLength || code.Length < MinimumLength)
                 return Result.Failure<string>(InvalidLengthMessage(MinimumLength, CodeMaximumLength));
 
+            if (saleCodes is null || saleCodes.Any(value => value is null))
+                return Result.Failure<string>(RequiredMessage);
+
             if (saleCodes.Contains(code, StringComparer.OrdinalIgnoreCase))
                 return Result.Failure<string>(NonuniqueMessage);
 
@@ -89,17 +94,19 @@ namespace Stocktrac.Domain.Features.SaleCodes
         }
 
         public Result<double> SetLaborRate(double laborRate) =>
-            laborRate < MinimumValue
+            !double.IsFinite(laborRate) || laborRate < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(LaborRate = laborRate);
 
         public Result<double> SetDesiredMargin(double desiredMargin) =>
-            desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue
+            !double.IsFinite(desiredMargin) || desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue
                 ? Result.Failure<double>(InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue))
                 : Result.Success(DesiredMargin = desiredMargin);
 
-        public void SetShopSupplies(SaleCodeShopSupplies shopSupplies) =>
-            ShopSupplies = shopSupplies;
+        public Result SetShopSupplies(SaleCodeShopSupplies shopSupplies) =>
+            shopSupplies is null
+                ? Result.Failure(RequiredMessage)
+                : Result.Success().Tap(() => ShopSupplies = shopSupplies);
 
         // EF requires a parameterless constructor
         private SaleCode()

@@ -8,6 +8,7 @@ public abstract partial class Contactable : Entity, IContactable
     public const string PrimaryExistsMessage = "A primary contact already exists.";
     public const string MultiplePrimariesMessage = "Only one contact may be primary.";
     public const string NotFoundMessage = "Entry not found.";
+    public const string RequiredMessage = "Please include all required items.";
 
     private readonly List<Phone> phones = [];
 
@@ -33,7 +34,9 @@ public abstract partial class Contactable : Entity, IContactable
     }
 
     public Result<Phone> AddPhone(Phone phone) =>
-        Result.Success(phone)
+        phone is null
+            ? Result.Failure<Phone>(RequiredMessage)
+            : Result.Success(phone)
             .Ensure(
                 requestedPhone => !HasPhoneNumber(requestedPhone.Number),
                 NonuniqueMessage)
@@ -44,7 +47,9 @@ public abstract partial class Contactable : Entity, IContactable
             .Tap(phones.Add);
 
     public Result<Phone> RemovePhone(Phone phone) =>
-        Result.Success(phone)
+        phone is null
+            ? Result.Failure<Phone>(RequiredMessage)
+            : Result.Success(phone)
             .Ensure(requestedPhone => HasPhoneNumber(requestedPhone.Number), NotFoundMessage)
             .Tap(requestedPhone =>
                 phones.RemoveAll(existingPhone => existingPhone.Number == requestedPhone.Number));
@@ -63,7 +68,9 @@ public abstract partial class Contactable : Entity, IContactable
             });
 
     public Result<Email> AddEmail(Email email) =>
-        Result.Success(email)
+        email is null
+            ? Result.Failure<Email>(RequiredMessage)
+            : Result.Success(email)
             .Ensure(
                 requestedEmail => !HasEmailAddress(requestedEmail.Address),
                 NonuniqueMessage)
@@ -74,7 +81,9 @@ public abstract partial class Contactable : Entity, IContactable
             .Tap(emails.Add);
 
     public Result<Email> RemoveEmail(Email email) =>
-        Result.Success(email)
+        email is null
+            ? Result.Failure<Email>(RequiredMessage)
+            : Result.Success(email)
             .Ensure(requestedEmail => HasEmailAddress(requestedEmail.Address), NotFoundMessage)
             .Tap(requestedEmail =>
                 emails.RemoveAll(existingEmail => existingEmail.Address == requestedEmail.Address));
@@ -92,20 +101,22 @@ public abstract partial class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public void WithNotes(Note note) => Notes = note;
+    public Result WithNotes(Note note) =>
+        note is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Notes = note);
 
-    public void WithAddress(Address address) => Address = address;
+    public Result WithAddress(Address address) =>
+        address is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Address = address);
 
     public void WithoutAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
-        phones.Any(existingPhone =>
+        !string.IsNullOrWhiteSpace(number) && phones.Any(existingPhone =>
             existingPhone.Number == number);
 
     public bool HasPrimaryPhone() => phones.Any(phone => phone.IsPrimary);
 
     public bool HasEmailAddress(string address) =>
-        emails.Any(existingEmail =>
+        !string.IsNullOrWhiteSpace(address) && emails.Any(existingEmail =>
             existingEmail.Address == address);
 
     public bool HasPrimaryEmail() => emails.Any(email => email.IsPrimary);
@@ -132,7 +143,11 @@ public abstract partial class Contactable : Entity, IContactable
             Func<TContact, TValue> getValue,
             Func<TContact, bool> isPrimary)
         where TContact : class =>
-        Result.Success(contacts)
+        contacts is null
+            ? Result.Failure<IReadOnlyList<TContact>>(RequiredMessage)
+            : contacts.Any(contact => contact is null)
+                ? Result.Failure<IReadOnlyList<TContact>>(RequiredMessage)
+                : Result.Success(contacts)
             .Ensure(
                 contactList =>
                     contactList

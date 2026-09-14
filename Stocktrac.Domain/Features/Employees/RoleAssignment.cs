@@ -16,8 +16,9 @@ namespace Stocktrac.Domain.Features.Employees
 
         public static Result<RoleAssignment> Create(EmploymentRole role, DateTimeRange periodAssigned) =>
             Result.Combine(
-                    Environment.NewLine,
-                    Result.FailureIf(!Enum.IsDefined(role), RequiredMessage))
+                Environment.NewLine,
+                Result.FailureIf(periodAssigned is null, RequiredMessage),
+                Result.FailureIf(!Enum.IsDefined(role), RequiredMessage))
                 .Map(() => new RoleAssignment(role, periodAssigned));
 
         public Result<EmploymentRole> SetRole(EmploymentRole role)

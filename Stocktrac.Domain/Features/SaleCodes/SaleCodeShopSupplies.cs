@@ -40,10 +40,10 @@ namespace Stocktrac.Domain.Features.SaleCodes
             bool includeLabor)
         => Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(percentage < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(minimumJobAmount < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(minimumCharge < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(maximumCharge < MinimumValue, MinimumValueMessage))
+                Result.FailureIf(!double.IsFinite(percentage) || percentage < MinimumValue, MinimumValueMessage),
+                Result.FailureIf(!double.IsFinite(minimumJobAmount) || minimumJobAmount < MinimumValue, MinimumValueMessage),
+                Result.FailureIf(!double.IsFinite(minimumCharge) || minimumCharge < MinimumValue, MinimumValueMessage),
+                Result.FailureIf(!double.IsFinite(maximumCharge) || maximumCharge < MinimumValue, MinimumValueMessage))
             .Map(() => new SaleCodeShopSupplies(
                 percentage,
                 minimumJobAmount,
@@ -53,22 +53,22 @@ namespace Stocktrac.Domain.Features.SaleCodes
                 includeLabor));
 
         public Result<double> SetPercentage(double percentage) =>
-            percentage < MinimumValue
+            !double.IsFinite(percentage) || percentage < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(Percentage = percentage);
 
         public Result<double> SetMinimumJobAmount(double minimumJobAmount) =>
-            minimumJobAmount < MinimumValue
+            !double.IsFinite(minimumJobAmount) || minimumJobAmount < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MinimumJobAmount = minimumJobAmount);
 
         public Result<double> SetMinimumCharge(double minimumCharge) =>
-            minimumCharge < MinimumValue
+            !double.IsFinite(minimumCharge) || minimumCharge < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MinimumCharge = minimumCharge);
 
         public Result<double> SetMaximumCharge(double maximumCharge) =>
-            maximumCharge < MinimumValue
+            !double.IsFinite(maximumCharge) || maximumCharge < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MaximumCharge = maximumCharge);
 

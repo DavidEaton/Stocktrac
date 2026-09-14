@@ -141,7 +141,7 @@ public class CreditCardShould
 
         var result = card.WithFee(fee);
 
-        result.Fee.ShouldBe(fee);
+        result.Value.Fee.ShouldBe(fee);
         card.Fee.ShouldBe(Fee.Default);
     }
 

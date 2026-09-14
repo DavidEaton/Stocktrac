@@ -41,6 +41,7 @@ public class Customer : Entity
     public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, Maybe<CustomerCode> code) =>
         Result.Combine(
                 Environment.NewLine,
+                Result.FailureIf(entity is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
             .Map(() => new Customer(
                 entity,
@@ -48,17 +49,20 @@ public class Customer : Entity
                 code,
                 ContactPreferences.Create(true, true, true)));
 
-    public void WithAddress(Address address)
+    public Result WithAddress(Address address)
     {
+        if (address is null)
+            return Result.Failure(RequiredMessage);
+
         switch (CustomerEntity)
         {
             case Person person:
                 person.WithAddress(address);
-                break;
+                return Result.Success();
 
             case Business business:
                 business.WithAddress(address);
-                break;
+                return Result.Success();
 
             default:
                 throw new InvalidOperationException(UnsupportedEntityTypeMessage);
@@ -127,6 +131,9 @@ public class Customer : Entity
 
     public Result<Vehicle> AddVehicle(Vehicle vehicle)
     {
+        if (vehicle is null)
+            return Result.Failure<Vehicle>(RequiredMessage);
+
         if (CustomerHasVehicle(vehicle))
             return Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.");
 
@@ -136,6 +143,9 @@ public class Customer : Entity
 
     public Result<Vehicle> RemoveVehicle(Vehicle vehicle)
     {
+        if (vehicle is null)
+            return Result.Failure<Vehicle>(RequiredMessage);
+
         return vehicles.Remove(vehicle)
             ? Result.Success(vehicle)
             : Result.Failure<Vehicle>(Contactable.NotFoundMessage);
@@ -144,12 +154,16 @@ public class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public void WithCode(CustomerCode code) => Code = code;
+    public Result WithCode(CustomerCode code) =>
+        code is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Code = code);
 
     public void WithoutCode() => Code = Maybe<CustomerCode>.None;
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {
+        if (entity is null)
+            return Result.Failure(RequiredMessage);
+
         switch (entity.EntityType)
         {
             case EntityType.Person or EntityType.Business:

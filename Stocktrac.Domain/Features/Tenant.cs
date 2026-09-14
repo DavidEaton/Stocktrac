@@ -48,8 +48,8 @@ public sealed class Tenant : Entity<Guid>
         string companyName,
         Maybe<string> logoUrl = default)
     {
-        var normalizedName = name.Trim();
-        var normalizedCompanyName = companyName.Trim();
+        var normalizedName = name?.Trim() ?? string.Empty;
+        var normalizedCompanyName = companyName?.Trim() ?? string.Empty;
         var normalizedLogoUrl = logoUrl.Map(value => value.Trim());
 
         return Result.Combine(
@@ -64,7 +64,7 @@ public sealed class Tenant : Entity<Guid>
 
     public Result SetName(string name)
     {
-        name = name.Trim();
+        name = name?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure(NameRequiredMessage);
@@ -77,7 +77,7 @@ public sealed class Tenant : Entity<Guid>
 
     public Result SetCompanyName(string companyName)
     {
-        companyName = companyName.Trim();
+        companyName = companyName?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(companyName))
             return Result.Failure(CompanyNameRequiredMessage);
@@ -90,7 +90,7 @@ public sealed class Tenant : Entity<Guid>
 
     public Result SetLogoUrl(string logoUrl)
     {
-        logoUrl = logoUrl.Trim();
+        logoUrl = logoUrl?.Trim() ?? string.Empty;
 
         return logoUrl.Length > MaximumLogoUrlLength
             ? Result.Failure(InvalidLogoUrlLengthMessage)
