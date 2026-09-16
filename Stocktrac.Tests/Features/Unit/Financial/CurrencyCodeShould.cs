@@ -61,7 +61,7 @@ public class CurrencyCodeShould
     [InlineData("US-")]
     [InlineData("éUR")]
     [InlineData("ＵＳＤ")]
-    public void ReturnInvalidFailure_On_Create_WhenCodeIsNotThreeAsciiLetters(string? code)
+    public void ReturnInvalidFailure_On_Create_WhenCodeIsNotThreeAsciiLetters(string code)
     {
         var result = CurrencyCode.Create(code);
 
@@ -76,7 +76,9 @@ public class CurrencyCodeShould
     [InlineData("\t\r\n")]
     public void ReturnInvalidFailure_On_Create_WhenCodeIsMissing(string? code)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = CurrencyCode.Create(code);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CurrencyCode.RequiredMessage);

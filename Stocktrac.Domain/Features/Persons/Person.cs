@@ -36,11 +36,10 @@ public class Person : Contactable, ICustomerEntity
         Maybe<DriversLicense> driversLicense) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(name is null, NameRequiredMessage),
-                Result.FailureIf(notes is null, Contactable.RequiredMessage))
+                Result.FailureIf(name is null, NameRequiredMessage))
             .Bind(() => ValidateContactCollections(phones, emails))
             .Map(contacts => new Person(
-                name, notes, address, contacts, driversLicense, birthday));
+                name!, notes, address, contacts, driversLicense, birthday));
 
     public Result WithName(PersonName name) =>
         name is null

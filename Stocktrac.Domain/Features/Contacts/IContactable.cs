@@ -12,9 +12,9 @@ public interface IContactable
 
     IReadOnlyList<Email> Emails { get; }
 
-    void WithNotes(Note note);
+    Result WithNotes(Note note);
 
-    void WithAddress(Address address);
+    Result WithAddress(Address address);
 
     void WithoutAddress();
 

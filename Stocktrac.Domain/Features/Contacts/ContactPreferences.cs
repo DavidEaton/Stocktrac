@@ -1,6 +1,6 @@
 namespace Stocktrac.Domain.Features.Contacts;
 
-public readonly record struct ContactPreferences
+public record struct ContactPreferences
 {
     public bool AllowMail { get; private set; }
     public bool AllowEmail { get; private set; }

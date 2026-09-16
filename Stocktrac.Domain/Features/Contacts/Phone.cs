@@ -55,7 +55,7 @@ public class Phone : Entity, IHasPrimary
         new(number ?? Number, phoneType ?? PhoneType, isPrimary ?? IsPrimary) { Id = Id };
 
     private static string RemoveNonNumericCharacters(string input) =>
-        new(input.Where(char.IsDigit).ToArray());
+        new([.. input.Where(char.IsDigit)]);
 
     // EF requires a parameterless constructor
     protected Phone() { }

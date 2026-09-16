@@ -46,7 +46,9 @@ public class MoneyShould
         string? currencyCode,
         string expectedError)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = Money.Create(1m, currencyCode);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(expectedError);

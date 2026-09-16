@@ -81,16 +81,15 @@ public class Employee : Entity
                 Result.FailureIf(hiredPerson is null, RequiredMessage),
                 Result.FailureIf(roleAssignments is null || roleAssignments.Any(role => role is null), RequiredMessage),
                 Result.FailureIf(ssn is null, RequiredMessage),
-                Result.FailureIf(notes is null, RequiredMessage),
                 Result.FailureIf(hired < StartDateMinimum || hired > EndDateMaximum, DateRangeMessage),
                 ValidateCertificationNumber(certificationNumber),
                 ValidatePrintedName(printedName),
                 ValidateExpenseCategory(expenseCategory),
                 ValidateBenefitLoad(benefitLoad))
             .Map(() => new Employee(
-                hiredPerson,
-                roleAssignments,
-                ssn,
+                hiredPerson!,
+                roleAssignments!,
+                ssn!,
                 hired,
                 notes,
                 certificationNumber,
@@ -162,7 +161,7 @@ public class Employee : Entity
         employmentDate <= EndDateMaximum;
 
     public Result WithNotes(Note notes) =>
-        notes is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Notes = notes);
+        Result.Success().Tap(() => Notes = notes);
 
     public void WithoutNotes() => Notes = Maybe<Note>.None;
 

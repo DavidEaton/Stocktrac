@@ -19,7 +19,7 @@ namespace Stocktrac.Domain.Features.Employees
                 Environment.NewLine,
                 Result.FailureIf(periodAssigned is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(role), RequiredMessage))
-                .Map(() => new RoleAssignment(role, periodAssigned));
+                .Map(() => new RoleAssignment(role, periodAssigned!));
 
         public Result<EmploymentRole> SetRole(EmploymentRole role)
         {

@@ -23,7 +23,7 @@ public class Company : Entity
                 Environment.NewLine,
                 Result.FailureIf(business is null, RequiredMessage),
                 Result.FailureIf(seed <= MinimumValue, MinimumValueMessage))
-            .Map(() => new Company(business, seed));
+            .Map(() => new Company(business!, seed));
 
     public Result<long> SetInvoiceNumberSeed(long seed) =>
         seed <= MinimumValue || seed > long.MaxValue

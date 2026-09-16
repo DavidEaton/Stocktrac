@@ -101,8 +101,7 @@ public abstract partial class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public Result WithNotes(Note note) =>
-        note is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Notes = note);
+    public Result WithNotes(Note note) => Result.Success().Tap(() => Notes = note);
 
     public Result WithAddress(Address address) =>
         address is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Address = address);
@@ -110,7 +109,7 @@ public abstract partial class Contactable : Entity, IContactable
     public void WithoutAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
-        !string.IsNullOrWhiteSpace(number) && phones.Any(existingPhone =>
+        number.AsNonEmptyString().IsSuccess && phones.Any(existingPhone =>
             existingPhone.Number == number);
 
     public bool HasPrimaryPhone() => phones.Any(phone => phone.IsPrimary);

@@ -15,7 +15,9 @@ public class PostalCodeShould
     [InlineData("12-34")]
     public void ReturnInvalidError_On_Create_WhenValueIsNotOneToTwentyDigits(string? value)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = PostalCode.Create(value);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(PostalCode.InvalidMessage);

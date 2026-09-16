@@ -37,11 +37,9 @@ public class Business : Contactable, ICustomerEntity
     {
         return Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(name is null, InvalidMessage),
-                Result.FailureIf(notes is null, Contactable.RequiredMessage))
+                Result.FailureIf(name is null, InvalidMessage))
             .Bind(() => ValidateContactCollections(phones, emails))
-            .Map(contacts => new Business(
-                name, address, notes, contact, contacts));
+            .Map(contacts => new Business(name!, address, notes, contact, contacts));
     }
 
     public Result WithName(BusinessName name) =>

@@ -44,7 +44,7 @@ public class Customer : Entity
                 Result.FailureIf(entity is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
             .Map(() => new Customer(
-                entity,
+                entity!,
                 customerType,
                 code,
                 ContactPreferences.Create(true, true, true)));

@@ -12,7 +12,9 @@ public class CreditCardNameShould
     [InlineData("\t\r\n")]
     public void ReturnRequiredFailure_On_Create_WhenNameIsMissing(string? name)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = CreditCardName.Create(name);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.RequiredMessage);

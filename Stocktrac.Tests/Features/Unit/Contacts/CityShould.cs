@@ -11,7 +11,9 @@ public class CityShould
     [InlineData("   ")]
     public void ReturnRequiredError_On_Create_WhenValueIsBlank(string? value)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = City.Create(value);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(City.RequiredMessage);

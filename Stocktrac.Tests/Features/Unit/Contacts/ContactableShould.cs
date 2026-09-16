@@ -87,7 +87,6 @@ public class ContactableShould
         person.WithName(null!).Error.ShouldBe(Person.NameRequiredMessage);
         person.WithBirthday(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.WithDriversLicense(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.WithNotes(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.WithAddress(null!).Error.ShouldBe(Contactable.RequiredMessage);
 
         person.Name.ShouldBe(originalName);

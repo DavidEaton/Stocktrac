@@ -37,7 +37,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
             Code = code;
             LaborRate = laborRate;
             DesiredMargin = desiredMargin;
-            ShopSupplies = shopSupplies;  // By the time we get here, ShopSupplies validation has already occurred; no need to repeat here.
+            ShopSupplies = shopSupplies;
         }
         public static Result<SaleCode> Create(
             string name,
@@ -58,7 +58,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
                     Result.FailureIf(!double.IsFinite(laborRate) || laborRate < MinimumValue, MinimumValueMessage),
                     Result.FailureIf(!double.IsFinite(desiredMargin) || desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue, InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue)),
                     Result.FailureIf(saleCodes?.Contains(normalizedCode, StringComparer.OrdinalIgnoreCase) == true, NonuniqueMessage))
-                .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies));
+                .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies!));
         }
 
         public Result<string> SetName(string name)
