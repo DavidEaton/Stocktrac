@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class Email : Entity, IHasPrimary
+public sealed record Email : IHasPrimary
 {
     public const int MinimumLength = 5;
     public const int MaximumLength = 254;
@@ -22,16 +22,12 @@ public class Email : Entity, IHasPrimary
         address.AsValidEmailAddress()
             .Map(validAddress => new Email(validAddress, isPrimary));
 
-    public Result<string> SetAddress(string address) =>
+    public Result<Email> WithAddress(string address) =>
         address.AsValidEmailAddress()
-            .Tap(validAddress => Address = validAddress);
+            .Map(validAddress => this with { Address = validAddress });
 
-    public void SetIsPrimary(bool isPrimary) => IsPrimary = isPrimary;
+    public Email WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
 
     public override string ToString() =>
         Address;
-
-    // EF requires a parameterless constructor
-    protected Email() =>
-        Address = string.Empty;
 }

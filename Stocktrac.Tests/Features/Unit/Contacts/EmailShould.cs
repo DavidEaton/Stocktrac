@@ -96,7 +96,7 @@ public class EmailShould
     }
 
     [Fact]
-    public void NotEquateDistinctInstances_WhenValuesAreTheSame()
+    public void EquateDistinctInstances_WhenValuesAreTheSame()
     {
         var primaryAddress = "john@doe.com";
         var primaryEmail = Email.Create(
@@ -108,7 +108,8 @@ public class EmailShould
             address: secondaryAddress,
             isPrimary: true).Value;
 
-        primaryEmail.ShouldNotBe(secondaryEmail);
+        primaryEmail.ShouldBe(secondaryEmail);
+        primaryEmail.ShouldNotBeSameAs(secondaryEmail);
     }
 
     [Fact]
@@ -129,63 +130,64 @@ public class EmailShould
     }
 
     [Fact]
-    public void ReturnFailureResult_On_SetAddress_WhenAddressIsNull()
+    public void ReturnFailureResult_On_WithAddress_WhenAddressIsNull()
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.SetAddress(null!);
+        var result = email.WithAddress(null!);
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(Email.EmptyMessage);
     }
 
     [Fact]
-    public void ReturnSuccessAndUpdateAddress_On_SetAddress_WhenAddressIsValid()
+    public void ReturnUpdatedCopy_On_WithAddress_WhenAddressIsValid()
     {
         var email = Create_Valid_Primary_Email();
         var updatedAddress = "updated@address.com";
 
-        var result = email.SetAddress(updatedAddress);
+        var result = email.WithAddress(updatedAddress);
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.ShouldBe(updatedAddress);
-        email.Address.ShouldBe(updatedAddress);
+        result.Value.Address.ShouldBe(updatedAddress);
+        email.Address.ShouldBe("email@email.com");
     }
 
     [Fact]
-    public void TrimAddress_On_SetAddress_WhenAddressContainsSurroundingWhitespace()
+    public void TrimAddress_On_WithAddress_WhenAddressContainsSurroundingWhitespace()
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.SetAddress("  updated@address.com  ");
+        var result = email.WithAddress("  updated@address.com  ");
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.ShouldBe("updated@address.com");
-        email.Address.ShouldBe("updated@address.com");
+        result.Value.Address.ShouldBe("updated@address.com");
+        email.Address.ShouldBe("email@email.com");
     }
 
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
-    public void PreserveAddress_On_SetAddress_WhenAddressIsInvalid(string address)
+    public void PreserveAddress_On_WithAddress_WhenAddressIsInvalid(string address)
     {
         var email = Create_Valid_Primary_Email();
         var originalAddress = email.Address;
 
-        var result = email.SetAddress(address);
+        var result = email.WithAddress(address);
 
         result.IsFailure.ShouldBe(true);
         email.Address.ShouldBe(originalAddress);
     }
 
     [Fact]
-    public void UpdatePrimaryStatus_On_SetIsPrimary_WhenValueChanges()
+    public void ReturnUpdatedCopy_On_WithIsPrimary_WhenValueChanges()
     {
         var email = Create_Valid_Primary_Email();
 
         email.IsPrimary.ShouldBe(true);
-        email.SetIsPrimary(false);
+        var updated = email.WithIsPrimary(false);
 
-        email.IsPrimary.ShouldBe(false);
+        updated.IsPrimary.ShouldBe(false);
+        email.IsPrimary.ShouldBe(true);
     }
 
     internal static Email Create_Valid_Primary_Email()

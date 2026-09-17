@@ -274,19 +274,11 @@ public class ContactableShould
 
     private static IReadOnlyList<Email> CreateEmails() => [];
 
-    private static Phone CreatePhone(string number, PhoneType phoneType, bool isPrimary, long? id = null)
-    {
-        var phone = Phone.Create(number, phoneType, isPrimary).Value;
-        SetId(phone, id);
-        return phone;
-    }
+    private static Phone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
+        Phone.Create(number, phoneType, isPrimary).Value;
 
-    private static Email CreateEmail(string address, bool isPrimary, long? id = null)
-    {
-        var email = Email.Create(address, isPrimary).Value;
-        SetId(email, id);
-        return email;
-    }
+    private static Email CreateEmail(string address, bool isPrimary) =>
+        Email.Create(address, isPrimary).Value;
 
     private static Address CreateAddress(string line, string city, State state, string postalCode) =>
         Address.Create(
@@ -295,10 +287,4 @@ public class ContactableShould
             state,
             PostalCode.Create(postalCode).Value,
             Maybe<AddressLine>.None).Value;
-
-    private static void SetId(Entity entity, long? id)
-    {
-        if (id is not null)
-            typeof(Entity).GetProperty(nameof(Entity.Id))!.SetValue(entity, id.Value);
-    }
 }
