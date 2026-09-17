@@ -96,13 +96,13 @@ public class PhoneShould
     }
 
     [Fact]
-    public void UseEntityIdentitySemantics_WhenInstancesAreTransient()
+    public void UseValueEquality_WhenValuesAreTheSame()
     {
         var first = ValidPhone();
         var second = Phone.Create(first.Number, first.PhoneType, first.IsPrimary).Value;
 
-        first.ShouldNotBe(second);
-        first.ShouldBeSameAs(first);
+        first.ShouldBe(second);
+        first.ShouldNotBeSameAs(second);
     }
 
     private static Phone ValidPhone() => Phone.Create("555-123-4567", PhoneType.Mobile, false).Value;

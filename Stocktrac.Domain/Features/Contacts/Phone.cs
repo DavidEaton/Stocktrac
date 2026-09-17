@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public class Phone : Entity, IHasPrimary
+public sealed record Phone : IHasPrimary
 {
     public const string InvalidMessage = "Please enter a valid Number.";
     public const string PhoneTypeInvalidMessage = "Please enter a valid Type.";
@@ -43,20 +43,14 @@ public class Phone : Entity, IHasPrimary
 
     public Result<Phone> WithNumber(string number) =>
         number.AsValidPhoneNumber()
-            .Map(validNumber => Copy(number: validNumber));
+            .Map(validNumber => this with { Number = validNumber });
 
     public Result<Phone> WithPhoneType(PhoneType phoneType) =>
         phoneType.AsValidPhoneType()
-            .Map(validPhoneType => Copy(phoneType: validPhoneType));
+            .Map(validPhoneType => this with { PhoneType = validPhoneType });
 
-    public Phone WithIsPrimary(bool isPrimary) => Copy(isPrimary: isPrimary);
-
-    private Phone Copy(string? number = null, PhoneType? phoneType = null, bool? isPrimary = null) =>
-        new(number ?? Number, phoneType ?? PhoneType, isPrimary ?? IsPrimary) { Id = Id };
+    public Phone WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
 
     private static string RemoveNonNumericCharacters(string input) =>
         new([.. input.Where(char.IsDigit)]);
-
-    // EF requires a parameterless constructor
-    protected Phone() { }
 }

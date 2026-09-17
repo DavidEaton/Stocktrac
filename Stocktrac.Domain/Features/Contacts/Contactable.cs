@@ -57,8 +57,7 @@ public abstract partial class Contactable : Entity, IContactable
     public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones) =>
         ValidateContactList(
                 requestedPhones,
-                phone => phone.Number,
-                phone => phone.IsPrimary)
+                phone => phone.Number)
             .Bind(validPhones =>
             {
                 phones.Clear();
@@ -91,8 +90,7 @@ public abstract partial class Contactable : Entity, IContactable
     public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails) =>
         ValidateContactList(
                 requestedEmails,
-                email => email.Address,
-                email => email.IsPrimary)
+                email => email.Address)
             .Bind(validEmails =>
             {
                 emails.Clear();
@@ -125,13 +123,11 @@ public abstract partial class Contactable : Entity, IContactable
             IReadOnlyList<Email> emails) =>
         ValidateContactList(
                 phones,
-                phone => phone.Number,
-                phone => phone.IsPrimary)
+                phone => phone.Number)
             .Bind(validPhones =>
                 ValidateContactList(
                         emails,
-                        email => email.Address,
-                        email => email.IsPrimary)
+                        email => email.Address)
                     .Map(validEmails => new ValidatedContactCollections(
                         validPhones,
                         validEmails)));
@@ -139,9 +135,8 @@ public abstract partial class Contactable : Entity, IContactable
     private static Result<IReadOnlyList<TContact>>
         ValidateContactList<TContact, TValue>(
             IReadOnlyList<TContact> contacts,
-            Func<TContact, TValue> getValue,
-            Func<TContact, bool> isPrimary)
-        where TContact : class =>
+            Func<TContact, TValue> getValue)
+        where TContact : class, IHasPrimary =>
         contacts is null
             ? Result.Failure<IReadOnlyList<TContact>>(RequiredMessage)
             : contacts.Any(contact => contact is null)
@@ -155,7 +150,7 @@ public abstract partial class Contactable : Entity, IContactable
                 NonuniqueMessage)
             .Ensure(
                 contactList =>
-                    contactList.Count(isPrimary) <= 1,
+                    contactList.Count(contact => contact.IsPrimary) <= 1,
                 MultiplePrimariesMessage);
 
     // Required by Entity Framework.
