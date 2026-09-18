@@ -11,9 +11,24 @@ public class PhoneShould
         var result = Phone.Create(" 555-123-4567 ", PhoneType.Mobile, true);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Number.ShouldBe("555-123-4567");
+        result.Value.Number.ShouldBe("5551234567");
         result.Value.PhoneType.ShouldBe(PhoneType.Mobile);
         result.Value.IsPrimary.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(" +44 20 7946 0958 ", "+442079460958")]
+    [InlineData("+61 (2) 9374-4000", "+61293744000")]
+    [InlineData("+1.555.123.4567", "+15551234567")]
+    public void StoreCanonicalInternationalNumber_On_Create_WhenNumberHasInternationalFormat(
+        string number,
+        string canonicalNumber)
+    {
+        var result = Phone.Create(number, PhoneType.Mobile, false);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Number.ShouldBe(canonicalNumber);
+        result.Value.ToString().ShouldBe(canonicalNumber);
     }
 
     [Theory]
@@ -44,6 +59,13 @@ public class PhoneShould
         result.Error.ShouldBe(Phone.InvalidMessage);
     }
 
+    [Theory]
+    [InlineData("12+345678")]
+    [InlineData("+0123456789")]
+    [InlineData("+1234567890123456")]
+    public void ReturnInvalidError_On_Create_WhenInternationalNumberIsNotCanonicalizable(string number) =>
+        Phone.Create(number, PhoneType.Home, false).Error.ShouldBe(Phone.InvalidMessage);
+
     [Fact]
     public void ReturnPhoneTypeError_On_Create_WhenPhoneTypeIsUndefined() =>
         Phone.Create("5551234567", (PhoneType)99, false).Error.ShouldBe(Phone.PhoneTypeInvalidMessage);
@@ -51,7 +73,7 @@ public class PhoneShould
     [Theory]
     [InlineData("5551234", "555-1234")]
     [InlineData("555.123.4567", "(555) 123-4567")]
-    [InlineData("+1 (555) 123-4567", "15551234567")]
+    [InlineData("+1 (555) 123-4567", "+15551234567")]
     public void ReturnNumericFormattedValue_On_ToString_WhenNumberIsValid(string number, string formatted) =>
         Phone.Create(number, PhoneType.Home, false).Value.ToString().ShouldBe(formatted);
 
@@ -61,10 +83,18 @@ public class PhoneShould
         var original = ValidPhone();
         var updated = original.WithNumber(" 555-987-6543 ").Value;
 
-        updated.Number.ShouldBe("555-987-6543");
+        updated.Number.ShouldBe("5559876543");
         updated.PhoneType.ShouldBe(original.PhoneType);
         updated.IsPrimary.ShouldBe(original.IsPrimary);
-        original.Number.ShouldBe("555-123-4567");
+        original.Number.ShouldBe("5551234567");
+    }
+
+    [Fact]
+    public void StoreCanonicalInternationalNumber_On_WithNumber_WhenNumberHasInternationalFormat()
+    {
+        var updated = ValidPhone().WithNumber("+33 (1) 42 68 53 00").Value;
+
+        updated.Number.ShouldBe("+33142685300");
     }
 
     [Fact]
@@ -72,7 +102,7 @@ public class PhoneShould
     {
         var original = ValidPhone();
         original.WithNumber("invalid").Error.ShouldBe(Phone.InvalidMessage);
-        original.Number.ShouldBe("555-123-4567");
+        original.Number.ShouldBe("5551234567");
     }
 
     [Fact]

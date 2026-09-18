@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace Stocktrac.Domain.Features;
 
@@ -50,11 +51,26 @@ public static class DomainExtensions
 
         //
         // Summary: 
-        //     Validates a string to ensure it is a valids phone number.
+        //     Validates a string and converts it to a canonical phone number. An
+        //     international number retains its leading '+' while formatting characters
+        //     are removed from all numbers.
         internal Result<string> AsValidPhoneNumber() =>
             Result.Success(value)
                 .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => new PhoneAttribute().IsValid(normalized), Phone.InvalidMessage);
+                .Ensure(normalized => new PhoneAttribute().IsValid(normalized), Phone.InvalidMessage)
+                .Ensure(
+                    normalized => Regex.IsMatch(normalized, @"^\+?[0-9\s().-]+$"),
+                    Phone.InvalidMessage)
+                .Map(CanonicalizePhoneNumber)
+                .Ensure(
+                    normalized => Regex.IsMatch(normalized, @"^(?:[0-9]+|\+[1-9][0-9]{1,14})$"),
+                    Phone.InvalidMessage);
+    }
+
+    private static string CanonicalizePhoneNumber(string number)
+    {
+        var prefix = number.StartsWith('+') ? "+" : string.Empty;
+        return prefix + string.Concat(number.Where(character => character is >= '0' and <= '9'));
     }
 
     extension(PhoneType phoneType)
