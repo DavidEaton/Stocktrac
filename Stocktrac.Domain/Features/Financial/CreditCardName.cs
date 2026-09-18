@@ -24,4 +24,8 @@ public sealed record CreditCardName
                 Result.FailureIf(!string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength, InvalidLengthMessage))
             .Map(() => new CreditCardName(normalized));
     }
+
+    public static implicit operator string(CreditCardName creditCardName) => creditCardName.Value;
+
+    public static explicit operator CreditCardName(string value) => new(value);
 }

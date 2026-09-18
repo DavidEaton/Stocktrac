@@ -19,4 +19,8 @@ public sealed record CustomerCode
                 Result.FailureIf(normalized.Length > MaximumLength, InvalidLengthMessage))
             .Map(() => new CustomerCode(normalized));
     }
+
+    public static implicit operator string(CustomerCode customerCode) => customerCode.Value;
+
+    public static explicit operator CustomerCode(string value) => new(value);
 }

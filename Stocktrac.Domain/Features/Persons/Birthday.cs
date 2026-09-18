@@ -23,6 +23,8 @@ namespace Stocktrac.Domain.Features.Persons
         public static implicit operator DateTime(Birthday birthday) =>
             birthday._date;
 
+        public static explicit operator Birthday(DateTime date) => new(date);
+
         public override string ToString() =>
             _date.ToShortDateString();
     }

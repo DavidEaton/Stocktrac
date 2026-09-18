@@ -23,5 +23,10 @@ namespace Stocktrac.Domain.Features.Contacts
 
         public static Result<DriversLicenseNumber> NewNumber(string newNumber) =>
             Create(newNumber);
+
+        public static implicit operator string(DriversLicenseNumber driversLicenseNumber) =>
+            driversLicenseNumber.Number;
+
+        public static explicit operator DriversLicenseNumber(string number) => new(number);
     }
 }
