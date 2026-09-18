@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
-using System.ComponentModel.DataAnnotations;
 
 namespace Stocktrac.Domain.Features;
 
@@ -33,21 +32,6 @@ public static class DomainExtensions
         //     Validates an integer to ensure it is within a specified range.
         public bool IsWithin(int minimum, int maximum) =>
             value >= minimum && value <= maximum;
-    }
-
-    extension(string value)
-    {
-        //
-        // Summary: 
-        //     Validates a string to ensure it is a valid email domain address.
-        internal Result<string> AsValidEmailAddress() =>
-            Result.Success(value)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => normalized.IsNonEmptyString(), Email.EmptyMessage)
-                .Ensure(normalized => normalized.Length >= Email.MinimumLength, Email.MinimumLengthMessage)
-                .Ensure(normalized => normalized.Length <= Email.MaximumLength, Email.MaximumLengthMessage)
-                .Ensure(normalized => new EmailAddressAttribute().IsValid(normalized), Email.InvalidMessage);
-
     }
 
     extension(PhoneType phoneType)

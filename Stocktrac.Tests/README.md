@@ -12,7 +12,7 @@ Use an outcome-first name with this structure:
 
 | Part | Purpose | Example |
 | --- | --- | --- |
-| `{DomainType}Should` | Names the test class and the domain type being tested. | `EmailShould` |
+| `{DomainType}Should` | Names the test class and the domain type being tested. | `ContactEmailShould` |
 | `{ExpectedBehavior}` | States what the type should do. | `ReturnFailureResult` |
 | `On` | Introduces the member or operation under test. | `On` |
 | `{MemberUnderTest}` | Uses the exact method, property, or operation name when practical. | `Create` |
@@ -21,12 +21,12 @@ Use an outcome-first name with this structure:
 For example:
 
 ```text
-EmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
 ```
 
 Read the name as a sentence:
 
-> Email should return failure result on Create when address is null.
+> ContactEmail should return failure result on Create when address is null.
 
 This order is intentional. We value the readability of the complete test name over alphabetical grouping by the member under test.
 
@@ -34,14 +34,14 @@ This order is intentional. We value the readability of the complete test name ov
 
 Suppose you are testing this behavior:
 
-> Calling `Email.Create` with a null address returns a failure result.
+> Calling `ContactEmail.Create` with a null address returns a failure result.
 
 ### 1. Identify the domain type
 
-The domain type is `Email`, so name the test class:
+The domain type is `ContactEmail`, so name the test class:
 
 ```csharp
-public class EmailShould
+public class ContactEmailShould
 {
 }
 ```
@@ -50,7 +50,7 @@ The word `Should` begins the sentence formed by the fully qualified test name.
 
 ### 2. State the expected behavior
 
-Ask: **What should Email do?**
+Ask: **What should ContactEmail do?**
 
 ```text
 ReturnFailureResult
@@ -76,20 +76,20 @@ Ask: **Under what condition should this happen?**
 _WhenAddressIsNull
 ```
 
-Name the relevant value precisely. Here, the `address` argument is null—not the `Email` object—so `WhenAddressIsNull` is clearer than `WhenEmailIsNull`.
+Name the relevant value precisely. Here, the `address` argument is null—not the `ContactEmail` object—so `WhenAddressIsNull` is clearer than `WhenEmailIsNull`.
 
 ### 5. Combine the parts
 
 ```csharp
-public class EmailShould
+public class ContactEmailShould
 {
     [Fact]
     public void ReturnFailureResult_On_Create_WhenAddressIsNull()
     {
-        var result = Email.Create(address: null!, isPrimary: true);
+        var result = ContactEmail.Create(address: null!, isPrimary: true);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(Email.EmptyMessage);
+        result.Error.ShouldBe(EmailAddress.EmptyMessage);
     }
 }
 ```
@@ -97,7 +97,7 @@ public class EmailShould
 The fully qualified name is:
 
 ```text
-EmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
 ```
 
 ## Formatting rules
@@ -159,9 +159,9 @@ Exact names help a reader connect the test to the production API.
 ## Examples
 
 ```text
-EmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
-EmailShould.TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace
-EmailShould.UpdateAddress_On_SetAddress_WhenAddressIsValid
+ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+ContactEmailShould.TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace
+ContactEmailShould.UpdateAddress_On_SetAddress_WhenAddressIsValid
 AmountShould.ContainExactValue_On_FromDecimal_WhenGivenAnyDecimal
 AmountShould.ReturnOverflowFailure_On_Add_WhenResultExceedsDecimalRange
 MoneyShould.ReturnCurrencyMismatchFailure_On_Add_WhenCurrenciesDiffer
@@ -177,7 +177,7 @@ MoneyShould.PreserveCurrency_On_Multiply_WhenResultIsInRange
 `After` may describe a post-operation state more accurately:
 
 ```text
-EmailShould.ContainUpdatedAddress_After_SetAddress_WhenAddressIsValid
+ContactEmailShould.ContainUpdatedAddress_After_SetAddress_WhenAddressIsValid
 ```
 
 Use `After` only when the timing or resulting state matters. For a value returned directly by a method, `On` is usually clearer.
@@ -213,10 +213,10 @@ Targeting tests at the abstract base class binds them to the code's implementati
 Avoid:
 
 ```text
-EmailShould.Create_WhenAddressIsNull_ReturnsFailureResult
+ContactEmailShould.Create_WhenAddressIsNull_ReturnsFailureResult
 ```
 
-Read as a sentence, this becomes "Email should Create when address is null returns failure result." Put the expected behavior immediately after `Should` instead.
+Read as a sentence, this becomes "ContactEmail should Create when address is null returns failure result." Put the expected behavior immediately after `Should` instead.
 
 ### Repeating information
 
@@ -237,13 +237,13 @@ AmountShould.ContainExactValue_On_FromDecimal_WhenGivenAnyDecimal
 Prefer what a caller can observe:
 
 ```text
-EmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
 ```
 
 Avoid internal details unless those details are themselves part of the required contract:
 
 ```text
-EmailShould.CallValidationHelper_On_Create_WhenAddressIsNull
+ContactEmailShould.CallValidationHelper_On_Create_WhenAddressIsNull
 ```
 
 ### Combining unrelated behaviors
@@ -276,7 +276,7 @@ Default template:
 Typical example:
 
 ```text
-EmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
 ```
 
 The most important rule is simple: **read the fully qualified test name aloud. It should sound like a clear sentence describing the behavior.**

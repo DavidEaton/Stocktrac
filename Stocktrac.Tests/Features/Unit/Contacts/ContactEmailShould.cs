@@ -3,27 +3,27 @@ using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 
-public class EmailShould
+public class ContactEmailShould
 {
     private const string InvalidStringOverMaximumLength = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in"; // 256 characters
     private const string InvalidStringZeroLength = "";
     public static TheoryData<string> InvalidAddresses =>
     [
         InvalidStringZeroLength,
-        new string('a', Email.MinimumLength - 1),
-        new string('a', Email.MaximumLength + 1),
+        new string('a', EmailAddress.MinimumLength - 1),
+        new string('a', EmailAddress.MaximumLength + 1),
         "invalid-email-address.com"
     ];
 
     [Fact]
-    public void ReturnEmail_On_Create_WhenAddressIsValid()
+    public void ReturnContactEmail_On_Create_WhenAddressIsValid()
     {
         var address = "john@doe.com";
         var primary = true;
 
-        var emailOrError = Email.Create(address, primary);
+        var emailOrError = ContactEmail.Create(address, primary);
 
-        emailOrError.Value.Address.ShouldBe(address);
+        emailOrError.Value.Address.Value.ShouldBe(address);
         emailOrError.Value.IsPrimary.ShouldBe(primary);
         emailOrError.IsFailure.ShouldBe(false);
     }
@@ -31,10 +31,10 @@ public class EmailShould
     [Fact]
     public void TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace()
     {
-        var result = Email.Create("  john@doe.com  ", true);
+        var result = ContactEmail.Create("  john@doe.com  ", true);
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.Address.ShouldBe("john@doe.com");
+        result.Value.Address.Value.ShouldBe("john@doe.com");
         result.Value.ToString().ShouldBe("john@doe.com");
     }
 
@@ -45,7 +45,7 @@ public class EmailShould
     [InlineData("lorem ipsum dolor sit amet consectetur adipiscing elit non qui ad dolores cillum non nam qui est in est dolorum laborum vel imperdiet cupiditate sit facilis minim consequat est do et dolor lorem nulla pariatur id vero est velit est dolorem laborum aut tempor", "Email address cannot be greater than 254 characters in length.")]
     public void ReturnSpecificError_On_Create_WhenAddressIsInvalid(string address, string expectedError)
     {
-        var result = Email.Create(address, true);
+        var result = ContactEmail.Create(address, true);
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(expectedError,
@@ -56,41 +56,41 @@ public class EmailShould
     [Fact]
     public void ReturnMaximumLengthError_On_Create_WhenAddressIsOversized()
     {
-        var result = Email.Create($"{new string('a', Email.MaximumLength)}@x.com", true);
+        var result = ContactEmail.Create($"{new string('a', EmailAddress.MaximumLength)}@x.com", true);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(Email.MaximumLengthMessage);
+        result.Error.ShouldBe(EmailAddress.MaximumLengthMessage);
     }
 
     [Fact]
     public void ReturnFailureResult_On_Create_WhenAddressIsNull()
     {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        var result = Email.Create(
+        var result = ContactEmail.Create(
             address: null,
             isPrimary: true);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(Email.EmptyMessage);
+        result.Error.ShouldBe(EmailAddress.EmptyMessage);
     }
 
     [Fact]
     public void ReturnFailureResult_On_Create_WhenAddressIsEmpty()
     {
-        var result = Email.Create(
+        var result = ContactEmail.Create(
             address: string.Empty,
             isPrimary: true);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(Email.EmptyMessage);
+        result.Error.ShouldBe(EmailAddress.EmptyMessage);
     }
 
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
     public void ReturnFailureResult_On_Create_WhenAddressIsInvalid(string address)
     {
-        var result = Email.Create(address, true);
+        var result = ContactEmail.Create(address, true);
 
         result.IsFailure.ShouldBe(true);
     }
@@ -99,12 +99,12 @@ public class EmailShould
     public void EquateDistinctInstances_WhenValuesAreTheSame()
     {
         var primaryAddress = "john@doe.com";
-        var primaryEmail = Email.Create(
+        var primaryEmail = ContactEmail.Create(
             address: primaryAddress,
             isPrimary: true).Value;
 
         var secondaryAddress = primaryAddress;
-        var secondaryEmail = Email.Create(
+        var secondaryEmail = ContactEmail.Create(
             address: secondaryAddress,
             isPrimary: true).Value;
 
@@ -116,12 +116,12 @@ public class EmailShould
     public void HaveDifferingProperties_WhenValuesDiffer()
     {
         var primaryAddress = "john@doe.com";
-        var primaryEmail = Email.Create(
+        var primaryEmail = ContactEmail.Create(
             address: primaryAddress,
             isPrimary: true).Value;
 
         var secondaryAddress = "jane@doe.com";
-        var secondaryEmail = Email.Create(
+        var secondaryEmail = ContactEmail.Create(
             address: secondaryAddress,
             isPrimary: false).Value;
 
@@ -137,7 +137,7 @@ public class EmailShould
         var result = email.WithAddress(null!);
 
         result.IsFailure.ShouldBe(true);
-        result.Error.ShouldBe(Email.EmptyMessage);
+        result.Error.ShouldBe(EmailAddress.EmptyMessage);
     }
 
     [Fact]
@@ -149,8 +149,8 @@ public class EmailShould
         var result = email.WithAddress(updatedAddress);
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.Address.ShouldBe(updatedAddress);
-        email.Address.ShouldBe("email@email.com");
+        result.Value.Address.Value.ShouldBe(updatedAddress);
+        email.Address.Value.ShouldBe("email@email.com");
     }
 
     [Fact]
@@ -161,8 +161,8 @@ public class EmailShould
         var result = email.WithAddress("  updated@address.com  ");
 
         result.IsSuccess.ShouldBe(true);
-        result.Value.Address.ShouldBe("updated@address.com");
-        email.Address.ShouldBe("email@email.com");
+        result.Value.Address.Value.ShouldBe("updated@address.com");
+        email.Address.Value.ShouldBe("email@email.com");
     }
 
     [Theory]
@@ -190,9 +190,9 @@ public class EmailShould
         email.IsPrimary.ShouldBe(true);
     }
 
-    internal static Email Create_Valid_Primary_Email()
+    internal static ContactEmail Create_Valid_Primary_Email()
     {
-        return Email.Create(
+        return ContactEmail.Create(
             address: "email@email.com",
             isPrimary: true).Value;
     }

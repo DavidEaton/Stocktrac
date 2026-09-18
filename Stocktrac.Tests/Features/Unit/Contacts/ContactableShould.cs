@@ -259,7 +259,7 @@ public class ContactableShould
     }
 
     private static Person CreatePerson(
-        IReadOnlyList<Email>? emails,
+        IReadOnlyList<ContactEmail>? emails,
         IReadOnlyList<ContactPhone>? phones) =>
         Person.Create(
             PersonName.Create("Doe", "Jane").Value,
@@ -273,13 +273,13 @@ public class ContactableShould
 
     private static IReadOnlyList<ContactPhone> CreatePhones() => [];
 
-    private static IReadOnlyList<Email> CreateEmails() => [];
+    private static IReadOnlyList<ContactEmail> CreateEmails() => [];
 
     private static ContactPhone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
         ContactPhone.Create(number, phoneType, isPrimary).Value;
 
-    private static Email CreateEmail(string address, bool isPrimary) =>
-        Email.Create(address, isPrimary).Value;
+    private static ContactEmail CreateEmail(string address, bool isPrimary) =>
+        ContactEmail.Create(address, isPrimary).Value;
 
     private static Address CreateAddress(string line, string city, State state, string postalCode) =>
         Address.Create(

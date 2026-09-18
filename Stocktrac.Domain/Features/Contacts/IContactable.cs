@@ -8,10 +8,10 @@ public interface IContactable
 
     Maybe<Address> Address { get; }
 
-    // ContactPhone and Email are immutable values; collection changes are owned by the aggregate.
+    // ContactPhone and ContactEmail are immutable values; collection changes are owned by the aggregate.
     IReadOnlyList<ContactPhone> Phones { get; }
 
-    IReadOnlyList<Email> Emails { get; }
+    IReadOnlyList<ContactEmail> Emails { get; }
 
     Result WithNotes(Note note);
 
@@ -25,11 +25,11 @@ public interface IContactable
 
     Result ReplacePhones(IReadOnlyList<ContactPhone> phones);
 
-    Result<Email> AddEmail(Email email);
+    Result<ContactEmail> AddEmail(ContactEmail email);
 
-    Result<Email> RemoveEmail(Email email);
+    Result<ContactEmail> RemoveEmail(ContactEmail email);
 
-    Result ReplaceEmails(IReadOnlyList<Email> emails);
+    Result ReplaceEmails(IReadOnlyList<ContactEmail> emails);
 
     bool HasPhoneNumber(string number);
 

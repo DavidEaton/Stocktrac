@@ -262,6 +262,6 @@ public class ApplicationDbContext : DbContext
     // public DbSet<SellingPriceName> SellingPriceNames { get; set; }
 
     // non-root entities requiring uniqueness checks
-    // public DbSet<Email> Emails { get; set; }
+    // public DbSet<ContactEmail> Emails { get; set; }
     // public DbSet<ContactPhone> Phones { get; set; }
 }

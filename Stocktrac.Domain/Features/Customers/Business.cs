@@ -32,7 +32,7 @@ public class Business : Contactable, ICustomerEntity
         Maybe<Address> address,
         Note notes,
         Maybe<Person> contact,
-        IReadOnlyList<Email> emails,
+        IReadOnlyList<ContactEmail> emails,
         IReadOnlyList<ContactPhone> phones)
     {
         return Result.Combine(

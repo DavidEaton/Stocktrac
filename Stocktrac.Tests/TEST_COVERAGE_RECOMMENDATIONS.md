@@ -2,7 +2,7 @@
 
 ## Review outcome
 
-The existing suite exercises `Email`, the shared contact behavior through `Person`,
+The existing suite exercises `ContactEmail`, the shared contact behavior through `Person`,
 and the financial value types. The added tests fill the most important missing
 branches in those classes: normalization, exact validation failures, mutation
 atomicity, collection invariants, boundary values, every arithmetic operation,
