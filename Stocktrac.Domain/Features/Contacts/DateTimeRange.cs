@@ -20,28 +20,14 @@ public sealed record DateTimeRange
             .Map(range => new DateTimeRange(range.Start, range.End));
 
     public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
-        CalculateEnd(start, () => start.Add(duration));
+        DateTimeRangeExtensions.CalculateEnd(start, () => start.Add(duration));
 
     public static Result<DateTimeRange> CreateDaysRange(DateTime start, int days) =>
-        CalculateEnd(start, () => start.AddDays(days));
+        DateTimeRangeExtensions.CalculateEnd(start, () => start.AddDays(days));
 
     public static Result<DateTimeRange> CreateWeeksRange(DateTime start, int weeks) =>
-        CalculateEnd(start, () => start.AddDays(7d * weeks));
+        DateTimeRangeExtensions.CalculateEnd(start, () => start.AddDays(7d * weeks));
 
     public static Result<DateTimeRange> CreateMonthsRange(DateTime start, int months) =>
-        CalculateEnd(start, () => start.AddMonths(months));
-
-    private static Result<DateTimeRange> CalculateEnd(
-        DateTime start,
-        Func<DateTime> calculation) =>
-        Result.Try(
-                calculation,
-                _ => DateCalculationMessage)
-            .Bind(end => Create(start, end));
-
-    internal DateTimeRange WithStartValue(DateTime start) =>
-        this with { Start = start };
-
-    internal DateTimeRange WithEndValue(DateTime end) =>
-        this with { End = end };
+        DateTimeRangeExtensions.CalculateEnd(start, () => start.AddMonths(months));
 }
