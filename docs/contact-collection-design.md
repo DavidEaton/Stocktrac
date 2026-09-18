@@ -12,8 +12,7 @@ separate `ContactDetails` domain value object. Address changes continue to use
 Each replacement method treats its argument as the complete requested state:
 
 - an empty collection clears the existing collection;
-- null collections and null members violate the non-nullable API contract and
-  result in an exception;
+- null collections and null members return a failed domain result;
 - duplicate phone numbers or email addresses are rejected;
 - more than one primary item is rejected; and
 - validation happens before mutation, so a failed replacement preserves the
@@ -31,3 +30,11 @@ The aggregate owns the collection invariant, but it does not need to own a
 generic diff engine. Entity Framework's change tracker can observe the resulting
 collection membership. Keeping persistence-specific reconciliation outside the
 domain leaves the domain operation small, deterministic, and easy to test.
+
+## Internal collection policy
+
+`Contactable` remains the aggregate API and continues to own the phone and email
+lists. The shared identity, uniqueness, primary-contact, and mutation rules live
+in an internal `ContactCollection<TContact, TIdentity>` collaborator. This keeps
+the public model unchanged and preserves persistence-friendly list fields while
+preventing the phone and email implementations from drifting apart.
