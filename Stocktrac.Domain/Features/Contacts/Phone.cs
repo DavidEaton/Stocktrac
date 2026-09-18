@@ -19,11 +19,8 @@ public sealed record Phone : IHasPrimary
         IsPrimary = isPrimary;
     }
 
-    public static Result<Phone> Create(
-        string number,
-        PhoneType phoneType,
-        bool isPrimary) =>
-        Result.Combine(
+    public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary)
+        => Result.Combine(
                 Environment.NewLine,
                 number.AsValidPhoneNumber(),
                 phoneType.AsValidPhoneType())
@@ -31,7 +28,7 @@ public sealed record Phone : IHasPrimary
 
     public override string ToString()
     {
-        var numericNumber = RemoveNonNumericCharacters(Number);
+        var numericNumber = OnlyDigitsFrom(Number);
 
         return numericNumber.Length switch
         {
@@ -51,6 +48,6 @@ public sealed record Phone : IHasPrimary
 
     public Phone WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
 
-    private static string RemoveNonNumericCharacters(string input) =>
+    private static string OnlyDigitsFrom(string input) =>
         new([.. input.Where(char.IsDigit)]);
 }

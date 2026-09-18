@@ -38,36 +38,35 @@ public sealed record Address
                 postalCode.AsValidPostalCode())
             .Map(() => new Address(addressLine1!, city!, state, postalCode!, addressLine2));
 
-    public Result<Address> WithAddressLine1(AddressLine newAddressLine) =>
-       newAddressLine
+    public Result<Address> WithAddressLine1(AddressLine addressLine) =>
+       addressLine
            .AsValidLine()
            .Map(validLine => this with { AddressLine1 = validLine });
 
-    public Result<Address> WithCity(City newCity) =>
-        newCity
+    public Result<Address> WithCity(City city) =>
+        city
             .AsValidCity()
             .Map(validCity => this with { City = validCity });
 
-    public Result<Address> WithState(State newState) =>
-        newState
+    public Result<Address> WithState(State state) =>
+        state
             .AsValidState()
             .Map(validState => this with { State = validState });
 
-    public Result<Address> WithPostalCode(PostalCode newPostalCode) =>
-        newPostalCode
+    public Result<Address> WithPostalCode(PostalCode postalCode) =>
+        postalCode
             .AsValidPostalCode()
             .Map(validPostalCode => this with { PostalCode = validPostalCode });
 
-    public Result<Address> WithAddressLine2(AddressLine newAddressLine2) =>
-        newAddressLine2
+    public Result<Address> WithAddressLine2(AddressLine addressLine) =>
+        addressLine
             .AsValidLine()
             .Map(validLine => this with { AddressLine2 = validLine });
 
     public Address WithoutAddressLine2() =>
         new(AddressLine1, City, State, PostalCode, Maybe<AddressLine>.None);
 
-    public override string ToString() =>
-        AddressFull;
+    public override string ToString() => AddressFull;
 
     public string AddressFull =>
         AddressLine2.HasValue
