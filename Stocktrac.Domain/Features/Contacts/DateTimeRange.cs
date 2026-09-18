@@ -5,11 +5,11 @@ namespace Stocktrac.Domain.Features.Contacts;
 public sealed record DateTimeRange
 {
     public const string RequiredMessage = "Please include all required items.";
-    public const string EndBeforeStartMessage = "End date cannot occur before Start date.";
+    public const string EndBeforeStartMessage = "End date must occur after start date.";
     public const string DateCalculationMessage = "The requested date range is outside the supported range.";
 
-    public DateTime Start { get; private set; } = DateTime.Today;
-    public DateTime End { get; private set; } = DateTime.MaxValue;
+    public DateTime Start { get; }
+    public DateTime End { get; }
 
     private DateTimeRange(DateTime start, DateTime end) =>
         (Start, End) = (start, end);

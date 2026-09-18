@@ -18,6 +18,13 @@ public class DateTimeRangeShould
         result.Value.End.ShouldBe(end);
     }
 
+    [Fact]
+    public void ExposeImmutableBoundaries()
+    {
+        typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.Start))!.SetMethod.ShouldBeNull();
+        typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.End))!.SetMethod.ShouldBeNull();
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
