@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 
@@ -23,7 +23,7 @@ public class Customer : Entity
     public Maybe<Address> Address => CustomerEntity.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
-    public IReadOnlyList<Phone> Phones => CustomerEntity.Phones;
+    public IReadOnlyList<ContactPhone> Phones => CustomerEntity.Phones;
     public IReadOnlyList<Email> Emails => CustomerEntity.Emails;
 
     private Customer(
@@ -97,20 +97,20 @@ public class Customer : Entity
         return Result.Failure(RequiredMessage);
     }
 
-    public Result<Phone> AddPhone(Phone phone) =>
+    public Result<ContactPhone> AddPhone(ContactPhone phone) =>
         CustomerEntity switch
         {
             Person person => person.AddPhone(phone),
             Business business => business.AddPhone(phone),
-            _ => Result.Failure<Phone>(UnsupportedEntityTypeMessage),
+            _ => Result.Failure<ContactPhone>(UnsupportedEntityTypeMessage),
         };
 
-    public Result<Phone> RemovePhone(Phone phone) =>
+    public Result<ContactPhone> RemovePhone(ContactPhone phone) =>
         CustomerEntity switch
         {
             Person person => person.RemovePhone(phone),
             Business business => business.RemovePhone(phone),
-            _ => Result.Failure<Phone>(UnsupportedEntityTypeMessage),
+            _ => Result.Failure<ContactPhone>(UnsupportedEntityTypeMessage),
         };
 
     public Result<Email> AddEmail(Email email) =>

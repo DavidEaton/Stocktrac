@@ -62,6 +62,7 @@ public class ContactableShould
             emails: [CreateEmail("person@example.com", false)]);
 
         person.HasPhoneNumber("555-111-1111").ShouldBeTrue();
+        person.HasPhoneNumber(" (555) 111-1111 ").ShouldBeTrue();
         person.HasPhoneNumber("555-222-2222").ShouldBeFalse();
         person.HasEmailAddress("person@example.com").ShouldBeTrue();
         person.HasEmailAddress("other@example.com").ShouldBeFalse();
@@ -259,7 +260,7 @@ public class ContactableShould
 
     private static Person CreatePerson(
         IReadOnlyList<Email>? emails,
-        IReadOnlyList<Phone>? phones) =>
+        IReadOnlyList<ContactPhone>? phones) =>
         Person.Create(
             PersonName.Create("Doe", "Jane").Value,
             Note.Create("Some notes.").Value,
@@ -270,12 +271,12 @@ public class ContactableShould
             Maybe<DriversLicense>.None
             ).Value;
 
-    private static IReadOnlyList<Phone> CreatePhones() => [];
+    private static IReadOnlyList<ContactPhone> CreatePhones() => [];
 
     private static IReadOnlyList<Email> CreateEmails() => [];
 
-    private static Phone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
-        Phone.Create(number, phoneType, isPrimary).Value;
+    private static ContactPhone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
+        ContactPhone.Create(number, phoneType, isPrimary).Value;
 
     private static Email CreateEmail(string address, bool isPrimary) =>
         Email.Create(address, isPrimary).Value;
