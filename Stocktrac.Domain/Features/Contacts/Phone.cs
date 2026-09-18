@@ -20,14 +20,23 @@ public sealed record Phone : IHasPrimary
     }
 
     public static Result<Phone> Create(string number, PhoneType phoneType, bool isPrimary)
-        => Result.Combine(
+    {
+        var validNumber = number.AsValidPhoneNumber();
+
+        return Result.Combine(
                 Environment.NewLine,
-                number.AsValidPhoneNumber(),
+                validNumber,
                 phoneType.AsValidPhoneType())
-            .Map(() => new Phone(number.Trim(), phoneType, isPrimary));
+            .Map(() => new Phone(validNumber.Value, phoneType, isPrimary));
+    }
 
     public override string ToString()
     {
+        if (Number.StartsWith('+'))
+        {
+            return Number;
+        }
+
         var numericNumber = OnlyDigitsFrom(Number);
 
         return numericNumber.Length switch
