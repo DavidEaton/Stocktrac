@@ -56,26 +56,22 @@ public abstract partial class Contactable : Entity, IContactable
     public Result WithNotes(Note note) => Result.Success().Tap(() => Notes = note);
 
     public Result WithAddress(Address address) =>
-        address is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Address = address);
+        address is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success().Tap(() => Address = address);
 
     public void WithoutAddress() => Address = Maybe<Address>.None;
 
-    public bool HasPhoneNumber(string number)
-    {
-        var validNumber = PhoneNumber.Create(number);
-
-        return validNumber.IsSuccess &&
-            phoneCollection.Contains(validNumber.Value);
-    }
+    public bool HasPhoneNumber(string number) =>
+        PhoneNumber.Create(number)
+            .Match(phoneCollection.Contains, otherwise => false);
 
     public bool HasPrimaryPhone() => phoneCollection.HasPrimary;
 
-    public bool HasEmailAddress(string address)
-    {
-        var validAddress = EmailAddress.Create(address);
-
-        return validAddress.IsSuccess && HasEmailAddress(validAddress.Value);
-    }
+    public bool HasEmailAddress(string address) =>
+        EmailAddress
+        .Create(address)
+        .Match(HasEmailAddress, otherwise => false);
 
     private bool HasEmailAddress(EmailAddress address) => emailCollection.Contains(address);
 
