@@ -1,0 +1,26 @@
+using CSharpFunctionalExtensions;
+
+namespace Stocktrac.Domain.Features.Contacts;
+
+public sealed record ContactEmail : IHasPrimary
+{
+    public const string DuplicateMessage = "Email address already in use. Please enter a unique email address.";
+
+    public EmailAddress Address { get; private set; }
+    public bool IsPrimary { get; private set; }
+
+    private ContactEmail(EmailAddress address, bool isPrimary) =>
+        (Address, IsPrimary) = (address, isPrimary);
+
+    public static Result<ContactEmail> Create(string address, bool isPrimary) =>
+        EmailAddress.Create(address)
+            .Map(validAddress => new ContactEmail(validAddress, isPrimary));
+
+    public Result<ContactEmail> WithAddress(string address) =>
+        EmailAddress.Create(address)
+            .Map(validAddress => this with { Address = validAddress });
+
+    public ContactEmail WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
+
+    public override string ToString() => Address.ToString();
+}

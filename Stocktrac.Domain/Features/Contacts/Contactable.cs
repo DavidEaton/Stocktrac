@@ -12,7 +12,7 @@ public abstract partial class Contactable : Entity, IContactable
 
     private readonly List<ContactPhone> phones = [];
 
-    private readonly List<Email> emails = [];
+    private readonly List<ContactEmail> emails = [];
 
     public Note Notes { get; private set; }
 
@@ -20,7 +20,7 @@ public abstract partial class Contactable : Entity, IContactable
 
     public IReadOnlyList<ContactPhone> Phones => [.. phones];
 
-    public IReadOnlyList<Email> Emails => [.. emails];
+    public IReadOnlyList<ContactEmail> Emails => [.. emails];
 
     protected Contactable(
         Note notes,
@@ -68,9 +68,9 @@ public abstract partial class Contactable : Entity, IContactable
                 return Result.Success();
             });
 
-    public Result<Email> AddEmail(Email email) =>
+    public Result<ContactEmail> AddEmail(ContactEmail email) =>
         email is null
-            ? Result.Failure<Email>(RequiredMessage)
+            ? Result.Failure<ContactEmail>(RequiredMessage)
             : Result.Success(email)
             .Ensure(
                 requestedEmail => !HasEmailAddress(requestedEmail.Address),
@@ -81,15 +81,15 @@ public abstract partial class Contactable : Entity, IContactable
                 PrimaryExistsMessage)
             .Tap(emails.Add);
 
-    public Result<Email> RemoveEmail(Email email) =>
+    public Result<ContactEmail> RemoveEmail(ContactEmail email) =>
         email is null
-            ? Result.Failure<Email>(RequiredMessage)
+            ? Result.Failure<ContactEmail>(RequiredMessage)
             : Result.Success(email)
             .Ensure(requestedEmail => HasEmailAddress(requestedEmail.Address), NotFoundMessage)
             .Tap(requestedEmail =>
                 emails.RemoveAll(existingEmail => existingEmail.Address == requestedEmail.Address));
 
-    public Result ReplaceEmails(IReadOnlyList<Email> requestedEmails) =>
+    public Result ReplaceEmails(IReadOnlyList<ContactEmail> requestedEmails) =>
         ValidateContactList(
                 requestedEmails,
                 email => email.Address)
@@ -118,15 +118,21 @@ public abstract partial class Contactable : Entity, IContactable
 
     public bool HasPrimaryPhone() => phones.Any(phone => phone.IsPrimary);
 
-    public bool HasEmailAddress(string address) =>
-        !string.IsNullOrWhiteSpace(address) && emails.Any(existingEmail =>
-            existingEmail.Address == address);
+    public bool HasEmailAddress(string address)
+    {
+        var validAddress = EmailAddress.Create(address);
+
+        return validAddress.IsSuccess && HasEmailAddress(validAddress.Value);
+    }
+
+    private bool HasEmailAddress(EmailAddress address) =>
+        emails.Any(existingEmail => existingEmail.Address == address);
 
     public bool HasPrimaryEmail() => emails.Any(email => email.IsPrimary);
 
     protected static Result<ValidatedContactCollections> ValidateContactCollections(
             IReadOnlyList<ContactPhone> phones,
-            IReadOnlyList<Email> emails) =>
+            IReadOnlyList<ContactEmail> emails) =>
         ValidateContactList(
                 phones,
                 phone => phone.Number)

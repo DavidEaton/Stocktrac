@@ -24,7 +24,7 @@ public class Customer : Entity
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
     public IReadOnlyList<ContactPhone> Phones => CustomerEntity.Phones;
-    public IReadOnlyList<Email> Emails => CustomerEntity.Emails;
+    public IReadOnlyList<ContactEmail> Emails => CustomerEntity.Emails;
 
     private Customer(
         ICustomerEntity entity,
@@ -113,20 +113,20 @@ public class Customer : Entity
             _ => Result.Failure<ContactPhone>(UnsupportedEntityTypeMessage),
         };
 
-    public Result<Email> AddEmail(Email email) =>
+    public Result<ContactEmail> AddEmail(ContactEmail email) =>
         CustomerEntity switch
         {
             Person person => person.AddEmail(email),
             Business business => business.AddEmail(email),
-            _ => Result.Failure<Email>(UnsupportedEntityTypeMessage),
+            _ => Result.Failure<ContactEmail>(UnsupportedEntityTypeMessage),
         };
 
-    public Result<Email> RemoveEmail(Email email) =>
+    public Result<ContactEmail> RemoveEmail(ContactEmail email) =>
         CustomerEntity switch
         {
             Person person => person.RemoveEmail(email),
             Business business => business.RemoveEmail(email),
-            _ => Result.Failure<Email>(UnsupportedEntityTypeMessage),
+            _ => Result.Failure<ContactEmail>(UnsupportedEntityTypeMessage),
         };
 
     public Result<Vehicle> AddVehicle(Vehicle vehicle)

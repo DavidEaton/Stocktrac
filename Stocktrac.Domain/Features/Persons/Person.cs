@@ -29,7 +29,7 @@ public class Person : Contactable, ICustomerEntity
     public static Result<Person> Create(
         PersonName name,
         Note notes,
-        IReadOnlyList<Email> emails,
+        IReadOnlyList<ContactEmail> emails,
         IReadOnlyList<ContactPhone> phones,
         Maybe<Birthday> birthday,
         Maybe<Address> address,

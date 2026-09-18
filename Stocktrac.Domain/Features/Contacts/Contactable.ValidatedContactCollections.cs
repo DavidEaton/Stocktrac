@@ -5,11 +5,11 @@ public abstract partial class Contactable
     protected sealed class ValidatedContactCollections
     {
         public IReadOnlyList<ContactPhone> Phones { get; }
-        public IReadOnlyList<Email> Emails { get; }
+        public IReadOnlyList<ContactEmail> Emails { get; }
 
         internal  ValidatedContactCollections(
             IReadOnlyList<ContactPhone> phones,
-            IReadOnlyList<Email> emails) =>
+            IReadOnlyList<ContactEmail> emails) =>
             (Phones, Emails) = (phones, emails);
     }
 }
