@@ -20,6 +20,10 @@ namespace Stocktrac.Domain.Features.Contacts
 
         private Note(string note) => value = note;
 
+        public static implicit operator string(Note note) => note.Value;
+
+        public static explicit operator Note(string value) => new(value);
+
         private static string Normalize(string? notes) =>
             notes?.Trim() ?? string.Empty;
     }
