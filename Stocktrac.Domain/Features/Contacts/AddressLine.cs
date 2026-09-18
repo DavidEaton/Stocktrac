@@ -19,6 +19,12 @@ namespace Stocktrac.Domain.Features.Contacts
                 .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
                 .Map(normalized => new AddressLine(normalized));
 
+        public static implicit operator string(AddressLine addressLine) =>
+            addressLine.Value;
+
+        public static explicit operator AddressLine(string value) =>
+            new(value);
+            
         public override string ToString() => Value;
     }
 }

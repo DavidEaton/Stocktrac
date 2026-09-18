@@ -69,9 +69,8 @@ public abstract partial class Contactable : Entity, IContactable
     public bool HasPrimaryPhone() => phoneCollection.HasPrimary;
 
     public bool HasEmailAddress(string address) =>
-        EmailAddress
-        .Create(address)
-        .Match(HasEmailAddress, otherwise => false);
+        EmailAddress.Create(address)
+            .Match(HasEmailAddress, otherwise => false);
 
     private bool HasEmailAddress(EmailAddress address) => emailCollection.Contains(address);
 
