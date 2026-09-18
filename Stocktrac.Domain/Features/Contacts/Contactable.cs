@@ -10,7 +10,7 @@ public abstract partial class Contactable : Entity, IContactable
     public const string NotFoundMessage = "Entry not found.";
     public const string RequiredMessage = "Please include all required items.";
 
-    private readonly List<Phone> phones = [];
+    private readonly List<ContactPhone> phones = [];
 
     private readonly List<Email> emails = [];
 
@@ -18,7 +18,7 @@ public abstract partial class Contactable : Entity, IContactable
 
     public Maybe<Address> Address { get; private set; }
 
-    public IReadOnlyList<Phone> Phones => [.. phones];
+    public IReadOnlyList<ContactPhone> Phones => [.. phones];
 
     public IReadOnlyList<Email> Emails => [.. emails];
 
@@ -33,12 +33,12 @@ public abstract partial class Contactable : Entity, IContactable
         emails = [.. contacts.Emails];
     }
 
-    public Result<Phone> AddPhone(Phone phone) =>
+    public Result<ContactPhone> AddPhone(ContactPhone phone) =>
         phone is null
-            ? Result.Failure<Phone>(RequiredMessage)
+            ? Result.Failure<ContactPhone>(RequiredMessage)
             : Result.Success(phone)
             .Ensure(
-                requestedPhone => !HasPhoneNumber(requestedPhone.Number),
+                requestedPhone => !phones.Any(existingPhone => existingPhone.Number == requestedPhone.Number),
                 NonuniqueMessage)
             .Ensure(
                 requestedPhone =>
@@ -46,15 +46,17 @@ public abstract partial class Contactable : Entity, IContactable
                 PrimaryExistsMessage)
             .Tap(phones.Add);
 
-    public Result<Phone> RemovePhone(Phone phone) =>
+    public Result<ContactPhone> RemovePhone(ContactPhone phone) =>
         phone is null
-            ? Result.Failure<Phone>(RequiredMessage)
+            ? Result.Failure<ContactPhone>(RequiredMessage)
             : Result.Success(phone)
-            .Ensure(requestedPhone => HasPhoneNumber(requestedPhone.Number), NotFoundMessage)
+            .Ensure(
+                requestedPhone => phones.Any(existingPhone => existingPhone.Number == requestedPhone.Number),
+                NotFoundMessage)
             .Tap(requestedPhone =>
                 phones.RemoveAll(existingPhone => existingPhone.Number == requestedPhone.Number));
 
-    public Result ReplacePhones(IReadOnlyList<Phone> requestedPhones) =>
+    public Result ReplacePhones(IReadOnlyList<ContactPhone> requestedPhones) =>
         ValidateContactList(
                 requestedPhones,
                 phone => phone.Number)
@@ -106,9 +108,13 @@ public abstract partial class Contactable : Entity, IContactable
 
     public void WithoutAddress() => Address = Maybe<Address>.None;
 
-    public bool HasPhoneNumber(string number) =>
-        number.AsNonEmptyString().IsSuccess && phones.Any(existingPhone =>
-            existingPhone.Number == number);
+    public bool HasPhoneNumber(string number)
+    {
+        var validNumber = PhoneNumber.Create(number);
+
+        return validNumber.IsSuccess &&
+            phones.Any(existingPhone => existingPhone.Number == validNumber.Value);
+    }
 
     public bool HasPrimaryPhone() => phones.Any(phone => phone.IsPrimary);
 
@@ -119,7 +125,7 @@ public abstract partial class Contactable : Entity, IContactable
     public bool HasPrimaryEmail() => emails.Any(email => email.IsPrimary);
 
     protected static Result<ValidatedContactCollections> ValidateContactCollections(
-            IReadOnlyList<Phone> phones,
+            IReadOnlyList<ContactPhone> phones,
             IReadOnlyList<Email> emails) =>
         ValidateContactList(
                 phones,

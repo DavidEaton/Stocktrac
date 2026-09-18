@@ -21,7 +21,7 @@ Each replacement method treats its argument as the complete requested state:
 
 This contract removes the previous ID-based add/update inference. Callers no
 longer need to construct an intermediate object or depend on persistence IDs to
-express a collection edit. A request handler can map its input to domain `Phone`
+express a collection edit. A request handler can map its input to domain `ContactPhone`
 and `Email` instances, call the corresponding replacement method, and return the
 domain result directly.
 

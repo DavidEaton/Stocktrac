@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
@@ -8,8 +8,8 @@ public interface IContactable
 
     Maybe<Address> Address { get; }
 
-    // Phone and Email are immutable values; collection changes are owned by the aggregate.
-    IReadOnlyList<Phone> Phones { get; }
+    // ContactPhone and Email are immutable values; collection changes are owned by the aggregate.
+    IReadOnlyList<ContactPhone> Phones { get; }
 
     IReadOnlyList<Email> Emails { get; }
 
@@ -19,11 +19,11 @@ public interface IContactable
 
     void WithoutAddress();
 
-    Result<Phone> AddPhone(Phone phone);
+    Result<ContactPhone> AddPhone(ContactPhone phone);
 
-    Result<Phone> RemovePhone(Phone phone);
+    Result<ContactPhone> RemovePhone(ContactPhone phone);
 
-    Result ReplacePhones(IReadOnlyList<Phone> phones);
+    Result ReplacePhones(IReadOnlyList<ContactPhone> phones);
 
     Result<Email> AddEmail(Email email);
 

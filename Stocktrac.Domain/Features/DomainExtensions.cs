@@ -2,7 +2,6 @@ using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 
 namespace Stocktrac.Domain.Features;
 
@@ -49,28 +48,6 @@ public static class DomainExtensions
                 .Ensure(normalized => normalized.Length <= Email.MaximumLength, Email.MaximumLengthMessage)
                 .Ensure(normalized => new EmailAddressAttribute().IsValid(normalized), Email.InvalidMessage);
 
-        //
-        // Summary: 
-        //     Validates a string and converts it to a canonical phone number. An
-        //     international number retains its leading '+' while formatting characters
-        //     are removed from all numbers.
-        internal Result<string> AsValidPhoneNumber() =>
-            Result.Success(value)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => new PhoneAttribute().IsValid(normalized), Phone.InvalidMessage)
-                .Ensure(
-                    normalized => Regex.IsMatch(normalized, @"^\+?[0-9\s().-]+$"),
-                    Phone.InvalidMessage)
-                .Map(CanonicalizePhoneNumber)
-                .Ensure(
-                    normalized => Regex.IsMatch(normalized, @"^(?:[0-9]+|\+[1-9][0-9]{1,14})$"),
-                    Phone.InvalidMessage);
-    }
-
-    private static string CanonicalizePhoneNumber(string number)
-    {
-        var prefix = number.StartsWith('+') ? "+" : string.Empty;
-        return prefix + string.Concat(number.Where(character => character is >= '0' and <= '9'));
     }
 
     extension(PhoneType phoneType)
@@ -81,7 +58,7 @@ public static class DomainExtensions
         internal Result<PhoneType> AsValidPhoneType() =>
             Enum.IsDefined(phoneType)
                 ? Result.Success(phoneType)
-                : Result.Failure<PhoneType>(Phone.PhoneTypeInvalidMessage);
+                : Result.Failure<PhoneType>(ContactPhone.PhoneTypeInvalidMessage);
     }
 
     extension(AddressLine line)

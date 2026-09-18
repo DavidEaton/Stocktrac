@@ -263,5 +263,5 @@ public class ApplicationDbContext : DbContext
 
     // non-root entities requiring uniqueness checks
     // public DbSet<Email> Emails { get; set; }
-    // public DbSet<Phone> Phones { get; set; }
+    // public DbSet<ContactPhone> Phones { get; set; }
 }

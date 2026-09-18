@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
 
@@ -30,7 +30,7 @@ public class Person : Contactable, ICustomerEntity
         PersonName name,
         Note notes,
         IReadOnlyList<Email> emails,
-        IReadOnlyList<Phone> phones,
+        IReadOnlyList<ContactPhone> phones,
         Maybe<Birthday> birthday,
         Maybe<Address> address,
         Maybe<DriversLicense> driversLicense) =>
