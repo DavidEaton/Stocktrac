@@ -4,7 +4,7 @@ namespace Stocktrac.Domain.Features.Contacts
 {
     public sealed record AddressLine
     {
-        public const int MinimumLength = 2;
+        public const int MinimumLength = 1;
         public const int MaximumLength = 255;
         public static readonly string InvalidLengthMessage = $"Address must be between {MinimumLength} and {MaximumLength} characters.";
         public const string RequiredMessage = "Address Line is required.";
@@ -15,16 +15,19 @@ namespace Stocktrac.Domain.Features.Contacts
         public static Result<AddressLine> Create(string value) =>
             Result.Success(value)
                 .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => normalized.IsNonEmptyString(), RequiredMessage)
-                .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
+                .Ensure(
+                    normalized => normalized.IsNonEmptyString(),
+                    RequiredMessage)
+                .Ensure(
+                    normalized => normalized.Length.IsWithin(
+                        MinimumLength,
+                        MaximumLength),
+                    InvalidLengthMessage)
                 .Map(normalized => new AddressLine(normalized));
 
-        public static implicit operator string(AddressLine addressLine) =>
+        public static explicit operator string(AddressLine addressLine) =>
             addressLine.Value;
 
-        public static explicit operator AddressLine(string value) =>
-            new(value);
-            
         public override string ToString() => Value;
     }
 }

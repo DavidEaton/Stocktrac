@@ -77,7 +77,7 @@ public class DateTimeRangeShould
     [InlineData(3)]
     public void ReturnRequiredError_On_WithStart_WhenStartDoesNotPrecedeEnd(int hours) =>
         DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithStart(Start.AddHours(hours)).Error
-            .ShouldBe(DateTimeRange.RequiredMessage);
+            .ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void ReturnCopy_On_WithEnd_WhenEndFollowsStart() =>
@@ -89,7 +89,7 @@ public class DateTimeRangeShould
     [InlineData(-1)]
     public void ReturnRequiredError_On_WithEnd_WhenEndDoesNotFollowStart(int hours) =>
         DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithEnd(Start.AddHours(hours)).Error
-            .ShouldBe(DateTimeRange.RequiredMessage);
+            .ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void SetMaximumEnd_On_WithoutEnd_WhenRangeIsFinite()
