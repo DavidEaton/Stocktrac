@@ -29,6 +29,13 @@ public class ContactEmailShould
     }
 
     [Fact]
+    public void ExposeImmutableProperties()
+    {
+        typeof(ContactEmail).GetProperty(nameof(ContactEmail.Address))!.SetMethod.ShouldBeNull();
+        typeof(ContactEmail).GetProperty(nameof(ContactEmail.IsPrimary))!.SetMethod.ShouldBeNull();
+    }
+
+    [Fact]
     public void TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace()
     {
         var result = ContactEmail.Create("  john@doe.com  ", true);
@@ -150,6 +157,8 @@ public class ContactEmailShould
 
         result.IsSuccess.ShouldBe(true);
         result.Value.Address.Value.ShouldBe(updatedAddress);
+        result.Value.IsPrimary.ShouldBe(email.IsPrimary);
+        result.Value.ShouldNotBeSameAs(email);
         email.Address.Value.ShouldBe("email@email.com");
     }
 
@@ -178,6 +187,20 @@ public class ContactEmailShould
         email.Address.ShouldBe(originalAddress);
     }
 
+    [Theory]
+    [InlineData("", EmailAddress.EmptyMessage)]
+    [InlineData("a@b", "Email address cannot be less than 5 character(s) in length.")]
+    [InlineData("invalid-email-address.com", EmailAddress.InvalidMessage)]
+    public void ReturnSpecificError_On_WithAddress_WhenAddressIsInvalid(string address, string expectedError)
+    {
+        var email = Create_Valid_Primary_Email();
+
+        var result = email.WithAddress(address);
+
+        result.Error.ShouldBe(expectedError);
+        email.Address.Value.ShouldBe("email@email.com");
+    }
+
     [Fact]
     public void ReturnUpdatedCopy_On_WithIsPrimary_WhenValueChanges()
     {
@@ -187,7 +210,30 @@ public class ContactEmailShould
         var updated = email.WithIsPrimary(false);
 
         updated.IsPrimary.ShouldBe(false);
+        updated.Address.ShouldBe(email.Address);
+        updated.ShouldNotBeSameAs(email);
         email.IsPrimary.ShouldBe(true);
+    }
+
+    [Fact]
+    public void ReturnEquivalentDistinctCopy_On_WithIsPrimary_WhenValueDoesNotChange()
+    {
+        var email = Create_Valid_Primary_Email();
+
+        var updated = email.WithIsPrimary(true);
+
+        updated.ShouldBe(email);
+        updated.GetHashCode().ShouldBe(email.GetHashCode());
+        updated.ShouldNotBeSameAs(email);
+    }
+
+    [Fact]
+    public void NotEquateInstances_WhenOnlyPrimaryStatusDiffers()
+    {
+        var primary = Create_Valid_Primary_Email();
+        var secondary = ContactEmail.Create(primary.Address.Value, false).Value;
+
+        primary.ShouldNotBe(secondary);
     }
 
     internal static ContactEmail Create_Valid_Primary_Email()
