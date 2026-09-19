@@ -38,9 +38,9 @@ public class ContactableShould
     [Fact]
     public void RemoveContacts_ByTheirIdentifyingValues()
     {
-        var person = CreatePerson(
-            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)],
-            emails: [CreateEmail("person@example.com", false)]);
+        var storedPhone = CreatePhone("555-111-1111", PhoneType.Mobile, false);
+        var storedEmail = CreateEmail("person@example.com", false);
+        var person = CreatePerson(phones: [storedPhone], emails: [storedEmail]);
 
         var phoneWithDifferentDetails = CreatePhone(
             "555-111-1111",
@@ -48,8 +48,11 @@ public class ContactableShould
             true);
         var emailWithDifferentDetails = CreateEmail("person@example.com", true);
 
-        person.RemovePhone(phoneWithDifferentDetails).IsSuccess.ShouldBeTrue();
-        person.RemoveEmail(emailWithDifferentDetails).IsSuccess.ShouldBeTrue();
+        var removedPhone = person.RemovePhone(phoneWithDifferentDetails);
+        var removedEmail = person.RemoveEmail(emailWithDifferentDetails);
+
+        removedPhone.Value.ShouldBeSameAs(storedPhone);
+        removedEmail.Value.ShouldBeSameAs(storedEmail);
         person.Phones.ShouldBeEmpty();
         person.Emails.ShouldBeEmpty();
     }
@@ -256,6 +259,117 @@ public class ContactableShould
 
         person.ReplacePhones(null!).Error.ShouldBe(Contactable.RequiredMessage);
         person.ReplaceEmails(null!).Error.ShouldBe(Contactable.RequiredMessage);
+    }
+
+    [Fact]
+    public void ReturnFalse_On_ContactLookup_WhenInputIsInvalid()
+    {
+        var person = CreatePerson(
+            emails: [CreateEmail("person@example.com", false)],
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)]);
+
+        person.HasPhoneNumber(null).ShouldBeFalse();
+        person.HasPhoneNumber("not a phone").ShouldBeFalse();
+        person.HasEmailAddress(null).ShouldBeFalse();
+        person.HasEmailAddress("not an email").ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ReportPrimaryContacts_On_HasPrimary_WhenPrimaryContactsExist()
+    {
+        var person = CreatePerson(
+            emails: [CreateEmail("person@example.com", true)],
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)]);
+
+        person.HasPrimaryPhone().ShouldBeTrue();
+        person.HasPrimaryEmail().ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReportNoPrimaryContacts_On_HasPrimary_WhenCollectionsHaveNoPrimaryContacts()
+    {
+        var person = CreatePerson(
+            emails: [CreateEmail("person@example.com", false)],
+            phones: [CreatePhone("555-111-1111", PhoneType.Mobile, false)]);
+
+        person.HasPrimaryPhone().ShouldBeFalse();
+        person.HasPrimaryEmail().ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ReturnFailureResult_On_ReplaceContacts_WhenCollectionContainsNull()
+    {
+        var originalPhone = CreatePhone("555-111-1111", PhoneType.Mobile, true);
+        var originalEmail = CreateEmail("person@example.com", true);
+        var person = CreatePerson(emails: [originalEmail], phones: [originalPhone]);
+
+        var phoneResult = person.ReplacePhones([null!]);
+        var emailResult = person.ReplaceEmails([null!]);
+
+        phoneResult.Error.ShouldBe(Contactable.RequiredMessage);
+        emailResult.Error.ShouldBe(Contactable.RequiredMessage);
+        person.Phones.ShouldBe([originalPhone]);
+        person.Emails.ShouldBe([originalEmail]);
+    }
+
+    [Fact]
+    public void PreservePhones_On_ReplacePhones_WhenCollectionContainsMultiplePrimaries()
+    {
+        var original = CreatePhone("555-111-1111", PhoneType.Mobile, true);
+        var person = CreatePerson(emails: [], phones: [original]);
+
+        var result = person.ReplacePhones(
+        [
+            CreatePhone("555-222-2222", PhoneType.Home, true),
+            CreatePhone("555-333-3333", PhoneType.Work, true)
+        ]);
+
+        result.Error.ShouldBe(Contactable.MultiplePrimariesMessage);
+        person.Phones.ShouldBe([original]);
+    }
+
+    [Fact]
+    public void PreserveEmails_On_ReplaceEmails_WhenCollectionContainsDuplicateAddresses()
+    {
+        var original = CreateEmail("original@example.com", true);
+        var person = CreatePerson(emails: [original], phones: []);
+
+        var result = person.ReplaceEmails(
+        [
+            CreateEmail("duplicate@example.com", false),
+            CreateEmail("duplicate@example.com", false)
+        ]);
+
+        result.Error.ShouldBe(Contactable.NonuniqueMessage);
+        person.Emails.ShouldBe([original]);
+    }
+
+    [Fact]
+    public void ProtectCollections_From_ExternalMutation()
+    {
+        var phone = CreatePhone("555-111-1111", PhoneType.Mobile, false);
+        var email = CreateEmail("person@example.com", false);
+        var person = CreatePerson(emails: [email], phones: [phone]);
+        var phoneSnapshot = (IList<ContactPhone>)person.Phones;
+        var emailSnapshot = (IList<ContactEmail>)person.Emails;
+
+        phoneSnapshot[0] = CreatePhone("555-222-2222", PhoneType.Home, false);
+        emailSnapshot[0] = CreateEmail("other@example.com", false);
+
+        person.Phones.ShouldBe([phone]);
+        person.Emails.ShouldBe([email]);
+    }
+
+    [Fact]
+    public void UpdateNotes_On_WithNotes_WhenNoteIsValid()
+    {
+        var person = CreatePerson(emails: [], phones: []);
+        var replacement = Note.Create("Replacement notes").Value;
+
+        var result = person.WithNotes(replacement);
+
+        result.IsSuccess.ShouldBeTrue();
+        person.Notes.ShouldBe(replacement);
     }
 
     private static Person CreatePerson(

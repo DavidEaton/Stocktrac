@@ -12,11 +12,11 @@ public sealed record ContactEmail : IHasPrimary
     private ContactEmail(EmailAddress address, bool isPrimary) =>
         (Address, IsPrimary) = (address, isPrimary);
 
-    public static Result<ContactEmail> Create(string address, bool isPrimary) =>
+    public static Result<ContactEmail> Create(string? address, bool isPrimary) =>
         EmailAddress.Create(address)
             .Map(validAddress => new ContactEmail(validAddress, isPrimary));
 
-    public Result<ContactEmail> WithAddress(string address) =>
+    public Result<ContactEmail> WithAddress(string? address) =>
         EmailAddress.Create(address)
             .Map(validAddress => this with { Address = validAddress });
 

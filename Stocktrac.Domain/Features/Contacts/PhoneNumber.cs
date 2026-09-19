@@ -13,7 +13,7 @@ public sealed record PhoneNumber
     private PhoneNumber(string value) =>
         Value = value;
 
-    public static Result<PhoneNumber> Create(string value) =>
+    public static Result<PhoneNumber> Create(string? value) =>
         Result.Success(value)
             .Map(input => input?.Trim() ?? string.Empty)
             .Ensure(normalized => new PhoneAttribute().IsValid(normalized), InvalidMessage)

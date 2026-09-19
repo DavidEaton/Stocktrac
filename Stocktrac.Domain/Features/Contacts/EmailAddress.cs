@@ -16,7 +16,7 @@ public sealed record EmailAddress
 
     private EmailAddress(string value) => Value = value;
 
-    public static Result<EmailAddress> Create(string value) =>
+    public static Result<EmailAddress> Create(string? value) =>
         Result.Success(value)
             .Map(input => input?.Trim() ?? string.Empty)
             .Ensure(normalized => !string.IsNullOrWhiteSpace(normalized), EmptyMessage)

@@ -39,36 +39,36 @@ public abstract partial class Contactable : Entity, IContactable
         emailCollection = new(emails, email => email.Address);
     }
 
-    public Result<ContactPhone> AddPhone(ContactPhone phone) => phoneCollection.Add(phone);
+    public Result<ContactPhone> AddPhone(ContactPhone? phone) => phoneCollection.Add(phone);
 
-    public Result<ContactPhone> RemovePhone(ContactPhone phone) => phoneCollection.Remove(phone);
+    public Result<ContactPhone> RemovePhone(ContactPhone? phone) => phoneCollection.Remove(phone);
 
-    public Result ReplacePhones(IReadOnlyList<ContactPhone> requestedPhones) =>
+    public Result ReplacePhones(IReadOnlyList<ContactPhone>? requestedPhones) =>
         phoneCollection.Replace(requestedPhones);
 
-    public Result<ContactEmail> AddEmail(ContactEmail email) => emailCollection.Add(email);
+    public Result<ContactEmail> AddEmail(ContactEmail? email) => emailCollection.Add(email);
 
-    public Result<ContactEmail> RemoveEmail(ContactEmail email) => emailCollection.Remove(email);
+    public Result<ContactEmail> RemoveEmail(ContactEmail? email) => emailCollection.Remove(email);
 
-    public Result ReplaceEmails(IReadOnlyList<ContactEmail> requestedEmails) =>
+    public Result ReplaceEmails(IReadOnlyList<ContactEmail>? requestedEmails) =>
         emailCollection.Replace(requestedEmails);
 
     public Result WithNotes(Note note) => Result.Success().Tap(() => Notes = note);
 
-    public Result WithAddress(Address address) =>
+    public Result WithAddress(Address? address) =>
         address is null
             ? Result.Failure(RequiredMessage)
             : Result.Success().Tap(() => Address = address);
 
     public void WithoutAddress() => Address = Maybe<Address>.None;
 
-    public bool HasPhoneNumber(string number) =>
+    public bool HasPhoneNumber(string? number) =>
         PhoneNumber.Create(number)
             .Match(phoneCollection.Contains, otherwise => false);
 
     public bool HasPrimaryPhone() => phoneCollection.HasPrimary;
 
-    public bool HasEmailAddress(string address) =>
+    public bool HasEmailAddress(string? address) =>
         EmailAddress.Create(address)
             .Match(HasEmailAddress, otherwise => false);
 
@@ -78,8 +78,8 @@ public abstract partial class Contactable : Entity, IContactable
     public bool HasPrimaryEmail() => emailCollection.HasPrimary;
 
     protected static Result<ValidatedContactCollections> ValidateContactCollections(
-            IReadOnlyList<ContactPhone> phones,
-            IReadOnlyList<ContactEmail> emails) =>
+            IReadOnlyList<ContactPhone>? phones,
+            IReadOnlyList<ContactEmail>? emails) =>
         ContactCollection<ContactPhone, PhoneNumber>.Validate(
                 phones,
                 phone => phone.Number)

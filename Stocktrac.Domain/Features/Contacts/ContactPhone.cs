@@ -17,7 +17,7 @@ public sealed record ContactPhone : IHasPrimary
         IsPrimary = isPrimary;
     }
 
-    public static Result<ContactPhone> Create(string number, PhoneType phoneType, bool isPrimary)
+    public static Result<ContactPhone> Create(string? number, PhoneType phoneType, bool isPrimary)
     {
         var validNumber = PhoneNumber.Create(number);
 
@@ -30,7 +30,7 @@ public sealed record ContactPhone : IHasPrimary
 
     public override string ToString() => Number.ToString();
 
-    public Result<ContactPhone> WithNumber(string number) =>
+    public Result<ContactPhone> WithNumber(string? number) =>
         PhoneNumber.Create(number)
             .Map(validNumber => this with { Number = validNumber });
 

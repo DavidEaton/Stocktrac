@@ -15,27 +15,27 @@ public interface IContactable
 
     Result WithNotes(Note note);
 
-    Result WithAddress(Address address);
+    Result WithAddress(Address? address);
 
     void WithoutAddress();
 
-    Result<ContactPhone> AddPhone(ContactPhone phone);
+    Result<ContactPhone> AddPhone(ContactPhone? phone);
 
-    Result<ContactPhone> RemovePhone(ContactPhone phone);
+    Result<ContactPhone> RemovePhone(ContactPhone? phone);
 
-    Result ReplacePhones(IReadOnlyList<ContactPhone> phones);
+    Result ReplacePhones(IReadOnlyList<ContactPhone>? phones);
 
-    Result<ContactEmail> AddEmail(ContactEmail email);
+    Result<ContactEmail> AddEmail(ContactEmail? email);
 
-    Result<ContactEmail> RemoveEmail(ContactEmail email);
+    Result<ContactEmail> RemoveEmail(ContactEmail? email);
 
-    Result ReplaceEmails(IReadOnlyList<ContactEmail> emails);
+    Result ReplaceEmails(IReadOnlyList<ContactEmail>? emails);
 
-    bool HasPhoneNumber(string number);
+    bool HasPhoneNumber(string? number);
 
     bool HasPrimaryPhone();
 
-    bool HasEmailAddress(string address);
+    bool HasEmailAddress(string? address);
 
     bool HasPrimaryEmail();
 }

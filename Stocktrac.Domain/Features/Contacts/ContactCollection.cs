@@ -17,7 +17,7 @@ internal sealed class ContactCollection<TContact, TIdentity>
 
     internal IReadOnlyList<TContact> Items => [.. contacts];
 
-    internal Result<TContact> Add(TContact contact) =>
+    internal Result<TContact> Add(TContact? contact) =>
         contact is null
             ? Result.Failure<TContact>(Contactable.RequiredMessage)
             : Result.Success(contact)
@@ -29,18 +29,13 @@ internal sealed class ContactCollection<TContact, TIdentity>
                     Contactable.PrimaryExistsMessage)
                 .Tap(contacts.Add);
 
-    internal Result<TContact> Remove(TContact contact) =>
+    internal Result<TContact> Remove(TContact? contact) =>
         contact is null
             ? Result.Failure<TContact>(Contactable.RequiredMessage)
             : Result.Success(contact)
-                .Ensure(
-                    requestedContact => Contains(getIdentity(requestedContact)),
-                    Contactable.NotFoundMessage)
-                .Tap(requestedContact =>
-                    contacts.RemoveAll(existingContact =>
-                        HasIdentity(existingContact, getIdentity(requestedContact))));
+                .Bind(RemoveByIdentity);
 
-    internal Result Replace(IReadOnlyList<TContact> requestedContacts) =>
+    internal Result Replace(IReadOnlyList<TContact>? requestedContacts) =>
         Validate(requestedContacts, getIdentity)
             .Bind(validContacts =>
             {
@@ -56,7 +51,7 @@ internal sealed class ContactCollection<TContact, TIdentity>
     internal bool HasPrimary => contacts.Any(contact => contact.IsPrimary);
 
     internal static Result<IReadOnlyList<TContact>> Validate(
-        IReadOnlyList<TContact> contacts,
+        IReadOnlyList<TContact>? contacts,
         Func<TContact, TIdentity> getIdentity) =>
         contacts is null
             ? Result.Failure<IReadOnlyList<TContact>>(Contactable.RequiredMessage)
@@ -75,4 +70,18 @@ internal sealed class ContactCollection<TContact, TIdentity>
 
     private bool HasIdentity(TContact contact, TIdentity identity) =>
         EqualityComparer<TIdentity>.Default.Equals(getIdentity(contact), identity);
+
+    private Result<TContact> RemoveByIdentity(TContact requestedContact)
+    {
+        var identity = getIdentity(requestedContact);
+        var existingContact = contacts.FirstOrDefault(contact => HasIdentity(contact, identity));
+
+        if (existingContact is null)
+        {
+            return Result.Failure<TContact>(Contactable.NotFoundMessage);
+        }
+
+        contacts.Remove(existingContact);
+        return Result.Success(existingContact);
+    }
 }
