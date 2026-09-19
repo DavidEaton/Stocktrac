@@ -7,10 +7,10 @@ namespace Stocktrac.Domain.Features.Persons
         public static readonly DateTime MinimumDate = new(1900, 1, 1);
         public static DateTime MaximumDate => DateTime.Today;
 
-        private readonly DateTime _date;
+        public DateTime Value { get; }
 
         private Birthday(DateTime date) =>
-            _date = date;
+            Value = date;
 
         public static Result<Birthday> Create(DateTime date) =>
             Result.Combine(
@@ -21,6 +21,6 @@ namespace Stocktrac.Domain.Features.Persons
                 .Map(() => new Birthday(date));
 
         public override string ToString() =>
-            _date.ToShortDateString();
+            Value.ToShortDateString();
     }
 }

@@ -353,8 +353,10 @@ public class ContactableShould
         var phoneSnapshot = (IList<ContactPhone>)person.Phones;
         var emailSnapshot = (IList<ContactEmail>)person.Emails;
 
-        phoneSnapshot[0] = CreatePhone("555-222-2222", PhoneType.Home, false);
-        emailSnapshot[0] = CreateEmail("other@example.com", false);
+        Should.Throw<NotSupportedException>(() =>
+            phoneSnapshot[0] = CreatePhone("555-222-2222", PhoneType.Home, false));
+        Should.Throw<NotSupportedException>(() =>
+            emailSnapshot[0] = CreateEmail("other@example.com", false));
 
         person.Phones.ShouldBe([phone]);
         person.Emails.ShouldBe([email]);

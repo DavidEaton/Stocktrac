@@ -13,18 +13,18 @@ public class DomainObjectConversionsShould
     [Fact]
     public void CreateStringBackedValuesFromValidStrings()
     {
-        AssertStringValue("123 Main Street", AddressLine.Create);
-        AssertStringValue("Acme Automotive", BusinessName.Create);
-        AssertStringValue("Springfield", City.Create);
-        AssertStringValue("D123456", DriversLicenseNumber.Create);
-        AssertStringValue("owner@example.com", EmailAddress.Create);
-        AssertStringValue("Remember this", Note.Create);
-        AssertStringValue("15551234567", PhoneNumber.Create);
-        AssertStringValue("90210", PostalCode.Create);
-        AssertStringValue("CUST-100", CustomerCode.Create);
-        AssertStringValue("Visa", CreditCardName.Create);
-        AssertStringValue("CAD", CurrencyCode.Create);
-        AssertStringValue("123456789", SSN.Create);
+        AssertStringValue("123 Main Street", AddressLine.Create, value => value.Value);
+        AssertStringValue("Acme Automotive", BusinessName.Create, value => value.Name);
+        AssertStringValue("Springfield", City.Create, value => value.Value);
+        AssertStringValue("D123456", DriversLicenseNumber.Create, value => value.Number);
+        AssertStringValue("owner@example.com", EmailAddress.Create, value => value.Value);
+        AssertStringValue("Remember this", Note.Create, value => value.Value);
+        AssertStringValue("15551234567", PhoneNumber.Create, value => value.Value);
+        AssertStringValue("90210", PostalCode.Create, value => value.Value);
+        AssertStringValue("CUST-100", CustomerCode.Create, value => value.Value);
+        AssertStringValue("Visa", CreditCardName.Create, value => value.Value);
+        AssertStringValue("CAD", CurrencyCode.Create, value => value.Value);
+        AssertStringValue("123456789", SSN.Create, value => value.Value);
     }
 
     [Fact]
@@ -44,16 +44,17 @@ public class DomainObjectConversionsShould
         var result = Birthday.Create(date);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeEquivalentTo(date);
+        result.Value.Value.ShouldBe(date);
     }
 
     private static void AssertStringValue<T>(
         string expected,
-        Func<string, Result<T>> factory)
+        Func<string, Result<T>> factory,
+        Func<T, string> getValue)
     {
         var result = factory(expected);
 
         result.IsSuccess.ShouldBeTrue();
-        result!.Value!.ToString().ShouldBe(expected);
+        getValue(result.Value).ShouldBe(expected);
     }
 }
