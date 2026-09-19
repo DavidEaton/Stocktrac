@@ -1,4 +1,6 @@
-﻿namespace Stocktrac.Domain.Features;
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace Stocktrac.Domain.Features;
 
 public abstract class Entity
 {
@@ -20,20 +22,15 @@ public abstract class Entity
         return Id == other.Id;
     }
 
-    public static bool operator ==(Entity a, Entity b)
-    {
-        if (a is null && b is null)
-            return true;
+    public static bool operator ==(Entity? a, Entity? b) =>
+        a is null
+            ? b is null
+            : b is not null && a.Equals(b);
 
-        if (a is null || b is null)
-            return false;
-
-        return a.Equals(b);
-    }
 
     public static bool operator !=(Entity a, Entity b) =>
         !(a == b);
 
     public override int GetHashCode() =>
-        (GetType().ToString() + Id).GetHashCode();
+        HashCode.Combine(GetType(), Id);
 }

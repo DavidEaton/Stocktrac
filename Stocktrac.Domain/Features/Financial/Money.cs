@@ -2,9 +2,6 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Financial;
 
-/// <summary>
-/// A monetary amount paired with its currency. All operations return results rather than throwing for expected domain failures.
-/// </summary>
 public readonly record struct Money
 {
     public const string CurrencyMismatchMessage = "Money values must have the same currency.";

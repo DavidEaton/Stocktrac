@@ -21,9 +21,17 @@ public class AddressLineShould
     }
 
     [Theory]
-    [InlineData(1)]
+    [InlineData(0)]
+    public void ReturnRequiredError_On_Create_WhenTrimmedValueIsOutsideLowerBound(int length)
+    {
+        var result = AddressLine.Create($"  {new string('a', length)}  ");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(AddressLine.RequiredMessage);
+    }
+    [Theory]
     [InlineData(256)]
-    public void ReturnLengthError_On_Create_WhenTrimmedValueIsOutsideBounds(int length)
+    public void ReturnLengthError_On_Create_WhenTrimmedValueIsOutsideUpperBound(int length)
     {
         var result = AddressLine.Create($"  {new string('a', length)}  ");
 
@@ -32,7 +40,7 @@ public class AddressLineShould
     }
 
     [Theory]
-    [InlineData(2)]
+    [InlineData(1)]
     [InlineData(255)]
     public void PreserveTrimmedValue_On_Create_WhenValueIsAtLengthBoundary(int length)
     {
@@ -75,9 +83,9 @@ public class AddressLineShould
     [Fact]
     public void ExposeValidationContractConstants()
     {
-        AddressLine.MinimumLength.ShouldBe(2);
+        AddressLine.MinimumLength.ShouldBe(1);
         AddressLine.MaximumLength.ShouldBe(255);
         AddressLine.RequiredMessage.ShouldBe("Address Line is required.");
-        AddressLine.InvalidLengthMessage.ShouldBe("Address must be between 2 and 255 characters.");
+        AddressLine.InvalidLengthMessage.ShouldBe("Address must be between 1 and 255 characters.");
     }
 }

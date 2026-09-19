@@ -65,7 +65,7 @@ public class Customer : Entity
                 return Result.Success();
 
             default:
-                throw new InvalidOperationException(UnsupportedEntityTypeMessage);
+                 return Result.Failure(UnsupportedEntityTypeMessage);
         }
     }
 
