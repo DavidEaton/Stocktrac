@@ -44,9 +44,7 @@ public class DomainObjectConversionsShould
         var result = Birthday.Create(date);
 
         result.IsSuccess.ShouldBeTrue();
-
-        DateTime value = result.Value;
-        value.ShouldBe(date);
+        result.Value.ShouldBeEquivalentTo(date);
     }
 
     private static void AssertStringValue<T>(

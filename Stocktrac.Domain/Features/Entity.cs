@@ -1,6 +1,5 @@
 ﻿namespace Stocktrac.Domain.Features;
-// Targeting tests at the abstract base class binds them to the code’s implementation details.
-// Always test all concrete classes; don’t test abstract classes directly (like Contactable)
+
 public abstract class Entity
 {
     public virtual long Id { get; protected set; }

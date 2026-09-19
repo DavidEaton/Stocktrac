@@ -8,7 +8,6 @@ public interface IContactable
 
     Maybe<Address> Address { get; }
 
-    // ContactPhone and ContactEmail are immutable values; collection changes are owned by the aggregate.
     IReadOnlyList<ContactPhone> Phones { get; }
 
     IReadOnlyList<ContactEmail> Emails { get; }

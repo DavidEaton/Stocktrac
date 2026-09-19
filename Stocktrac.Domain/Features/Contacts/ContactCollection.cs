@@ -33,12 +33,7 @@ internal sealed class ContactCollection<TContact, TIdentity>
         contact is null
             ? Result.Failure<TContact>(Contactable.RequiredMessage)
             : Result.Success(contact)
-                .Ensure(
-                    requestedContact => Contains(getIdentity(requestedContact)),
-                    Contactable.NotFoundMessage)
-                .Tap(requestedContact =>
-                    contacts.RemoveAll(existingContact =>
-                        HasIdentity(existingContact, getIdentity(requestedContact))));
+                .Bind(RemoveByIdentity);
 
     internal Result Replace(IReadOnlyList<TContact> requestedContacts) =>
         Validate(requestedContacts, getIdentity)
@@ -75,4 +70,10 @@ internal sealed class ContactCollection<TContact, TIdentity>
 
     private bool HasIdentity(TContact contact, TIdentity identity) =>
         EqualityComparer<TIdentity>.Default.Equals(getIdentity(contact), identity);
+
+    private Result<TContact> RemoveByIdentity(TContact requestedContact) =>
+        Maybe<TContact>
+            .From(contacts.FirstOrDefault(contact => HasIdentity(contact, getIdentity(requestedContact))))
+            .ToResult(Contactable.NotFoundMessage)
+            .Tap(contact => contacts.Remove(contact));
 }

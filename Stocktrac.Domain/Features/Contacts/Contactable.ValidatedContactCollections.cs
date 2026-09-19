@@ -7,7 +7,7 @@ public abstract partial class Contactable
         public IReadOnlyList<ContactPhone> Phones { get; }
         public IReadOnlyList<ContactEmail> Emails { get; }
 
-        internal  ValidatedContactCollections(
+        internal ValidatedContactCollections(
             IReadOnlyList<ContactPhone> phones,
             IReadOnlyList<ContactEmail> emails) =>
             (Phones, Emails) = (phones, emails);
