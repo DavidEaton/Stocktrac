@@ -17,9 +17,5 @@ public sealed record BusinessName
                 .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
                 .Map(normalized => new BusinessName(normalized));
 
-    public static implicit operator string(BusinessName businessName) => businessName.Name;
-
-    public static explicit operator BusinessName(string name) => new(name);
-
     public override string ToString() => Name;
 }

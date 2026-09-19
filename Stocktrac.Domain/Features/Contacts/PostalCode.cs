@@ -19,10 +19,6 @@ public sealed record PostalCode
             .Ensure(normalized => normalized.All(char.IsDigit), InvalidMessage)
             .Map(normalized => new PostalCode(normalized));
 
-    public static implicit operator string(PostalCode postalCode) => postalCode.Value;
-
-    public static explicit operator PostalCode(string value) => new(value);
-
     public override string ToString() =>
         Value;
 }

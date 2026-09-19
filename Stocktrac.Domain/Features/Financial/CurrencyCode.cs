@@ -34,10 +34,6 @@ public readonly record struct CurrencyCode
             .Ensure(Iso4217CountryCurrencyCodes.Contains, UnsupportedMessage)
             .Map(value => new CurrencyCode(value));
 
-    public static implicit operator string(CurrencyCode currencyCode) => currencyCode.Value;
-
-    public static explicit operator CurrencyCode(string code) => new(code);
-
     private static string NormalizeCode(string? code) =>
         code?.Trim().ToUpperInvariant()
         ?? string.Empty;

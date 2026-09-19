@@ -38,10 +38,6 @@ public sealed record SSN
             .Map(() => new SSN(normalized!));
     }
 
-    public static implicit operator string(SSN socialSecurityNumber) => socialSecurityNumber.Value;
-
-    public static explicit operator SSN(string value) => new(value);
-
     private static string? Normalize(string value) =>
         value.Length switch
         {

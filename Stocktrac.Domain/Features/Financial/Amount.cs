@@ -23,10 +23,6 @@ public readonly record struct Amount
     public static Amount FromDecimal(decimal value) =>
         new(value);
 
-    public static implicit operator decimal(Amount amount) => amount.Value;
-
-    public static explicit operator Amount(decimal value) => new(value);
-
     public Result<Amount> Add(Amount other) =>
         Calculate(Value, other.Value, static (left, right) => left + right);
 

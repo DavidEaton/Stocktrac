@@ -39,5 +39,4 @@ public sealed record ContactPhone : IHasPrimary
             .Map(validPhoneType => this with { PhoneType = validPhoneType });
 
     public ContactPhone WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
-
 }

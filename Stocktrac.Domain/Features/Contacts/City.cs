@@ -19,10 +19,6 @@ namespace Stocktrac.Domain.Features.Contacts
                 .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
                 .Map(normalized => new City(normalized));
 
-        public static implicit operator string(City city) => city.Value;
-
-        public static explicit operator City(string value) => new(value);
-
         public override string ToString() => Value;
     }
 }

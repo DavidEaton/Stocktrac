@@ -25,9 +25,6 @@ namespace Stocktrac.Domain.Features.Contacts
                     InvalidLengthMessage)
                 .Map(normalized => new AddressLine(normalized));
 
-        public static explicit operator string(AddressLine addressLine) =>
-            addressLine.Value;
-
         public override string ToString() => Value;
     }
 }
