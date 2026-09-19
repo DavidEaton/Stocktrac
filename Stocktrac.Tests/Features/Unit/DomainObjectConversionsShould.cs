@@ -1,4 +1,6 @@
+using CSharpFunctionalExtensions;
 using Shouldly;
+
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
 using Stocktrac.Domain.Features.Financial;
@@ -9,49 +11,51 @@ namespace Stocktrac.Tests.Features.Unit;
 public class DomainObjectConversionsShould
 {
     [Fact]
-    public void ConvertStringBackedValuesToAndFromStrings()
+    public void CreateStringBackedValuesFromValidStrings()
     {
-        AssertStringConversion("123 Main Street", value => (AddressLine)value, value => value);
-        AssertStringConversion("Acme Automotive", value => (BusinessName)value, value => value);
-        AssertStringConversion("Springfield", value => (City)value, value => value);
-        AssertStringConversion("D123456", value => (DriversLicenseNumber)value, value => value);
-        AssertStringConversion("owner@example.com", value => (EmailAddress)value, value => value);
-        AssertStringConversion("Remember this", value => (Note)value, value => value);
-        AssertStringConversion("15551234567", value => (PhoneNumber)value, value => value);
-        AssertStringConversion("90210", value => (PostalCode)value, value => value);
-        AssertStringConversion("CUST-100", value => (CustomerCode)value, value => value);
-        AssertStringConversion("Visa", value => (CreditCardName)value, value => value);
-        AssertStringConversion("CAD", value => (CurrencyCode)value, value => value);
-        AssertStringConversion("123456789", value => (SSN)value, value => value);
+        AssertStringValue("123 Main Street", AddressLine.Create);
+        AssertStringValue("Acme Automotive", BusinessName.Create);
+        AssertStringValue("Springfield", City.Create);
+        AssertStringValue("D123456", DriversLicenseNumber.Create);
+        AssertStringValue("owner@example.com", EmailAddress.Create);
+        AssertStringValue("Remember this", Note.Create);
+        AssertStringValue("15551234567", PhoneNumber.Create);
+        AssertStringValue("90210", PostalCode.Create);
+        AssertStringValue("CUST-100", CustomerCode.Create);
+        AssertStringValue("Visa", CreditCardName.Create);
+        AssertStringValue("CAD", CurrencyCode.Create);
+        AssertStringValue("123456789", SSN.Create);
     }
 
     [Fact]
-    public void ConvertAmountToAndFromDecimal()
+    public void CreateAmountFromDecimalAndConvertBack()
     {
-        var amount = (Amount)123.45m;
-        decimal value = amount;
+        var result = Amount.FromDecimal(123.45m);
 
+        decimal value = result.Value;
         value.ShouldBe(123.45m);
     }
 
     [Fact]
-    public void ConvertBirthdayToAndFromDateTime()
+    public void CreateBirthdayFromDateTimeAndConvertBack()
     {
         var date = new DateTime(1990, 6, 15);
-        var birthday = (Birthday)date;
-        DateTime value = birthday;
 
+        var result = Birthday.Create(date);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        DateTime value = result.Value;
         value.ShouldBe(date);
     }
 
-    private static void AssertStringConversion<T>(
+    private static void AssertStringValue<T>(
         string expected,
-        Func<string, T> fromString,
-        Func<T, string> toString)
+        Func<string, Result<T>> factory)
     {
-        var domainValue = fromString(expected);
-        string value = toString(domainValue);
+        var result = factory(expected);
 
-        value.ShouldBe(expected);
+        result.IsSuccess.ShouldBeTrue();
+        result!.Value!.ToString().ShouldBe(expected);
     }
 }
