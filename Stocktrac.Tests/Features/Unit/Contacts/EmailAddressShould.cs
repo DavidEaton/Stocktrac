@@ -46,6 +46,39 @@ public class EmailAddressShould
     }
 
     [Fact]
+    public void ReturnEmptyError_On_Create_WhenValueContainsOnlyWhitespace()
+    {
+        var result = EmailAddress.Create("   ");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(EmailAddress.EmptyMessage);
+    }
+
+    [Fact]
+    public void AcceptMaximumLength_On_Create_WhenValueIsValid()
+    {
+        var value = $"{new string('a', EmailAddress.MaximumLength - 6)}@x.com";
+
+        var result = EmailAddress.Create(value);
+
+        value.Length.ShouldBe(EmailAddress.MaximumLength);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBe(value);
+    }
+
+    [Fact]
+    public void ReturnMaximumLengthError_On_Create_WhenValueExceedsMaximumLength()
+    {
+        var value = $"{new string('a', EmailAddress.MaximumLength - 5)}@x.com";
+
+        var result = EmailAddress.Create(value);
+
+        value.Length.ShouldBe(EmailAddress.MaximumLength + 1);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(EmailAddress.MaximumLengthMessage);
+    }
+
+    [Fact]
     public void EquateDistinctInstances_WhenValuesAreTheSame()
     {
         var first = EmailAddress.Create("john@doe.com").Value;

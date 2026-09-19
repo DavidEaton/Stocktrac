@@ -6,8 +6,8 @@ public sealed record ContactEmail : IHasPrimary
 {
     public const string DuplicateMessage = "Email address already in use. Please enter a unique email address.";
 
-    public EmailAddress Address { get; private set; }
-    public bool IsPrimary { get; private set; }
+    public EmailAddress Address { get; }
+    public bool IsPrimary { get; }
 
     private ContactEmail(EmailAddress address, bool isPrimary) =>
         (Address, IsPrimary) = (address, isPrimary);
@@ -18,9 +18,9 @@ public sealed record ContactEmail : IHasPrimary
 
     public Result<ContactEmail> WithAddress(string address) =>
         EmailAddress.Create(address)
-            .Map(validAddress => this with { Address = validAddress });
+            .Map(validAddress => new ContactEmail(validAddress, IsPrimary));
 
-    public ContactEmail WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
+    public ContactEmail WithIsPrimary(bool isPrimary) => new(Address, isPrimary);
 
     public override string ToString() => Address.ToString();
 }
