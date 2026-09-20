@@ -4,15 +4,15 @@ namespace Stocktrac.Domain.Features.Persons
 {
     public sealed record Birthday
     {
-        public static readonly DateTime MinimumDate = new(1900, 1, 1);
-        public static DateTime MaximumDate => DateTime.Today;
+        public static readonly DateOnly MinimumDate = new(1900, 1, 1);
+        public static DateOnly MaximumDate => DateOnly.FromDateTime(DateTime.Today);
 
-        public DateTime Value { get; }
+        public DateOnly Value { get; }
 
-        private Birthday(DateTime date) =>
+        private Birthday(DateOnly date) =>
             Value = date;
 
-        public static Result<Birthday> Create(DateTime date) =>
+        public static Result<Birthday> Create(DateOnly date) =>
             Result.Combine(
                     Environment.NewLine,
                     Result.FailureIf(

@@ -37,14 +37,14 @@ public class DomainObjectConversionsShould
     }
 
     [Fact]
-    public void CreateBirthdayFromDateTimeAndConvertBack()
+    public void CreateBirthdayFromDateOnlyAndConvertBack()
     {
-        var date = new DateTime(1990, 6, 15);
+        var date = new DateOnly(1990, 6, 15);
 
         var result = Birthday.Create(date);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeSameAs(date);
+        result.Value.Value.ShouldBe(date);
     }
 
     private static void AssertStringValue<T>(
