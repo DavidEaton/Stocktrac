@@ -4,7 +4,7 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record DriversLicense
 {
-    public static readonly DateTime MinimumValidDate =
+    public static readonly DateOnly MinimumValidDate =
         new(1900, 1, 1);
 
     public const int MaximumValidityYears = 50;
@@ -47,7 +47,7 @@ public sealed record DriversLicense
         DriversLicenseNumber number,
         State state,
         DateTimeRange dateRange,
-        DateTime today)
+        DateOnly today)
     {
         var numberResult =
             number.AsValidDriversLicenseNumber();
@@ -83,11 +83,11 @@ public sealed record DriversLicense
 
     public Result<DriversLicense> WithValidDateRange(
         DateTimeRange dateRange,
-        DateTime today) =>
+        DateOnly today) =>
         dateRange.AsValidDriversLicenseDateTimeRange(today)
             .Map(validDateRange =>
                 this with { ValidDateRange = validDateRange });
 
-    public bool IsExpired(DateTime today) =>
-        ValidDateRange.End.Date < today.Date;
+    public bool IsExpired(DateOnly today) =>
+        ValidDateRange.End < today;
 }
