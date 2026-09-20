@@ -5,12 +5,12 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 
 public class DateTimeRangeShould
 {
-    private static readonly DateTime Start = new(2025, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+    private static readonly DateOnly Start = new(2025, 1, 15);
 
     [Fact]
     public void PreserveDates_On_Create_WhenEndFollowsStart()
     {
-        var end = Start.AddHours(2);
+        var end = Start.AddDays(2);
         var result = DateTimeRange.Create(Start, end);
 
         result.IsSuccess.ShouldBeTrue();
@@ -19,7 +19,14 @@ public class DateTimeRangeShould
     }
 
     [Fact]
-    public void ExposeImmutableBoundaries()
+    public void ExposeDateOnlyBoundaries_On_StartAndEnd()
+    {
+        typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.Start))!.PropertyType.ShouldBe(typeof(DateOnly));
+        typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.End))!.PropertyType.ShouldBe(typeof(DateOnly));
+    }
+
+    [Fact]
+    public void ExposeImmutableBoundaries_On_StartAndEnd()
     {
         typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.Start))!.SetMethod.ShouldBeNull();
         typeof(DateTimeRange).GetProperty(nameof(DateTimeRange.End))!.SetMethod.ShouldBeNull();
@@ -28,46 +35,29 @@ public class DateTimeRangeShould
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void ReturnEndBeforeStartError_On_Create_WhenEndDoesNotFollowStart(int minuteOffset) =>
-        DateTimeRange.Create(Start, Start.AddMinutes(minuteOffset)).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
-
-    [Fact]
-    public void CalculateEnd_On_Create_WhenDurationIsPositive() =>
-        DateTimeRange.Create(Start, TimeSpan.FromMinutes(90)).Value.End.ShouldBe(Start.AddMinutes(90));
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void ReturnEndBeforeStartError_On_Create_WhenDurationIsNotPositive(int minutes) =>
-        DateTimeRange.Create(Start, TimeSpan.FromMinutes(minutes)).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
-
-    [Fact]
-    public void ReturnCalculationError_On_Create_WhenDurationOverflows() =>
-        DateTimeRange.Create(DateTime.MaxValue, TimeSpan.FromTicks(1)).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
-
-    [Fact]
-    public void ReturnWholeMinutes_On_DurationInMinutes_WhenDurationHasPartialMinute()
+    public void ReturnEndBeforeStartError_On_Create_WhenEndDoesNotFollowStart(int dayOffset)
     {
-        var range = DateTimeRange.Create(Start, Start.AddSeconds(119)).Value;
+        var result = DateTimeRange.Create(Start, Start.AddDays(dayOffset));
 
-        range.DurationInMinutes().Value.ShouldBe(1);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
     }
 
     [Fact]
-    public void ReturnCalculationError_On_DurationInMinutes_WhenDurationExceedsIntegerRange()
-    {
-        var range = DateTimeRange.Create(DateTime.MinValue, DateTime.MaxValue).Value;
+    public void ReturnDayCount_On_DurationInDays_WhenRangeIsValid() =>
+        DateTimeRange.Create(Start, Start.AddDays(10)).Value.DurationInDays().Value.ShouldBe(10);
 
-        range.DurationInMinutes().Error.ShouldBe(DateTimeRange.DateCalculationMessage);
-    }
+    [Fact]
+    public void ReturnFailure_On_DurationInDays_WhenRangeIsNull() =>
+        DateTimeRangeExtensions.DurationInDays(null!).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void ReturnCopy_On_WithStart_WhenStartPrecedesEnd()
     {
-        var original = DateTimeRange.Create(Start, Start.AddHours(2)).Value;
-        var updated = original.WithStart(Start.AddHours(1)).Value;
+        var original = DateTimeRange.Create(Start, Start.AddDays(2)).Value;
+        var updated = original.WithStart(Start.AddDays(1)).Value;
 
-        updated.Start.ShouldBe(Start.AddHours(1));
+        updated.Start.ShouldBe(Start.AddDays(1));
         updated.End.ShouldBe(original.End);
         original.Start.ShouldBe(Start);
     }
@@ -75,37 +65,44 @@ public class DateTimeRangeShould
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
-    public void ReturnRequiredError_On_WithStart_WhenStartDoesNotPrecedeEnd(int hours) =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithStart(Start.AddHours(hours)).Error
+    public void ReturnEndBeforeStartError_On_WithStart_WhenStartDoesNotPrecedeEnd(int days) =>
+        DateTimeRange.Create(Start, Start.AddDays(2)).Value.WithStart(Start.AddDays(days)).Error
             .ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
+    public void ReturnFailure_On_WithStart_WhenRangeIsNull() =>
+        DateTimeRangeExtensions.WithStart(null!, Start).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
+
+    [Fact]
     public void ReturnCopy_On_WithEnd_WhenEndFollowsStart() =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithEnd(Start.AddHours(3)).Value.End
-            .ShouldBe(Start.AddHours(3));
+        DateTimeRange.Create(Start, Start.AddDays(2)).Value.WithEnd(Start.AddDays(3)).Value.End
+            .ShouldBe(Start.AddDays(3));
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void ReturnRequiredError_On_WithEnd_WhenEndDoesNotFollowStart(int hours) =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithEnd(Start.AddHours(hours)).Error
+    public void ReturnEndBeforeStartError_On_WithEnd_WhenEndDoesNotFollowStart(int days) =>
+        DateTimeRange.Create(Start, Start.AddDays(2)).Value.WithEnd(Start.AddDays(days)).Error
             .ShouldBe(DateTimeRange.EndBeforeStartMessage);
+
+    [Fact]
+    public void ReturnFailure_On_WithEnd_WhenRangeIsNull() =>
+        DateTimeRangeExtensions.WithEnd(null!, Start).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void SetMaximumEnd_On_WithoutEnd_WhenRangeIsFinite()
     {
-        var original = DateTimeRange.Create(Start, Start.AddHours(2)).Value;
+        var original = DateTimeRange.Create(Start, Start.AddDays(2)).Value;
         var updated = original.WithoutEnd().Value;
 
         updated.Start.ShouldBe(Start);
-        updated.End.ShouldBe(DateTime.MaxValue);
-        original.End.ShouldBe(Start.AddHours(2));
+        updated.End.ShouldBe(DateOnly.MaxValue);
+        original.End.ShouldBe(Start.AddDays(2));
     }
 
     [Fact]
-    public void ReplaceDuration_On_WithDuration_WhenDurationIsValid() =>
-        DateTimeRange.Create(Start, Start.AddHours(2)).Value.WithDuration(TimeSpan.FromDays(1)).Value.End
-            .ShouldBe(Start.AddDays(1));
+    public void ReturnFailure_On_WithoutEnd_WhenRangeIsNull() =>
+        DateTimeRangeExtensions.WithoutEnd(null!).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void CalculateEnd_On_CreateDaysRange_WhenDayCountIsValid() =>
@@ -122,18 +119,28 @@ public class DateTimeRangeShould
     [Fact]
     public void ReturnCalculationError_On_RangeFactories_WhenCalculationExceedsDateLimits()
     {
-        DateTimeRange.CreateDaysRange(DateTime.MaxValue, 1).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
-        DateTimeRange.CreateWeeksRange(DateTime.MaxValue, int.MaxValue).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
-        DateTimeRange.CreateMonthsRange(DateTime.MaxValue, 1).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
+        DateTimeRange.CreateDaysRange(DateOnly.MaxValue, 1).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
+        DateTimeRange.CreateWeeksRange(DateOnly.MaxValue, int.MaxValue).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
+        DateTimeRange.CreateMonthsRange(DateOnly.MaxValue, 1).Error.ShouldBe(DateTimeRange.DateCalculationMessage);
     }
 
-    [Fact]
-    public void ReturnEndBeforeStartError_On_RangeFactories_WhenCountIsZero()
-    {
-        DateTimeRange.CreateDaysRange(Start, 0).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
-        DateTimeRange.CreateWeeksRange(Start, 0).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
-        DateTimeRange.CreateMonthsRange(Start, 0).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
-    }
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ReturnEndBeforeStartError_On_CreateDaysRange_WhenDayCountIsNotPositive(int days) =>
+        DateTimeRange.CreateDaysRange(Start, days).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ReturnEndBeforeStartError_On_CreateWeeksRange_WhenWeekCountIsNotPositive(int weeks) =>
+        DateTimeRange.CreateWeeksRange(Start, weeks).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ReturnEndBeforeStartError_On_CreateMonthsRange_WhenMonthCountIsNotPositive(int months) =>
+        DateTimeRange.CreateMonthsRange(Start, months).Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
 
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenDatesAreEqual()

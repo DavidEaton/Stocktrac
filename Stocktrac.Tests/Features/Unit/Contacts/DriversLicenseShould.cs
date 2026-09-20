@@ -5,7 +5,7 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 
 public class DriversLicenseShould
 {
-    private static readonly DateTime Start = new(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateOnly Start = new(2025, 1, 15);
 
     [Fact]
     public void PreserveComponents_On_Create_WhenStateIsDefined()
@@ -70,14 +70,13 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnDateOrderError_On_Create_WhenDatesFallOnSameDay()
+    public void PreserveDateOrder_On_Create_WhenEndFollowsStart()
     {
-        var range = CreateRange(Start, Start.AddHours(1));
+        var range = CreateRange(Start, Start.AddDays(1));
 
         var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicense.DateOrderInvalidMessage);
+        result.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
@@ -118,12 +117,11 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void CompareStartToCurrentCalendarDate_On_Create_WhenTimesDiffer()
+    public void AcceptCurrentDate_On_Create_WhenStartEqualsToday()
     {
-        var currentTime = Start.AddHours(1);
-        var range = CreateRange(Start.AddHours(2), Start.AddYears(4));
+        var range = CreateRange(Start, Start.AddYears(4));
 
-        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, currentTime);
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -252,7 +250,7 @@ public class DriversLicenseShould
         bool expected)
     {
         var license = CreateLicense();
-        var today = license.ValidDateRange.End.AddDays(-daysFromEnd).AddHours(12);
+        var today = license.ValidDateRange.End.AddDays(-daysFromEnd);
 
         license.IsExpired(today).ShouldBe(expected);
     }
@@ -260,7 +258,7 @@ public class DriversLicenseShould
     [Fact]
     public void ExposeValidationContractConstants()
     {
-        DriversLicense.MinimumValidDate.ShouldBe(new DateTime(1900, 1, 1));
+        DriversLicense.MinimumValidDate.ShouldBe(new DateOnly(1900, 1, 1));
         DriversLicense.MaximumValidityYears.ShouldBe(50);
         DriversLicense.RequiredMessage.ShouldBe("Driver's license details are required.");
         DriversLicense.StateInvalidMessage.ShouldBe("Please enter a valid state.");
@@ -304,6 +302,6 @@ public class DriversLicenseShould
     private static DriversLicenseNumber CreateNumber(string number) =>
         DriversLicenseNumber.Create(number).Value;
 
-    private static DateTimeRange CreateRange(DateTime start, DateTime end) =>
+    private static DateTimeRange CreateRange(DateOnly start, DateOnly end) =>
         DateTimeRange.Create(start, end).Value;
 }

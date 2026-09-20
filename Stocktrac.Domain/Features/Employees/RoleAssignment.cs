@@ -9,7 +9,7 @@ namespace Stocktrac.Domain.Features.Employees
         public EmploymentRole Role { get; private set; }
         public DateTimeRange PeriodAssigned { get; private set; }
         public bool IsActive =>
-            DateTime.Today.InRange(PeriodAssigned);
+            DateOnly.FromDateTime(DateTime.Today).InRange(PeriodAssigned);
 
         private RoleAssignment(EmploymentRole role, DateTimeRange periodAssigned) =>
             (Role, PeriodAssigned) = (role, periodAssigned);
@@ -30,16 +30,16 @@ namespace Stocktrac.Domain.Features.Employees
         }
 
         public Result<DateTimeRange> StartRoleAssignmentPeriod() =>
-            StartRoleAssignmentPeriod(DateTime.Now);
+            StartRoleAssignmentPeriod(DateOnly.FromDateTime(DateTime.Today));
 
-        public Result<DateTimeRange> StartRoleAssignmentPeriod(DateTime startDate) =>
+        public Result<DateTimeRange> StartRoleAssignmentPeriod(DateOnly startDate) =>
             DateTimeRange.Create(startDate, PeriodAssigned.End)
                 .Tap(period => PeriodAssigned = period);
 
         public Result<DateTimeRange> EndRoleAssignmentPeriod() =>
-            EndRoleAssignmentPeriod(DateTime.Today);
+            EndRoleAssignmentPeriod(DateOnly.FromDateTime(DateTime.Today));
 
-        public Result<DateTimeRange> EndRoleAssignmentPeriod(DateTime endDate) =>
+        public Result<DateTimeRange> EndRoleAssignmentPeriod(DateOnly endDate) =>
             DateTimeRange.Create(PeriodAssigned.Start, endDate)
                 .Tap(period => PeriodAssigned = period);
 
@@ -48,8 +48,8 @@ namespace Stocktrac.Domain.Features.Employees
         {
             Role = EmploymentRole.Inspector;
             PeriodAssigned = DateTimeRange.Create(
-                DateTime.Now,
-                DateTime.Now.AddDays(1))
+                DateOnly.FromDateTime(DateTime.Today),
+                DateOnly.FromDateTime(DateTime.Today).AddDays(1))
             .Value;
         }
     }

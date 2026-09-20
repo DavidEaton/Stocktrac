@@ -8,38 +8,31 @@ public sealed record DateTimeRange
 
     public const string DateCalculationMessage = "The requested date range is outside the supported range.";
 
-    public DateTime Start { get; }
-    public DateTime End { get; }
+    public DateOnly Start { get; }
+    public DateOnly End { get; }
 
-    private DateTimeRange(DateTime start, DateTime end) =>
+    private DateTimeRange(DateOnly start, DateOnly end) =>
         (Start, End) = (start, end);
 
-    public static Result<DateTimeRange> Create(DateTime start, DateTime end) =>
+    public static Result<DateTimeRange> Create(DateOnly start, DateOnly end) =>
         Result.Success((Start: start, End: end))
             .Ensure(range => range.Start < range.End, EndBeforeStartMessage)
             .Map(range => new DateTimeRange(range.Start, range.End));
 
-    public static Result<DateTimeRange> Create(DateTime start, TimeSpan duration) =>
-        CalculateEnd(start, () => start.Add(duration));
-
-    public static Result<DateTimeRange> CreateDaysRange(DateTime start, int days) =>
+    public static Result<DateTimeRange> CreateDaysRange(DateOnly start, int days) =>
         CalculateEnd(start, () => start.AddDays(days));
 
-    public static Result<DateTimeRange> CreateWeeksRange(DateTime start, int weeks) =>
-        CalculateEnd(start, () => start.AddDays(7d * weeks));
+    public static Result<DateTimeRange> CreateWeeksRange(DateOnly start, int weeks) =>
+        CalculateEnd(start, () => start.AddDays(checked(7 * weeks)));
 
-    public static Result<DateTimeRange> CreateMonthsRange(DateTime start, int months) =>
+    public static Result<DateTimeRange> CreateMonthsRange(DateOnly start, int months) =>
         CalculateEnd(start, () => start.AddMonths(months));
 
-    private static Result<DateTimeRange> CalculateEnd(DateTime start, Func<DateTime> calculateEnd)
-    {
-        try
-        {
-            return Create(start, calculateEnd());
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            return Result.Failure<DateTimeRange>(DateCalculationMessage);
-        }
-    }
+    internal static Result<DateTimeRange> CalculateEnd(
+        DateOnly start,
+        Func<DateOnly> calculation) =>
+        Result.Try(
+                calculation,
+                _ => DateCalculationMessage)
+            .Bind(end => Create(start, end));
 }
