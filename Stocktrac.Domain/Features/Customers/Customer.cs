@@ -188,7 +188,7 @@ public class Customer : Entity
     //             lastName: "First",
     //             firstName: "Last").Value,
     //         notes: null,
-    //         birthday: Birthday.Create(DateTime.Today).Value,
+    //         birthday: Birthday.Create(DateOnly.FromDateTime(DateTime.Today)).Value,
     //         emails: null,
     //         phones: null,
     //         address: Maybe<Address>.None).Value;
