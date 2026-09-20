@@ -13,7 +13,7 @@ public class DriversLicenseShould
         var number = CreateNumber("A123456");
         var range = CreateRange(Start, Start.AddYears(4));
 
-        var result = DriversLicense.Create(number, State.CA, range);
+        var result = DriversLicense.Create(number, State.CA, range, Start);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Number.ShouldBe(number);
@@ -31,7 +31,7 @@ public class DriversLicenseShould
         var result = DriversLicense.Create(
             CreateNumber("A123456"),
             (State)stateValue,
-            CreateRange(Start, Start.AddYears(4)));
+            CreateRange(Start, Start.AddYears(4)), Start);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicense.StateInvalidMessage);
@@ -41,7 +41,7 @@ public class DriversLicenseShould
     public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
     {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        var result = DriversLicense.Create(null, (State)(-1), null);
+        var result = DriversLicense.Create(null, (State)(-1), null, Start);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         result.IsFailure.ShouldBeTrue();
@@ -97,7 +97,7 @@ public class DriversLicenseShould
         var original = CreateLicense();
         var replacement = CreateRange(Start.AddDays(1), Start.AddYears(5));
 
-        var result = original.WithValidDateRange(replacement);
+        var result = original.WithValidDateRange(replacement, Start);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ValidDateRange.ShouldBeEquivalentTo(replacement);
@@ -110,14 +110,14 @@ public class DriversLicenseShould
     public void BeEqualAndHaveMatchingHashCodes_WhenComponentsAreEqual()
     {
         var range = CreateRange(Start, Start.AddYears(4));
-        var first = DriversLicense.Create(CreateNumber("A123456"), State.CA, range).Value;
-        var second = DriversLicense.Create(CreateNumber("A123456"), State.CA, range).Value;
-        var differentNumber = DriversLicense.Create(CreateNumber("B987654"), State.CA, range).Value;
-        var differentState = DriversLicense.Create(CreateNumber("A123456"), State.NY, range).Value;
+        var first = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start).Value;
+        var second = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start).Value;
+        var differentNumber = DriversLicense.Create(CreateNumber("B987654"), State.CA, range, Start).Value;
+        var differentState = DriversLicense.Create(CreateNumber("A123456"), State.NY, range, Start).Value;
         var differentRange = DriversLicense.Create(
             CreateNumber("A123456"),
             State.CA,
-            CreateRange(Start, Start.AddYears(5))).Value;
+            CreateRange(Start, Start.AddYears(5)), Start).Value;
 
         first.ShouldBe(second);
         first.GetHashCode().ShouldBe(second.GetHashCode());
@@ -131,7 +131,7 @@ public class DriversLicenseShould
     private static DriversLicense CreateLicense() => DriversLicense.Create(
         CreateNumber("A123456"),
         State.CA,
-        CreateRange(Start, Start.AddYears(4))).Value;
+        CreateRange(Start, Start.AddYears(4)), Start).Value;
 
     private static DriversLicenseNumber CreateNumber(string number) =>
         DriversLicenseNumber.Create(number).Value;

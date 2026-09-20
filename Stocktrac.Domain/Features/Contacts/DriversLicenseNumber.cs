@@ -23,5 +23,7 @@ namespace Stocktrac.Domain.Features.Contacts
 
         public static Result<DriversLicenseNumber> NewNumber(string newNumber) =>
             Create(newNumber);
+
+        public override string ToString() => Number;
     }
 }
