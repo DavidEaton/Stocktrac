@@ -40,15 +40,113 @@ public class DriversLicenseShould
     [Fact]
     public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
     {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        var result = DriversLicense.Create(null, (State)(-1), null, Start);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        var result = DriversLicense.Create(null!, (State)(-1), null!, Start);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(string.Join(
             Environment.NewLine,
             DriversLicense.RequiredMessage,
             DriversLicense.StateInvalidMessage));
+    }
+
+    [Fact]
+    public void ReturnRequiredError_On_Create_WhenNumberIsNull()
+    {
+        var result = DriversLicense.Create(
+            null!, State.CA, CreateRange(Start, Start.AddYears(4)), Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.RequiredMessage);
+    }
+
+    [Fact]
+    public void ReturnRequiredError_On_Create_WhenDateRangeIsNull()
+    {
+        var result = DriversLicense.Create(
+            CreateNumber("A123456"), State.CA, null!, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.RequiredMessage);
+    }
+
+    [Fact]
+    public void ReturnDateOrderError_On_Create_WhenDatesFallOnSameDay()
+    {
+        var range = CreateRange(Start, Start.AddHours(1));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.DateOrderInvalidMessage);
+    }
+
+    [Fact]
+    public void ReturnStartDateTooEarlyError_On_Create_WhenStartPrecedesMinimumDate()
+    {
+        var range = CreateRange(
+            DriversLicense.MinimumValidDate.AddDays(-1),
+            DriversLicense.MinimumValidDate.AddYears(4));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.StartDateTooEarlyMessage);
+    }
+
+    [Fact]
+    public void AcceptMinimumStartDate_On_Create_WhenStartEqualsMinimumDate()
+    {
+        var range = CreateRange(
+            DriversLicense.MinimumValidDate,
+            DriversLicense.MinimumValidDate.AddYears(4));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ValidDateRange.ShouldBe(range);
+    }
+
+    [Fact]
+    public void ReturnStartDateInFutureError_On_Create_WhenStartFollowsCurrentDate()
+    {
+        var range = CreateRange(Start.AddDays(1), Start.AddYears(4));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.StartDateInFutureMessage);
+    }
+
+    [Fact]
+    public void CompareStartToCurrentCalendarDate_On_Create_WhenTimesDiffer()
+    {
+        var currentTime = Start.AddHours(1);
+        var range = CreateRange(Start.AddHours(2), Start.AddYears(4));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, currentTime);
+
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReturnDateRangeTooLongError_On_Create_WhenValidityExceedsMaximum()
+    {
+        var range = CreateRange(Start, Start.AddYears(DriversLicense.MaximumValidityYears).AddDays(1));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.DateRangeTooLongMessage);
+    }
+
+    [Fact]
+    public void AcceptMaximumValidity_On_Create_WhenValidityEqualsMaximum()
+    {
+        var range = CreateRange(Start, Start.AddYears(DriversLicense.MaximumValidityYears));
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
@@ -64,6 +162,18 @@ public class DriversLicenseShould
         result.Value.State.ShouldBe(original.State);
         result.Value.ValidDateRange.ShouldBeEquivalentTo(original.ValidDateRange);
         original.Number.ShouldNotBe(replacement);
+    }
+
+    [Fact]
+    public void ReturnRequiredError_On_WithNumber_WhenNumberIsNull()
+    {
+        var original = CreateLicense();
+
+        var result = original.WithNumber(null!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.RequiredMessage);
+        original.Number.ShouldBe(CreateNumber("A123456"));
     }
 
     [Fact]
@@ -104,6 +214,64 @@ public class DriversLicenseShould
         result.Value.Number.ShouldBe(original.Number);
         result.Value.State.ShouldBe(original.State);
         original.ValidDateRange.ShouldNotBeSameAs(replacement);
+    }
+
+    [Fact]
+    public void ReturnRequiredError_On_WithValidDateRange_WhenRangeIsNull()
+    {
+        var original = CreateLicense();
+
+        var result = original.WithValidDateRange(null!, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.RequiredMessage);
+        original.ValidDateRange.ShouldBe(CreateRange(Start, Start.AddYears(4)));
+    }
+
+    [Fact]
+    public void ReturnValidationError_On_WithValidDateRange_WhenRangeExceedsMaximumValidity()
+    {
+        var original = CreateLicense();
+        var invalidRange = CreateRange(
+            Start,
+            Start.AddYears(DriversLicense.MaximumValidityYears).AddDays(1));
+
+        var result = original.WithValidDateRange(invalidRange, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.DateRangeTooLongMessage);
+        original.ValidDateRange.ShouldBe(CreateRange(Start, Start.AddYears(4)));
+    }
+
+    [Theory]
+    [InlineData(-1, true)]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    public void CompareCalendarDates_On_IsExpired_WhenCurrentDateDiffersFromEndDate(
+        int daysFromEnd,
+        bool expected)
+    {
+        var license = CreateLicense();
+        var today = license.ValidDateRange.End.AddDays(-daysFromEnd).AddHours(12);
+
+        license.IsExpired(today).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void ExposeValidationContractConstants()
+    {
+        DriversLicense.MinimumValidDate.ShouldBe(new DateTime(1900, 1, 1));
+        DriversLicense.MaximumValidityYears.ShouldBe(50);
+        DriversLicense.RequiredMessage.ShouldBe("Driver's license details are required.");
+        DriversLicense.StateInvalidMessage.ShouldBe("Please enter a valid state.");
+        DriversLicense.DateOrderInvalidMessage.ShouldBe(
+            "The driver's license start date must be before its end date.");
+        DriversLicense.StartDateTooEarlyMessage.ShouldBe(
+            $"The driver's license start date cannot be earlier than {DriversLicense.MinimumValidDate:d}.");
+        DriversLicense.StartDateInFutureMessage.ShouldBe(
+            "The driver's license start date cannot be in the future.");
+        DriversLicense.DateRangeTooLongMessage.ShouldBe(
+            "The driver's license validity period cannot exceed 50 years.");
     }
 
     [Fact]
