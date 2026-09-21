@@ -10,8 +10,7 @@ public sealed record PhoneNumber
 
     public string Value { get; }
 
-    private PhoneNumber(string value) =>
-        Value = value;
+    private PhoneNumber(string value) => Value = value;
 
     public static Result<PhoneNumber> Create(string value) =>
         Result.Success(value)
@@ -20,28 +19,26 @@ public sealed record PhoneNumber
             .Ensure(
                 normalized => Regex.IsMatch(normalized, @"^\+?[0-9\s().-]+$"),
                 InvalidMessage)
-            .Map(Canonicalize)
+            .Map(Normalize)
             .Ensure(
                 normalized => Regex.IsMatch(normalized, @"^(?:[0-9]+|\+[1-9][0-9]{1,14})$"),
                 InvalidMessage)
             .Map(normalized => new PhoneNumber(normalized));
 
-    public override string ToString()
-    {
-        if (Value.StartsWith('+'))
-        {
-            return Value;
-        }
+    public string ToFormattedString() =>
+        Value.StartsWith('+')
+            ? Value
+            : Value.Length switch
+            {
+                7 => $"{Value[..3]}-{Value[3..]}",
+                10 => $"({Value[..3]}) {Value[3..6]}-{Value[6..]}",
+                11 => $"{Value[..1]} ({Value[1..4]}) {Value[4..7]}-{Value[7..]}",
+                _ => Value
+            };
 
-        return Value.Length switch
-        {
-            7 => Regex.Replace(Value, @"(\d{3})(\d{4})", "$1-$2"),
-            10 => Regex.Replace(Value, @"(\d{3})(\d{3})(\d{4})", "($1) $2-$3"),
-            _ => Value,
-        };
-    }
+    public override string ToString() => ToFormattedString();
 
-    private static string Canonicalize(string number)
+    private static string Normalize(string number)
     {
         var prefix = number.StartsWith('+') ? "+" : string.Empty;
         return prefix + string.Concat(number.Where(character => character is >= '0' and <= '9'));

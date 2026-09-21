@@ -7,8 +7,8 @@ namespace Stocktrac.Tests.Features.Unit;
 public class DateExtensionsShould
 {
     private static readonly DateOnly Start = new(2025, 1, 15);
-    private static readonly DateTimeRange Range =
-        DateTimeRange.Create(Start, Start.AddDays(2)).Value;
+    private static readonly DateRange Range =
+        DateRange.Create(Start, Start.AddDays(2)).Value;
 
     [Theory]
     [InlineData(0)]

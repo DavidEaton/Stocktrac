@@ -29,14 +29,14 @@ public sealed record DriversLicense
 
     public DriversLicenseNumber Number { get; private init; }
 
-    public DateTimeRange ValidDateRange { get; private init; }
+    public DateRange ValidDateRange { get; private init; }
 
     public State State { get; private init; }
 
     private DriversLicense(
         DriversLicenseNumber number,
         State state,
-        DateTimeRange dateRange)
+        DateRange dateRange)
     {
         Number = number;
         State = state;
@@ -46,17 +46,12 @@ public sealed record DriversLicense
     public static Result<DriversLicense> Create(
         DriversLicenseNumber number,
         State state,
-        DateTimeRange dateRange,
+        DateRange dateRange,
         DateOnly today)
     {
-        var numberResult =
-            number.AsValidDriversLicenseNumber();
-
-        var stateResult =
-            state.AsValidDriversLicenseState();
-
-        var dateRangeResult =
-            dateRange.AsValidDriversLicenseDateTimeRange(today);
+        var numberResult = number.AsValidDriversLicenseNumber();
+        var stateResult = state.AsValidDriversLicenseState();
+        var dateRangeResult = dateRange.AsValidDriversLicenseDateRange(today);
 
         return Result.Combine(
                 Environment.NewLine,
@@ -82,9 +77,9 @@ public sealed record DriversLicense
                 this with { State = validState });
 
     public Result<DriversLicense> WithValidDateRange(
-        DateTimeRange dateRange,
+        DateRange dateRange,
         DateOnly today) =>
-        dateRange.AsValidDriversLicenseDateTimeRange(today)
+        dateRange.AsValidDriversLicenseDateRange(today)
             .Map(validDateRange =>
                 this with { ValidDateRange = validDateRange });
 

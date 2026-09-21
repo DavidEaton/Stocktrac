@@ -2,25 +2,25 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts;
 
-public static class DateTimeRangeExtensions
+public static class DateRangeExtensions
 {
-    public static Result<int> DurationInDays(this DateTimeRange range) =>
+    public static Result<int> DurationInDays(this DateRange range) =>
         range is null
-            ? Result.Failure<int>(DateTimeRange.EndBeforeStartMessage)
+            ? Result.Failure<int>(DateRange.EndBeforeStartMessage)
             : Result.Success(range.End.DayNumber - range.Start.DayNumber);
 
-    public static Result<DateTimeRange> WithStart(this DateTimeRange range, DateOnly newStart) =>
+    public static Result<DateRange> WithStart(this DateRange range, DateOnly newStart) =>
         range is null
-            ? Result.Failure<DateTimeRange>(DateTimeRange.EndBeforeStartMessage)
-            : DateTimeRange.Create(newStart, range.End);
+            ? Result.Failure<DateRange>(DateRange.EndBeforeStartMessage)
+            : DateRange.Create(newStart, range.End);
 
-    public static Result<DateTimeRange> WithEnd(this DateTimeRange range, DateOnly newEnd) =>
+    public static Result<DateRange> WithEnd(this DateRange range, DateOnly newEnd) =>
         range is null
-            ? Result.Failure<DateTimeRange>(DateTimeRange.EndBeforeStartMessage)
-            : DateTimeRange.Create(range.Start, newEnd);
+            ? Result.Failure<DateRange>(DateRange.EndBeforeStartMessage)
+            : DateRange.Create(range.Start, newEnd);
 
-    public static Result<DateTimeRange> WithoutEnd(this DateTimeRange range) =>
+    public static Result<DateRange> WithoutEnd(this DateRange range) =>
         range is null
-            ? Result.Failure<DateTimeRange>(DateTimeRange.EndBeforeStartMessage)
-            : DateTimeRange.Create(range.Start, DateOnly.MaxValue);
+            ? Result.Failure<DateRange>(DateRange.EndBeforeStartMessage)
+            : DateRange.Create(range.Start, DateOnly.MaxValue);
 }

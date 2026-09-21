@@ -47,7 +47,7 @@ public class RoleAssignmentShould
         var result = assignment.StartRoleAssignmentPeriod(original.End);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
+        result.Error.ShouldBe(DateRange.EndBeforeStartMessage);
         assignment.PeriodAssigned.ShouldBe(original);
     }
 
@@ -73,7 +73,7 @@ public class RoleAssignmentShould
         var result = assignment.EndRoleAssignmentPeriod(original.Start);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DateTimeRange.EndBeforeStartMessage);
+        result.Error.ShouldBe(DateRange.EndBeforeStartMessage);
         assignment.PeriodAssigned.ShouldBe(original);
     }
 
@@ -82,6 +82,6 @@ public class RoleAssignmentShould
             EmploymentRole.Inspector,
             CreateRange(Start, Start.AddDays(5))).Value;
 
-    private static DateTimeRange CreateRange(DateOnly start, DateOnly end) =>
-        DateTimeRange.Create(start, end).Value;
+    private static DateRange CreateRange(DateOnly start, DateOnly end) =>
+        DateRange.Create(start, end).Value;
 }

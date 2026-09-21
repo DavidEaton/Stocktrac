@@ -100,7 +100,7 @@ customer.WithAddress(address);
 customer.WithoutAddress();
 
 // Immutable value object: returns a changed copy.
-DateTimeRange extended = period.WithEnd(newEnd);
+DateRange extended = period.WithEnd(newEnd);
 ```
 
 ### Boundary normalization

@@ -7,14 +7,14 @@ namespace Stocktrac.Domain.Features.Employees
     {
         public const string RequiredMessage = "Please include all required items.";
         public EmploymentRole Role { get; private set; }
-        public DateTimeRange PeriodAssigned { get; private set; }
+        public DateRange PeriodAssigned { get; private set; }
         public bool IsActive =>
             DateOnly.FromDateTime(DateTime.Today).InRange(PeriodAssigned);
 
-        private RoleAssignment(EmploymentRole role, DateTimeRange periodAssigned) =>
+        private RoleAssignment(EmploymentRole role, DateRange periodAssigned) =>
             (Role, PeriodAssigned) = (role, periodAssigned);
 
-        public static Result<RoleAssignment> Create(EmploymentRole role, DateTimeRange periodAssigned) =>
+        public static Result<RoleAssignment> Create(EmploymentRole role, DateRange periodAssigned) =>
             Result.Combine(
                 Environment.NewLine,
                 Result.FailureIf(periodAssigned is null, RequiredMessage),
@@ -29,25 +29,25 @@ namespace Stocktrac.Domain.Features.Employees
                 : Result.Success(Role = role);
         }
 
-        public Result<DateTimeRange> StartRoleAssignmentPeriod() =>
+        public Result<DateRange> StartRoleAssignmentPeriod() =>
             StartRoleAssignmentPeriod(DateOnly.FromDateTime(DateTime.Today));
 
-        public Result<DateTimeRange> StartRoleAssignmentPeriod(DateOnly startDate) =>
-            DateTimeRange.Create(startDate, PeriodAssigned.End)
+        public Result<DateRange> StartRoleAssignmentPeriod(DateOnly startDate) =>
+            DateRange.Create(startDate, PeriodAssigned.End)
                 .Tap(period => PeriodAssigned = period);
 
-        public Result<DateTimeRange> EndRoleAssignmentPeriod() =>
+        public Result<DateRange> EndRoleAssignmentPeriod() =>
             EndRoleAssignmentPeriod(DateOnly.FromDateTime(DateTime.Today));
 
-        public Result<DateTimeRange> EndRoleAssignmentPeriod(DateOnly endDate) =>
-            DateTimeRange.Create(PeriodAssigned.Start, endDate)
+        public Result<DateRange> EndRoleAssignmentPeriod(DateOnly endDate) =>
+            DateRange.Create(PeriodAssigned.Start, endDate)
                 .Tap(period => PeriodAssigned = period);
 
         // EF requires a parameterless constructor
         protected RoleAssignment()
         {
             Role = EmploymentRole.Inspector;
-            PeriodAssigned = DateTimeRange.Create(
+            PeriodAssigned = DateRange.Create(
                 DateOnly.FromDateTime(DateTime.Today),
                 DateOnly.FromDateTime(DateTime.Today).AddDays(1))
             .Value;

@@ -19,11 +19,16 @@ public sealed record EmailAddress
     public static Result<EmailAddress> Create(string value) =>
         Result.Success(value)
             .Map(input => input?.Trim() ?? string.Empty)
-            .Ensure(normalized => !string.IsNullOrWhiteSpace(normalized), EmptyMessage)
-            .Ensure(normalized => normalized.Length >= MinimumLength, MinimumLengthMessage)
-            .Ensure(normalized => normalized.Length <= MaximumLength, MaximumLengthMessage)
-            .Ensure(normalized => new EmailAddressAttribute().IsValid(normalized), InvalidMessage)
-            .Map(normalized => new EmailAddress(normalized));
+            .Ensure(normalized =>
+                !string.IsNullOrWhiteSpace(normalized), EmptyMessage)
+            .Ensure(normalized =>
+                normalized.Length >= MinimumLength, MinimumLengthMessage)
+            .Ensure(normalized =>
+                normalized.Length <= MaximumLength, MaximumLengthMessage)
+            .Ensure(normalized =>
+                new EmailAddressAttribute().IsValid(normalized), InvalidMessage)
+            .Map(normalized =>
+                new EmailAddress(normalized));
 
     public override string ToString() => Value;
 }

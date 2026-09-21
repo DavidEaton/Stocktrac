@@ -16,7 +16,7 @@ successful replacement, clearing, validation failures, and mutation atomicity.
 The domain contains many public behaviors with no dedicated tests yet. Add these
 in small, feature-focused changes, in the following order.
 
-1. **Contact primitives:** `ContactPhone`, `Address`, `DateTimeRange`, `DriversLicense`,
+1. **Contact primitives:** `ContactPhone`, `Address`, `DateRange`, `DriversLicense`,
    and `BusinessName`. Cover null/blank input, trimming, every
    minimum and maximum boundary, invalid enum values, equality, formatting, and
    the guarantee that a failed `New...`/setter call leaves the original unchanged.

@@ -126,16 +126,16 @@ public static class DomainExtensions
                 : Result.Success(number);
     }
 
-    extension(DateTimeRange dateRange)
+    extension(DateRange dateRange)
     {
         /// <summary>
         /// Validates a driver's license date range.
         /// </summary>
-        internal Result<DateTimeRange> AsValidDriversLicenseDateTimeRange(
+        internal Result<DateRange> AsValidDriversLicenseDateRange(
             DateOnly today)
         {
             if (dateRange is null)
-                return Result.Failure<DateTimeRange>(DriversLicense.RequiredMessage);
+                return Result.Failure<DateRange>(DriversLicense.RequiredMessage);
 
             return Result.Combine(
                     Environment.NewLine,

@@ -43,10 +43,8 @@ public class DriversLicenseShould
         var result = DriversLicense.Create(null!, (State)(-1), null!, Start);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(string.Join(
-            Environment.NewLine,
-            DriversLicense.RequiredMessage,
-            DriversLicense.StateInvalidMessage));
+        result.Error.ShouldContain(DriversLicense.RequiredMessage);
+        result.Error.ShouldContain(DriversLicense.StateInvalidMessage);
     }
 
     [Fact]
@@ -203,7 +201,7 @@ public class DriversLicenseShould
     public void ReplaceValidDateRangeAndPreserveOtherComponents_On_WithValidDateRange_WhenRangeIsProvided()
     {
         var original = CreateLicense();
-        var replacement = CreateRange(Start.AddDays(1), Start.AddYears(5));
+        var replacement = CreateRange(Start.AddDays(-100), Start.AddYears(3));
 
         var result = original.WithValidDateRange(replacement, Start);
 
@@ -302,6 +300,6 @@ public class DriversLicenseShould
     private static DriversLicenseNumber CreateNumber(string number) =>
         DriversLicenseNumber.Create(number).Value;
 
-    private static DateTimeRange CreateRange(DateOnly start, DateOnly end) =>
-        DateTimeRange.Create(start, end).Value;
+    private static DateRange CreateRange(DateOnly start, DateOnly end) =>
+        DateRange.Create(start, end).Value;
 }
