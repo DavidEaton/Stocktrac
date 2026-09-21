@@ -2,7 +2,7 @@
 
 namespace Stocktrac.Domain.Features.Financial;
 
-public class CreditCard : Entity
+public sealed class CreditCard : Entity
 {
     public const string InvalidFeeTypeMessage = "A valid credit card fee type is required.";
     public const string RequiredMessage = "Please include all required items.";

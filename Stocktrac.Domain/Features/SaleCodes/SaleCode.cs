@@ -2,7 +2,7 @@
 
 namespace Stocktrac.Domain.Features.SaleCodes
 {
-    public class SaleCode : Entity
+    public sealed class SaleCode : Entity
     {
         // Invariant: SaleCode belongs to ONE Manufacturer
         // public Manufacturer Manufacturer { get; private set; }

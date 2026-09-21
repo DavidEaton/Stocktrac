@@ -2,7 +2,7 @@
 
 namespace Stocktrac.Domain.Features.SaleCodes
 {
-    public class SaleCodeShopSupplies : Entity
+    public sealed class SaleCodeShopSupplies : Entity
     {
         public static readonly double MinimumValue = 0;
         public const string MinimumValueMessage = "Value(s) cannot be negative.";
@@ -77,6 +77,6 @@ namespace Stocktrac.Domain.Features.SaleCodes
         public void SetIncludeLabor(bool includeLabor) => IncludeLabor = includeLabor;
 
         // EF requires a parameterless constructor
-        protected SaleCodeShopSupplies() { }
+        private SaleCodeShopSupplies() { }
     }
 }
