@@ -4,7 +4,7 @@ using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Employees;
 
-public class Employee : Entity
+public sealed class Employee : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.

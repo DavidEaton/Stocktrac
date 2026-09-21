@@ -3,7 +3,7 @@ using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Domain.Features.Employees
 {
-    public class RoleAssignment : Entity
+    public sealed class RoleAssignment : Entity
     {
         public const string RequiredMessage = "Please include all required items.";
         public EmploymentRole Role { get; private set; }
@@ -44,7 +44,7 @@ namespace Stocktrac.Domain.Features.Employees
                 .Tap(period => PeriodAssigned = period);
 
         // EF requires a parameterless constructor
-        protected RoleAssignment()
+        private RoleAssignment()
         {
             Role = EmploymentRole.Inspector;
             PeriodAssigned = DateRange.Create(

@@ -4,7 +4,7 @@ using Stocktrac.Domain.Features.Customers;
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public class Person : Contactable, ICustomerEntity
+public sealed class Person : Contactable, ICustomerEntity
 {
     public const string NameRequiredMessage = "Person name is required.";
     public PersonName Name { get; private set; }

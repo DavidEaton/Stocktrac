@@ -3,7 +3,7 @@ using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Domain.Features;
 
-public class Vehicle : Entity
+public sealed class Vehicle : Entity
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
