@@ -4,23 +4,16 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record PostalCode
 {
-    public const int MinimumLength = 1;
     public const int MaximumLength = 20;
-    public static readonly string InvalidMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
-    public string Value { get; }
+    public static readonly string InvalidLengthMessage = $"Postal Code must not exceed {MaximumLength} characters.";
+    public NonEmptyString Value { get; }
 
-    private PostalCode(string value) => Value = value;
+    private PostalCode(NonEmptyString value) => Value = value;
 
-    public static Result<PostalCode> Create(string value) =>
-        Result.Success(value)
-            .Map(input => input?.Trim() ?? string.Empty)
-            .Ensure(normalized =>
-                normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidMessage)
-            .Ensure(normalized =>
-                normalized.All(char.IsDigit), InvalidMessage)
-            .Map(normalized =>
-                new PostalCode(normalized));
+    public static Result<PostalCode> Create(NonEmptyString value) =>
+            Result.Success(value)
+                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
+            .Map(value => new PostalCode(value));
 
-    public override string ToString() =>
-        Value;
+    public override string ToString() => Value.ToString();
 }

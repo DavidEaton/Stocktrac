@@ -3,8 +3,8 @@
 ## Decision
 
 Phones and emails belong directly to a `Contactable` aggregate. There is no
-separate `ContactDetails` domain value object. Address changes continue to use
-`WithAddress` and `WithoutAddress`, while phone and email collections use
+separate `ContactDetails` domain value object. Address changes use
+`ReplaceAddressLine1` and `RemoveAddressLine2`; phone and email collections use
 `ReplacePhones` and `ReplaceEmails`.
 
 ## Collection replacement contract

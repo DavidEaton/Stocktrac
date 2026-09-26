@@ -4,21 +4,18 @@ namespace Stocktrac.Domain.Features.Contacts
 {
     public sealed record City
     {
-        public const int MinimumLength = 1;
         public const int MaximumLength = 100;
-        public static readonly string InvalidLengthMessage = $"City must be between {MinimumLength} and {MaximumLength} characters.";
-        public const string RequiredMessage = "City is required.";
-        public string Value { get; }
+        public static readonly string InvalidLengthMessage = $"City must not exceed {MaximumLength} characters.";
+        public NonEmptyString Value { get; }
 
-        private City(string value) => Value = value;
+        private City(NonEmptyString value) => Value = value;
 
-        public static Result<City> Create(string value) =>
+        public static Result<City> Create(NonEmptyString value) =>
             Result.Success(value)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => normalized.IsNonEmptyString(), RequiredMessage)
-                .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
-                .Map(normalized => new City(normalized));
+                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
+                .Map(value => new City(value));
 
-        public override string ToString() => Value;
+        public City ToUpper() => new(Value.ToUpper());
+        public override string ToString() => Value.ToString();
     }
 }

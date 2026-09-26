@@ -50,7 +50,7 @@ public sealed record DriversLicense
         DateOnly today)
     {
         var numberResult = number.AsValidDriversLicenseNumber();
-        var stateResult = state.AsValidDriversLicenseState();
+        var stateResult = state.AsValidState();
         var dateRangeResult = dateRange.AsValidDriversLicenseDateRange(today);
 
         return Result.Combine(
@@ -72,7 +72,7 @@ public sealed record DriversLicense
                 this with { Number = validNumber });
 
     public Result<DriversLicense> WithState(State state) =>
-        state.AsValidDriversLicenseState()
+        state.AsValidState()
             .Map(validState =>
                 this with { State = validState });
 

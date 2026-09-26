@@ -13,13 +13,14 @@ public static class DomainExtensions
         /// </summary>
         public Result<string> AsNonEmptyString() =>
             string.IsNullOrWhiteSpace(value)
-            ? Result.Failure<string>("Value cannot be empty")
-            : Result.Success(value);
+                ? Result.Failure<string>("Value cannot be empty")
+                : Result.Success(value);
 
         /// <summary>
-        /// Validates a string to ensure it is not an empty string or only white space.
+        /// Determines whether a string is not null or whitespace.
         /// </summary>
-        public bool IsNonEmptyString() => !string.IsNullOrWhiteSpace(value);
+        public bool IsNonEmptyString() =>
+            !string.IsNullOrWhiteSpace(value);
 
         /// <summary>
         /// Validates a string to ensure it is a valid required person name part.
@@ -27,9 +28,13 @@ public static class DomainExtensions
         internal Result<string> AsValidRequiredPersonNamePart() =>
             Result.Success(value)
                 .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => normalized.IsNonEmptyString(), PersonName.RequiredMessage)
                 .Ensure(
-                    normalized => normalized.Length.IsWithin(PersonName.MinimumLength, PersonName.MaximumLength),
+                    normalized => normalized.IsNonEmptyString(),
+                    PersonName.RequiredMessage)
+                .Ensure(
+                    normalized => normalized.Length.IsWithin(
+                        PersonName.MinimumLength,
+                        PersonName.MaximumLength),
                     PersonName.InvalidLengthMessage);
 
         /// <summary>
@@ -39,14 +44,16 @@ public static class DomainExtensions
             Result.Success(value)
                 .Map(input => input?.Trim() ?? string.Empty)
                 .Ensure(
-                    normalized => normalized.Length.IsWithin(PersonName.MinimumLength, PersonName.MaximumLength),
+                    normalized => normalized.Length.IsWithin(
+                        PersonName.MinimumLength,
+                        PersonName.MaximumLength),
                     PersonName.InvalidLengthMessage);
     }
 
     extension(int value)
     {
         /// <summary>
-        /// Validates an integer to ensure it is within a specified range.
+        /// Determines whether an integer is within a specified range.
         /// </summary>
         public bool IsWithin(int minimum, int maximum) =>
             value >= minimum && value <= maximum;
@@ -60,69 +67,66 @@ public static class DomainExtensions
         internal Result<PhoneType> AsValidPhoneType() =>
             Enum.IsDefined(phoneType)
                 ? Result.Success(phoneType)
-                : Result.Failure<PhoneType>(ContactPhone.PhoneTypeInvalidMessage);
+                : Result.Failure<PhoneType>(
+                    ContactPhone.PhoneTypeInvalidMessage);
     }
 
     extension(AddressLine line)
     {
-        //
-        // Summary: 
-        // Validates the AddressLine, City, State, and PostalCode for an Address.
-        internal Result<AddressLine> AsValidLine() =>
+        /// <summary>
+        /// Validates that an AddressLine value object was supplied.
+        /// The AddressLine itself is responsible for validating its own invariants.
+        /// </summary>
+        internal Result<AddressLine> AsRequired() =>
             line is null
-                ? Result.Failure<AddressLine>(Address.AddressRequiredMessage)
+                ? Result.Failure<AddressLine>(NonEmptyString.RequiredMessage)
                 : Result.Success(line);
     }
 
     extension(City city)
     {
         /// <summary>
-        /// Validates the City for an Address.
+        /// Validates that a City value object was supplied.
+        /// The City itself is responsible for validating its own invariants.
         /// </summary>
-        internal Result<City> AsValidCity() =>
+        internal Result<City> AsRequired() =>
             city is null
-                ? Result.Failure<City>(Address.CityRequiredMessage)
+                ? Result.Failure<City>(NonEmptyString.RequiredMessage)
                 : Result.Success(city);
     }
 
     extension(PostalCode postalCode)
     {
         /// <summary>
-        /// Validates the PostalCode for an Address.
+        /// Validates that a PostalCode value object was supplied.
+        /// The PostalCode itself is responsible for validating its own invariants.
         /// </summary>
-        internal Result<PostalCode> AsValidPostalCode() =>
+        internal Result<PostalCode> AsRequired() =>
             postalCode is null
-                ? Result.Failure<PostalCode>(Address.PostalCodeRequiredMessage)
+                ? Result.Failure<PostalCode>(NonEmptyString.RequiredMessage)
                 : Result.Success(postalCode);
     }
 
     extension(State state)
     {
         /// <summary>
-        /// Validates the State for an Address.
+        /// Validates that a State enum value is defined.
         /// </summary>
         internal Result<State> AsValidState() =>
-            !Enum.IsDefined(state)
-                ? Result.Failure<State>(Address.StateInvalidMessage)
-                : Result.Success(state);
-
-        /// <summary>
-        /// Validates the State for a Drivers License.
-        /// </summary>
-        internal Result<State> AsValidDriversLicenseState() =>
-            !Enum.IsDefined(state)
-                ? Result.Failure<State>(DriversLicense.StateInvalidMessage)
-                : Result.Success(state);
+            Enum.IsDefined(state)
+                ? Result.Success(state)
+                : Result.Failure<State>("A valid State is required.");
     }
 
     extension(DriversLicenseNumber number)
     {
         /// <summary>
-        /// Validates a DriversLicenseNumber is not null.
+        /// Validates that a DriversLicenseNumber was supplied.
         /// </summary>
         internal Result<DriversLicenseNumber> AsValidDriversLicenseNumber() =>
             number is null
-                ? Result.Failure<DriversLicenseNumber>(DriversLicense.RequiredMessage)
+                ? Result.Failure<DriversLicenseNumber>(
+                    DriversLicense.RequiredMessage)
                 : Result.Success(number);
     }
 
@@ -135,7 +139,8 @@ public static class DomainExtensions
             DateOnly today)
         {
             if (dateRange is null)
-                return Result.Failure<DateRange>(DriversLicense.RequiredMessage);
+                return Result.Failure<DateRange>(
+                    DriversLicense.RequiredMessage);
 
             return Result.Combine(
                     Environment.NewLine,
@@ -149,7 +154,9 @@ public static class DomainExtensions
                         dateRange.Start > today,
                         DriversLicense.StartDateInFutureMessage),
                     Result.FailureIf(
-                        ExceedsMaximumDriversLicenseValidity(dateRange.Start, dateRange.End),
+                        ExceedsMaximumDriversLicenseValidity(
+                            dateRange.Start,
+                            dateRange.End),
                         DriversLicense.DateRangeTooLongMessage))
                 .Map(() => dateRange);
         }

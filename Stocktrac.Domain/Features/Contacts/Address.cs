@@ -4,18 +4,19 @@ namespace Stocktrac.Domain.Features.Contacts;
 
 public sealed record Address
 {
-    public const string AddressRequiredMessage = "Address line 1 is required.";
-    public const string CityRequiredMessage = "A valid city is required.";
-    public const string StateInvalidMessage = "A valid State is required.";
-    public const string PostalCodeRequiredMessage = "A valid postal code is required.";
-    public AddressLine AddressLine1 { get; private set; }
-    public Maybe<AddressLine> AddressLine2 { get; private set; } = Maybe<AddressLine>.None;
+    public AddressLine AddressLine1 { get; }
+    public Maybe<AddressLine> AddressLine2 { get; }
     public static Maybe<Address> Default => Maybe<Address>.None;
-    public City City { get; private set; }
-    public State State { get; private set; }
-    public PostalCode PostalCode { get; private set; }
+    public City City { get; }
+    public State State { get; }
+    public PostalCode PostalCode { get; }
 
-    private Address(AddressLine addressLine1, City city, State state, PostalCode postalCode, Maybe<AddressLine> addressLine2)
+    private Address(
+        AddressLine addressLine1,
+        City city,
+        State state,
+        PostalCode postalCode,
+        Maybe<AddressLine> addressLine2)
     {
         AddressLine1 = addressLine1;
         AddressLine2 = addressLine2;
@@ -32,41 +33,72 @@ public sealed record Address
         Maybe<AddressLine> addressLine2 = default) =>
         Result.Combine(
                 Environment.NewLine,
-                addressLine1.AsValidLine(),
-                city.AsValidCity(),
+                addressLine1.AsRequired(),
+                city.AsRequired(),
                 state.AsValidState(),
-                postalCode.AsValidPostalCode())
-            .Map(() => new Address(addressLine1!, city!, state, postalCode!, addressLine2));
+                postalCode.AsRequired())
+            .Map(() => new Address(
+                addressLine1,
+                city,
+                state,
+                postalCode,
+                addressLine2));
 
-    public Result<Address> WithAddressLine1(AddressLine addressLine) =>
-       addressLine
-           .AsValidLine()
-           .Map(validLine => this with { AddressLine1 = validLine });
+    public Result<Address> ReplaceAddressLine1(AddressLine addressLine) =>
+        addressLine.AsRequired()
+            .Map(validLine => new Address(
+                validLine,
+                City,
+                State,
+                PostalCode,
+                AddressLine2));
 
-    public Result<Address> WithCity(City city) =>
-        city
-            .AsValidCity()
-            .Map(validCity => this with { City = validCity });
+    public Result<Address> ReplaceCity(City city) =>
+        city.AsRequired()
+            .Map(validCity => new Address(
+                AddressLine1,
+                validCity,
+                State,
+                PostalCode,
+                AddressLine2));
 
-    public Result<Address> WithState(State state) =>
-        state
-            .AsValidState()
-            .Map(validState => this with { State = validState });
+    public Result<Address> ReplaceState(State state) =>
+        state.AsValidState()
+            .Map(validState => new Address(
+                AddressLine1,
+                City,
+                validState,
+                PostalCode,
+                AddressLine2));
 
-    public Result<Address> WithPostalCode(PostalCode postalCode) =>
-        postalCode
-            .AsValidPostalCode()
-            .Map(validPostalCode => this with { PostalCode = validPostalCode });
+    public Result<Address> ReplacePostalCode(PostalCode postalCode) =>
+        postalCode.AsRequired()
+            .Map(validPostalCode => new Address(
+                AddressLine1,
+                City,
+                State,
+                validPostalCode,
+                AddressLine2));
 
-    public Result<Address> WithAddressLine2(AddressLine addressLine) =>
-        addressLine
-            .AsValidLine()
-            .Map(validLine => this with { AddressLine2 = validLine });
+    public Result<Address> AddOrReplaceAddressLine2(AddressLine addressLine2) =>
+        addressLine2.AsRequired()
+            .Map(validLine2 => new Address(
+                AddressLine1,
+                City,
+                State,
+                PostalCode,
+                validLine2));
 
-    public Address WithoutAddressLine2() =>
-        new(AddressLine1, City, State, PostalCode, Maybe<AddressLine>.None);
+    public Address RemoveAddressLine2() =>
+        new(
+            AddressLine1,
+            City,
+            State,
+            PostalCode,
+            Maybe<AddressLine>.None);
 
-    public override string ToString() => AddressFull;
+    public override string ToString() =>
+        AddressFull;
 
     public string AddressFull =>
         AddressLine2.HasValue
