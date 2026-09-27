@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 using Entity = Stocktrac.Domain.Features.Entity;
@@ -401,9 +402,9 @@ public class ContactableShould
 
     private static Address CreateAddress(string line, string city, State state, string postalCode) =>
         Address.Create(
-            AddressLine.Create(line).Value,
-            City.Create(city).Value,
+            AddressLine.Create(NonEmptyString.Create(line).Value).Value,
+            City.Create(NonEmptyString.Create(city).Value).Value,
             state,
-            PostalCode.Create(postalCode).Value,
+            PostalCode.Create(NonEmptyString.Create(postalCode).Value).Value,
             Maybe<AddressLine>.None).Value;
 }

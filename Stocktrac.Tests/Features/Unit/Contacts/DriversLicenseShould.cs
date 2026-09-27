@@ -34,7 +34,7 @@ public class DriversLicenseShould
             CreateRange(Start, Start.AddYears(4)), Start);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicense.StateInvalidMessage);
+        result.Error.ShouldBe("A valid State is required.");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class DriversLicenseShould
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldContain(DriversLicense.RequiredMessage);
-        result.Error.ShouldContain(DriversLicense.StateInvalidMessage);
+        result.Error.ShouldContain("A valid State is required.");
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class DriversLicenseShould
         var result = CreateLicense().WithState((State)stateValue);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicense.StateInvalidMessage);
+        result.Error.ShouldBe("A valid State is required.");
     }
 
     [Fact]

@@ -1,79 +1,57 @@
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 
 public class CityShould
 {
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void ReturnRequiredError_On_Create_WhenValueIsBlank(string? value)
+    [Fact]
+    public void Create_WhenGivenANonEmptyValue()
     {
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = City.Create(value);
-#pragma warning restore CS8604 // Possible null reference argument.
+        var value = NonEmptyString.Create("New York").Value;
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(City.RequiredMessage);
+        var result = City.Create(value);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBe(value);
+        result.Value.ToString().ShouldBe("New York");
     }
 
     [Fact]
-    public void ReturnLengthError_On_Create_WhenTrimmedValueExceedsMaximum()
+    public void ReturnLengthError_On_Create_WhenValueExceedsMaximum()
     {
-        var result = City.Create($" {new string('a', City.MaximumLength + 1)} ");
+        var result = City.Create(NonEmptyString.Create(new string('a', City.MaximumLength + 1)).Value);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(City.InvalidLengthMessage);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(100)]
-    public void PreserveTrimmedValue_On_Create_WhenValueIsAtLengthBoundary(int length)
-    {
-        var value = new string('a', length);
-
-        var result = City.Create($"  {value}  ");
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe(value);
-        result.Value.ToString().ShouldBe(value);
-    }
-
     [Fact]
-    public void PreserveInternalWhitespaceAndCasing_On_Create_WhenValueIsValid()
+    public void ReturnUpperCaseCopy_On_ToUpper()
     {
-        City.Create("  New  York  ").Value.Value.ShouldBe("New  York");
+        var city = City.Create(NonEmptyString.Create("New York").Value).Value;
+
+        var upperCase = city.ToUpper();
+
+        upperCase.Value.Value.ShouldBe("NEW YORK");
+        city.Value.Value.ShouldBe("New York");
     }
 
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenValuesAreEqual()
     {
-        var first = City.Create(" Albany ").Value;
-        var second = City.Create("Albany").Value;
-        var different = City.Create("albany").Value;
+        var first = City.Create(NonEmptyString.Create("Albany").Value).Value;
+        var second = City.Create(NonEmptyString.Create("Albany").Value).Value;
 
         first.ShouldBe(second);
         first.GetHashCode().ShouldBe(second.GetHashCode());
-        first.ShouldNotBe(different);
-    }
-
-    [Fact]
-    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
-    {
-        City? city = default;
-
-        city.ShouldBeNull();
     }
 
     [Fact]
     public void ExposeValidationContractConstants()
     {
-        City.MinimumLength.ShouldBe(1);
         City.MaximumLength.ShouldBe(100);
-        City.RequiredMessage.ShouldBe("City is required.");
-        City.InvalidLengthMessage.ShouldBe("City must be between 1 and 100 characters.");
+        City.InvalidLengthMessage.ShouldBe("City must not exceed 100 characters.");
     }
 }

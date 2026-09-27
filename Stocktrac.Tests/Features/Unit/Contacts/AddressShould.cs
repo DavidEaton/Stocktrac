@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
@@ -15,10 +16,10 @@ public class AddressShould
     [Fact]
     public void ExposeAllValues_On_Create_WhenValuesAreValid()
     {
-        var line1 = AddressLine.Create("123 Main St").Value;
-        var line2 = AddressLine.Create("Apt 4").Value;
-        var city = City.Create("Albany").Value;
-        var postalCode = PostalCode.Create("12345").Value;
+        var line1 = ValidLine();
+        var line2 = CreateLine("Apt 4");
+        var city = ValidCity();
+        var postalCode = ValidPostalCode();
 
         var result = Address.Create(line1, city, State.NY, postalCode, line2);
 
@@ -48,7 +49,7 @@ public class AddressShould
         var result = Address.Create(ValidLine(), ValidCity(), (State)state, ValidPostalCode());
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(Address.StateInvalidMessage);
+        result.Error.ShouldBe("A valid State is required.");
     }
 
     [Fact]
@@ -59,19 +60,19 @@ public class AddressShould
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(string.Join(
             Environment.NewLine,
-            Address.AddressRequiredMessage,
-            Address.CityRequiredMessage,
-            Address.StateInvalidMessage,
-            Address.PostalCodeRequiredMessage));
+            NonEmptyString.RequiredMessage,
+            NonEmptyString.RequiredMessage,
+            "A valid State is required.",
+            NonEmptyString.RequiredMessage));
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithAddressLine1_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_ReplaceAddressLine1_WithoutChangingOtherValues()
     {
-        var original = ValidAddress(AddressLine.Create("Suite 1").Value);
-        var replacement = AddressLine.Create("456 Oak Ave").Value;
+        var original = ValidAddress(CreateLine("Suite 1"));
+        var replacement = CreateLine("456 Oak Ave");
 
-        var result = original.WithAddressLine1(replacement);
+        var result = original.ReplaceAddressLine1(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.AddressLine1.ShouldBe(replacement);
@@ -79,12 +80,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithCity_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_ReplaceCity_WithoutChangingOtherValues()
     {
-        var original = ValidAddress(AddressLine.Create("Suite 1").Value);
-        var replacement = City.Create("Buffalo").Value;
+        var original = ValidAddress(CreateLine("Suite 1"));
+        var replacement = CreateCity("Buffalo");
 
-        var result = original.WithCity(replacement);
+        var result = original.ReplaceCity(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.City.ShouldBe(replacement);
@@ -92,11 +93,11 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithState_WhenStateIsDefined()
+    public void ReturnUpdatedCopy_On_ReplaceState_WhenStateIsDefined()
     {
-        var original = ValidAddress(AddressLine.Create("Suite 1").Value);
+        var original = ValidAddress(CreateLine("Suite 1"));
 
-        var result = original.WithState(State.TX);
+        var result = original.ReplaceState(State.TX);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.State.ShouldBe(State.TX);
@@ -106,24 +107,24 @@ public class AddressShould
     [Theory]
     [InlineData(-1)]
     [InlineData(64)]
-    public void ReturnStateError_On_WithState_WhenStateIsUndefined(int state)
+    public void ReturnStateError_On_ReplaceState_WhenStateIsUndefined(int state)
     {
         var original = ValidAddress(Maybe<AddressLine>.None);
 
-        var result = original.WithState((State)state);
+        var result = original.ReplaceState((State)state);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(Address.StateInvalidMessage);
+        result.Error.ShouldBe("A valid State is required.");
         original.State.ShouldBe(State.NY);
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithPostalCode_WithoutChangingOtherValues()
+    public void ReturnUpdatedCopy_On_ReplacePostalCode_WithoutChangingOtherValues()
     {
-        var original = ValidAddress(AddressLine.Create("Suite 1").Value);
-        var replacement = PostalCode.Create("90210").Value;
+        var original = ValidAddress(CreateLine("Suite 1"));
+        var replacement = CreatePostalCode("90210");
 
-        var result = original.WithPostalCode(replacement);
+        var result = original.ReplacePostalCode(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.PostalCode.ShouldBe(replacement);
@@ -131,12 +132,12 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithAddressLine2_WhenValueIsPresent()
+    public void ReturnUpdatedCopy_On_AddOrReplaceAddressLine2_WhenValueIsPresent()
     {
         var original = ValidAddress(Maybe<AddressLine>.None);
-        var replacement = AddressLine.Create("Suite 9").Value;
+        var replacement = CreateLine("Suite 9");
 
-        var result = original.WithAddressLine2(replacement);
+        var result = original.AddOrReplaceAddressLine2(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.AddressLine2.ShouldBe(replacement);
@@ -144,11 +145,11 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnAbsentAddressLine2_On_WithoutAddressLine2()
+    public void ReturnAbsentAddressLine2_On_RemoveAddressLine2()
     {
-        var original = ValidAddress(AddressLine.Create("Suite 9").Value);
+        var original = ValidAddress(CreateLine("Suite 9"));
 
-        var edited = original.WithoutAddressLine2();
+        var edited = original.RemoveAddressLine2();
 
         edited.AddressLine2.HasNoValue.ShouldBeTrue();
         AssertOnlyExpectedValueChanged(original, edited, nameof(Address.AddressLine2));
@@ -163,7 +164,7 @@ public class AddressShould
         first.ShouldBe(second);
         (first == second).ShouldBeTrue();
         first.GetHashCode().ShouldBe(second.GetHashCode());
-        first.ShouldNotBe(first.WithState(State.TX).Value);
+        first.ShouldNotBe(first.ReplaceState(State.TX).Value);
     }
 
     private static void AssertOnlyExpectedValueChanged(Address original, Address updated, string member)
@@ -177,7 +178,10 @@ public class AddressShould
 
     private static Address ValidAddress(Maybe<AddressLine> line2) =>
         Address.Create(ValidLine(), ValidCity(), State.NY, ValidPostalCode(), line2).Value;
-    private static AddressLine ValidLine() => AddressLine.Create("123 Main St").Value;
-    private static City ValidCity() => City.Create("Albany").Value;
-    private static PostalCode ValidPostalCode() => PostalCode.Create("12345").Value;
+    private static AddressLine ValidLine() => CreateLine("123 Main St");
+    private static City ValidCity() => CreateCity("Albany");
+    private static PostalCode ValidPostalCode() => CreatePostalCode("12345");
+    private static AddressLine CreateLine(string value) => AddressLine.Create(NonEmptyString.Create(value).Value).Value;
+    private static City CreateCity(string value) => City.Create(NonEmptyString.Create(value).Value).Value;
+    private static PostalCode CreatePostalCode(string value) => PostalCode.Create(NonEmptyString.Create(value).Value).Value;
 }
