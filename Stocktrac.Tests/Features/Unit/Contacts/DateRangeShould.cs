@@ -52,10 +52,10 @@ public class DateRangeShould
         DateRangeExtensions.DurationInDays(null!).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnCopy_On_WithStart_WhenStartPrecedesEnd()
+    public void ReturnCopy_On_ReplaceStart_WhenStartPrecedesEnd()
     {
         var original = DateRange.Create(Start, Start.AddDays(2)).Value;
-        var updated = original.WithStart(Start.AddDays(1)).Value;
+        var updated = original.ReplaceStart(Start.AddDays(1)).Value;
 
         updated.Start.ShouldBe(Start.AddDays(1));
         updated.End.ShouldBe(original.End);
@@ -65,35 +65,35 @@ public class DateRangeShould
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
-    public void ReturnEndBeforeStartError_On_WithStart_WhenStartDoesNotPrecedeEnd(int days) =>
-        DateRange.Create(Start, Start.AddDays(2)).Value.WithStart(Start.AddDays(days)).Error
+    public void ReturnEndBeforeStartError_On_ReplaceStart_WhenStartDoesNotPrecedeEnd(int days) =>
+        DateRange.Create(Start, Start.AddDays(2)).Value.ReplaceStart(Start.AddDays(days)).Error
             .ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnFailure_On_WithStart_WhenRangeIsNull() =>
-        DateRangeExtensions.WithStart(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
+    public void ReturnFailure_On_ReplaceStart_WhenRangeIsNull() =>
+        DateRangeExtensions.ReplaceStart(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnCopy_On_WithEnd_WhenEndFollowsStart() =>
-        DateRange.Create(Start, Start.AddDays(2)).Value.WithEnd(Start.AddDays(3)).Value.End
+    public void ReturnCopy_On_ReplaceEnd_WhenEndFollowsStart() =>
+        DateRange.Create(Start, Start.AddDays(2)).Value.ReplaceEnd(Start.AddDays(3)).Value.End
             .ShouldBe(Start.AddDays(3));
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void ReturnEndBeforeStartError_On_WithEnd_WhenEndDoesNotFollowStart(int days) =>
-        DateRange.Create(Start, Start.AddDays(2)).Value.WithEnd(Start.AddDays(days)).Error
+    public void ReturnEndBeforeStartError_On_ReplaceEnd_WhenEndDoesNotFollowStart(int days) =>
+        DateRange.Create(Start, Start.AddDays(2)).Value.ReplaceEnd(Start.AddDays(days)).Error
             .ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnFailure_On_WithEnd_WhenRangeIsNull() =>
-        DateRangeExtensions.WithEnd(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
+    public void ReturnFailure_On_ReplaceEnd_WhenRangeIsNull() =>
+        DateRangeExtensions.ReplaceEnd(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void SetMaximumEnd_On_WithoutEnd_WhenRangeIsFinite()
+    public void SetMaximumEnd_On_RemoveEnd_WhenRangeIsFinite()
     {
         var original = DateRange.Create(Start, Start.AddDays(2)).Value;
-        var updated = original.WithoutEnd().Value;
+        var updated = original.RemoveEnd().Value;
 
         updated.Start.ShouldBe(Start);
         updated.End.ShouldBe(DateOnly.MaxValue);
@@ -101,8 +101,8 @@ public class DateRangeShould
     }
 
     [Fact]
-    public void ReturnFailure_On_WithoutEnd_WhenRangeIsNull() =>
-        DateRangeExtensions.WithoutEnd(null!).Error.ShouldBe(DateRange.EndBeforeStartMessage);
+    public void ReturnFailure_On_RemoveEnd_WhenRangeIsNull() =>
+        DateRangeExtensions.RemoveEnd(null!).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
     public void CalculateEnd_On_CreateDaysRange_WhenDayCountIsValid() =>

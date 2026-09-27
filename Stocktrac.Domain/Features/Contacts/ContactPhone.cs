@@ -30,13 +30,13 @@ public sealed record ContactPhone : IHasPrimary
 
     public override string ToString() => Number.ToString();
 
-    public Result<ContactPhone> WithNumber(string number) =>
+    public Result<ContactPhone> ReplaceNumber(string number) =>
         PhoneNumber.Create(number)
             .Map(validNumber => this with { Number = validNumber });
 
-    public Result<ContactPhone> WithPhoneType(PhoneType phoneType) =>
+    public Result<ContactPhone> ReplacePhoneType(PhoneType phoneType) =>
         phoneType.AsValidPhoneType()
             .Map(validPhoneType => this with { PhoneType = validPhoneType });
 
-    public ContactPhone WithIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
+    public ContactPhone ReplaceIsPrimary(bool isPrimary) => this with { IsPrimary = isPrimary };
 }

@@ -39,19 +39,19 @@ public sealed record PersonName
             .Map(() => new PersonName(normalizedLastName, normalizedFirstName, normalizedMiddleName));
     }
 
-    public Result<PersonName> WithLastName(string newLastName) =>
+    public Result<PersonName> ReplaceLastName(string newLastName) =>
         newLastName.AsValidRequiredPersonNamePart()
             .Map(validLastName => this with { LastName = validLastName });
 
-    public Result<PersonName> WithFirstName(string newFirstName) =>
+    public Result<PersonName> ReplaceFirstName(string newFirstName) =>
         newFirstName.AsValidRequiredPersonNamePart()
             .Map(validFirstName => this with { FirstName = validFirstName });
 
-    public Result<PersonName> WithMiddleName(string newMiddleName) =>
+    public Result<PersonName> AddOrReplaceMiddleName(string newMiddleName) =>
         newMiddleName.AsValidOptionalPersonNamePart()
             .Map(validMiddleName => this with { MiddleName = validMiddleName });
 
-    public Result<PersonName> WithoutMiddleName() =>
+    public Result<PersonName> RemoveMiddleName() =>
         Result.Success(this with { MiddleName = Maybe<string>.None });
 
     public string LastFirstMiddle =>

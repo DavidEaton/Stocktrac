@@ -137,23 +137,23 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void ReturnFailureResult_On_WithAddress_WhenAddressIsNull()
+    public void ReturnFailureResult_On_ReplaceAddress_WhenAddressIsNull()
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.WithAddress(null!);
+        var result = email.ReplaceAddress(null!);
 
         result.IsFailure.ShouldBe(true);
         result.Error.ShouldBe(EmailAddress.EmptyMessage);
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithAddress_WhenAddressIsValid()
+    public void ReturnUpdatedCopy_On_ReplaceAddress_WhenAddressIsValid()
     {
         var email = Create_Valid_Primary_Email();
         var updatedAddress = "updated@address.com";
 
-        var result = email.WithAddress(updatedAddress);
+        var result = email.ReplaceAddress(updatedAddress);
 
         result.IsSuccess.ShouldBe(true);
         result.Value.Address.Value.ShouldBe(updatedAddress);
@@ -163,11 +163,11 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void TrimAddress_On_WithAddress_WhenAddressContainsSurroundingWhitespace()
+    public void TrimAddress_On_ReplaceAddress_WhenAddressContainsSurroundingWhitespace()
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.WithAddress("  updated@address.com  ");
+        var result = email.ReplaceAddress("  updated@address.com  ");
 
         result.IsSuccess.ShouldBe(true);
         result.Value.Address.Value.ShouldBe("updated@address.com");
@@ -176,12 +176,12 @@ public class ContactEmailShould
 
     [Theory]
     [MemberData(nameof(InvalidAddresses))]
-    public void PreserveAddress_On_WithAddress_WhenAddressIsInvalid(string address)
+    public void PreserveAddress_On_ReplaceAddress_WhenAddressIsInvalid(string address)
     {
         var email = Create_Valid_Primary_Email();
         var originalAddress = email.Address;
 
-        var result = email.WithAddress(address);
+        var result = email.ReplaceAddress(address);
 
         result.IsFailure.ShouldBe(true);
         email.Address.ShouldBe(originalAddress);
@@ -191,23 +191,23 @@ public class ContactEmailShould
     [InlineData("", EmailAddress.EmptyMessage)]
     [InlineData("a@b", "Email address cannot be less than 5 character(s) in length.")]
     [InlineData("invalid-email-address.com", EmailAddress.InvalidMessage)]
-    public void ReturnSpecificError_On_WithAddress_WhenAddressIsInvalid(string address, string expectedError)
+    public void ReturnSpecificError_On_ReplaceAddress_WhenAddressIsInvalid(string address, string expectedError)
     {
         var email = Create_Valid_Primary_Email();
 
-        var result = email.WithAddress(address);
+        var result = email.ReplaceAddress(address);
 
         result.Error.ShouldBe(expectedError);
         email.Address.Value.ShouldBe("email@email.com");
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithIsPrimary_WhenValueChanges()
+    public void ReturnUpdatedCopy_On_ReplaceIsPrimary_WhenValueChanges()
     {
         var email = Create_Valid_Primary_Email();
 
         email.IsPrimary.ShouldBe(true);
-        var updated = email.WithIsPrimary(false);
+        var updated = email.ReplaceIsPrimary(false);
 
         updated.IsPrimary.ShouldBe(false);
         updated.Address.ShouldBe(email.Address);
@@ -216,11 +216,11 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void ReturnEquivalentDistinctCopy_On_WithIsPrimary_WhenValueDoesNotChange()
+    public void ReturnEquivalentDistinctCopy_On_ReplaceIsPrimary_WhenValueDoesNotChange()
     {
         var email = Create_Valid_Primary_Email();
 
-        var updated = email.WithIsPrimary(true);
+        var updated = email.ReplaceIsPrimary(true);
 
         updated.ShouldBe(email);
         updated.GetHashCode().ShouldBe(email.GetHashCode());
