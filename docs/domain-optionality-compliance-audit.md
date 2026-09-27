@@ -67,7 +67,7 @@ value.
 
 | Domain object | Status | Findings and required migration |
 | --- | --- | --- |
-| `Address` | Partial | Optional line 2 uses `Maybe<AddressLine>`. Required reference parameters are non-nullable and also defensively checked at runtime. `WithAddressLine2` only sets a value; add `WithoutAddressLine2` so absence is explicit. |
+| `Address` | Compliant | Optional line 2 uses `Maybe<AddressLine>`, and required reference parameters are non-nullable while also being defensively checked at runtime. Mutations state their exact behavior through `ReplaceAddressLine1`, `AddOrReplaceAddressLine2`, `ReplaceCity`, `ReplaceState`, `ReplacePostalCode`, and `RemoveAddressLine2`. |
 | `AddressLine` | Compliant | State is always a valid non-null string. Its non-nullable factory signature preserves caller diagnostics while its null normalization is a defensive runtime guard. |
 | `BusinessName` | Compliant | State and input are non-nullable, while null normalization remains as a defensive runtime safeguard. |
 | `City` | Compliant | Like `AddressLine`, its required factory input is non-nullable and its runtime null normalization is defensive; no nullable state escapes. |
@@ -109,7 +109,8 @@ value.
    setters. Update call sites and tests in the same commit.
 2. **Make absence explicit.** Add set/clear pairs and `Maybe<T>` inputs for
    customer code, tenant logo, employee optional text, credit-card deposit date,
-   vehicle year/jurisdiction, address line 2, and person middle name.
+   vehicle year/jurisdiction and person middle name. Address line 2 already uses
+   the explicit `AddOrReplaceAddressLine2`/`RemoveAddressLine2` pair.
 3. **Keep required signatures non-nullable.** Defensive null validation may
    remain, but it must never be expressed as permission for callers to pass
    nullable values. Use `null!` only in tests that deliberately exercise the

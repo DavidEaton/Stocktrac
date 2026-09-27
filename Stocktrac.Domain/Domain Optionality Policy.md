@@ -89,15 +89,31 @@ primary-cardinality, or not-found outcomes are expected domain failures.
 
 ### Mutation method names
 
-Use `With...` and `Without...` for operations involving domain value objects,
-even when the value is held by an entity. These names distinguish assigning or
-removing a modeled domain value from operations involving entity references or
-primitive state.
+Name mutations for the operation they perform. In particular, address value
+object mutations use explicit `Replace...`, `AddOrReplace...`, and `Remove...`
+verbs so callers can tell whether a member is required, optional, or being
+removed. Use the following names consistently:
+
+| Previous name | Required name | Meaning |
+| --- | --- | --- |
+| `WithAddressLine1` | `ReplaceAddressLine1` | Replace `AddressLine1` |
+| `WithAddressLine2` | `AddOrReplaceAddressLine2` | Add or replace `AddressLine2` |
+| `WithCity` | `ReplaceCity` | Replace `City` |
+| `WithState` | `ReplaceState` | Replace `State` |
+| `WithPostalCode` | `ReplacePostalCode` | Replace `PostalCode` |
+| `WithoutAddressLine2` | `RemoveAddressLine2` | Remove `AddressLine2` |
+
+Elsewhere, a `With...` method may remain appropriate for an immutable value
+object when it clearly communicates returning a changed copy. Set and clear
+operations should likewise use names that state their behavior rather than
+relying on `With...`/`Without...` as a universal convention.
 
 ```csharp
-// Entity operation involving an Address value object.
-customer.WithAddress(address);
-customer.WithoutAddress();
+Address corrected = address
+    .ReplaceAddressLine1(addressLine1)
+    .Value;
+
+Address withoutSecondLine = corrected.RemoveAddressLine2();
 
 // Immutable value object: returns a changed copy.
 DateRange extended = period.WithEnd(newEnd);
@@ -195,8 +211,10 @@ When creating or reviewing domain code, verify that:
 - [ ] Failures use `Result`, not `None`, when callers need an error reason.
 - [ ] Unconditional assignments and clear operations do not return success-only
       results.
-- [ ] Operations involving domain value objects use `With...`/`Without...` naming.
-      Operations involving entity references retain explicit entity-oriented names.
+- [ ] Address mutations use `ReplaceAddressLine1`,
+      `AddOrReplaceAddressLine2`, `ReplaceCity`, `ReplaceState`,
+      `ReplacePostalCode`, and `RemoveAddressLine2` according to the operation
+      performed; other mutation names also state their behavior clearly.
 - [ ] Nullable boundary input is validated or normalized before entering the
       domain model.
 - [ ] Persistence and serialization concerns do not leak nullable state into
