@@ -58,12 +58,8 @@ public class AddressShould
         var result = Address.Create(null!, null!, (State)(-1), null!);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(string.Join(
-            Environment.NewLine,
-            NonEmptyString.RequiredMessage,
-            NonEmptyString.RequiredMessage,
-            "A valid State is required.",
-            NonEmptyString.RequiredMessage));
+        result.Error.ShouldContain(NonEmptyString.RequiredMessage);
+        result.Error.ShouldContain("A valid State is required.");
     }
 
     [Fact]

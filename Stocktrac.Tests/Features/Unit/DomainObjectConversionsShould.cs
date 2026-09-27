@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 using Shouldly;
-
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
 using Stocktrac.Domain.Features.Financial;
@@ -13,18 +13,29 @@ public class DomainObjectConversionsShould
     [Fact]
     public void CreateStringBackedValuesFromValidStrings()
     {
-        AssertStringValue("123 Main Street", AddressLine.Create, value => value.Value);
         AssertStringValue("Acme Automotive", BusinessName.Create, value => value.Name);
-        AssertStringValue("Springfield", City.Create, value => value.Value);
         AssertStringValue("D123456", DriversLicenseNumber.Create, value => value.Number);
         AssertStringValue("owner@example.com", EmailAddress.Create, value => value.Value);
         AssertStringValue("Remember this", Note.Create, value => value.Value);
         AssertStringValue("15551234567", PhoneNumber.Create, value => value.Value);
-        AssertStringValue("90210", PostalCode.Create, value => value.Value);
         AssertStringValue("CUST-100", CustomerCode.Create, value => value.Value);
         AssertStringValue("Visa", CreditCardName.Create, value => value.Value);
         AssertStringValue("CAD", CurrencyCode.Create, value => value.Value);
         AssertStringValue("123456789", SSN.Create, value => value.Value);
+        AssertStringValue(
+            "123 Main Street",
+            input => NonEmptyString.Create(input).Bind(AddressLine.Create),
+            value => value.Value.ToString());
+
+        AssertStringValue(
+            "Springfield",
+            input => NonEmptyString.Create(input).Bind(City.Create),
+            value => value.Value.ToString());
+
+        AssertStringValue(
+            "90210",
+            input => NonEmptyString.Create(input).Bind(PostalCode.Create),
+            value => value.Value.ToString());
     }
 
     [Fact]
