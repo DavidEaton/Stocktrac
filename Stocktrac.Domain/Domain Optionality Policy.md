@@ -89,10 +89,17 @@ primary-cardinality, or not-found outcomes are expected domain failures.
 
 ### Mutation method names
 
-Name mutations for the operation they perform. In particular, address value
-object mutations use explicit `Replace...`, `AddOrReplace...`, and `Remove...`
-verbs so callers can tell whether a member is required, optional, or being
-removed. Use the following names consistently:
+Value-object mutations name the operation they perform rather than using the
+ambiguous `With...` or `Without...` prefixes. This makes it clear whether a
+required member is replaced, an optional member is added or replaced, or an
+optional member is removed:
+
+- Use `Replace...` for a required member.
+- Use `AddOrReplace...` for an optional member supplied with a value.
+- Use `Remove...` to clear an optional member (or to restore a documented
+  open-ended sentinel).
+
+The address migration establishes the naming pattern:
 
 | Previous name | Required name | Meaning |
 | --- | --- | --- |
@@ -103,20 +110,24 @@ removed. Use the following names consistently:
 | `WithPostalCode` | `ReplacePostalCode` | Replace `PostalCode` |
 | `WithoutAddressLine2` | `RemoveAddressLine2` | Remove `AddressLine2` |
 
-Elsewhere, a `With...` method may remain appropriate for an immutable value
-object when it clearly communicates returning a changed copy. Set and clear
-operations should likewise use names that state their behavior rather than
-relying on `With...`/`Without...` as a universal convention.
+The same pattern applies to every value object. For example,
+`PersonName.AddOrReplaceMiddleName` and `PersonName.RemoveMiddleName` form the
+explicit optional-member pair, while `ContactPhone.ReplaceNumber` identifies a
+required-member replacement. `DateRange.RemoveEnd` restores its documented
+`DateOnly.MaxValue` open-ended sentinel.
 
 ```csharp
 Address corrected = address
     .ReplaceAddressLine1(addressLine1)
     .Value;
-
 Address withoutSecondLine = corrected.RemoveAddressLine2();
 
-// Immutable value object: returns a changed copy.
-DateRange extended = period.WithEnd(newEnd);
+PersonName renamed = personName
+    .AddOrReplaceMiddleName("Quinn")
+    .Value;
+PersonName withoutMiddleName = renamed.RemoveMiddleName().Value;
+
+DateRange extended = period.ReplaceEnd(newEnd).Value;
 ```
 
 ### Boundary normalization

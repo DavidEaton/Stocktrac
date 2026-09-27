@@ -6,11 +6,11 @@ namespace Stocktrac.Tests.Features.Unit.Persons;
 public class PersonNameShould
 {
     [Fact]
-    public void ReturnUpdatedCopy_On_WithLastName_WhenNameIsValid()
+    public void ReturnUpdatedCopy_On_ReplaceLastName_WhenNameIsValid()
     {
         var original = ValidName();
 
-        var result = original.WithLastName("  Jones  ");
+        var result = original.ReplaceLastName("  Jones  ");
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.LastName.ShouldBe("Jones");
@@ -20,11 +20,11 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithFirstName_WhenNameIsValid()
+    public void ReturnUpdatedCopy_On_ReplaceFirstName_WhenNameIsValid()
     {
         var original = ValidName();
 
-        var result = original.WithFirstName("  Jane  ");
+        var result = original.ReplaceFirstName("  Jane  ");
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.FirstName.ShouldBe("Jane");
@@ -34,11 +34,11 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithMiddleName_WhenNameIsValid()
+    public void ReturnUpdatedCopy_On_AddOrReplaceMiddleName_WhenNameIsValid()
     {
         var original = ValidName();
 
-        var result = original.WithMiddleName("  Quinn  ");
+        var result = original.AddOrReplaceMiddleName("  Quinn  ");
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.MiddleName.Value.ShouldBe("Quinn");
@@ -48,22 +48,22 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnFailure_On_WithLastName_WhenNameIsMissing()
+    public void ReturnFailure_On_ReplaceLastName_WhenNameIsMissing()
     {
         var original = ValidName();
 
-        var result = original.WithLastName("  ");
+        var result = original.ReplaceLastName("  ");
 
         result.Error.ShouldBe(PersonName.RequiredMessage);
         original.LastName.ShouldBe("Smith");
     }
 
     [Fact]
-    public void ReturnCopyWithoutMiddleName_On_WithoutMiddleName_WhenMiddleNameExists()
+    public void ReturnCopyRemoveMiddleName_On_RemoveMiddleName_WhenMiddleNameExists()
     {
         var original = ValidName();
 
-        var result = original.WithoutMiddleName();
+        var result = original.RemoveMiddleName();
 
         result.Value.MiddleName.HasNoValue.ShouldBeTrue();
         original.MiddleName.HasValue.ShouldBeTrue();

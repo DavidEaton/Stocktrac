@@ -78,10 +78,10 @@ public class ContactPhoneShould
         ContactPhone.Create(number, PhoneType.Home, false).Value.ToString().ShouldBe(formatted);
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithNumber_WhenNumberIsValid()
+    public void ReturnUpdatedCopy_On_ReplaceNumber_WhenNumberIsValid()
     {
         var original = ValidPhone();
-        var updated = original.WithNumber(" 555-987-6543 ").Value;
+        var updated = original.ReplaceNumber(" 555-987-6543 ").Value;
 
         updated.Number.Value.ShouldBe("5559876543");
         updated.PhoneType.ShouldBe(original.PhoneType);
@@ -90,48 +90,48 @@ public class ContactPhoneShould
     }
 
     [Fact]
-    public void StoreCanonicalInternationalNumber_On_WithNumber_WhenNumberHasInternationalFormat()
+    public void StoreCanonicalInternationalNumber_On_ReplaceNumber_WhenNumberHasInternationalFormat()
     {
-        var updated = ValidPhone().WithNumber("+33 (1) 42 68 53 00").Value;
+        var updated = ValidPhone().ReplaceNumber("+33 (1) 42 68 53 00").Value;
 
         updated.Number.Value.ShouldBe("+33142685300");
     }
 
     [Fact]
-    public void StoreSameRepresentation_On_CreateAndWithNumber()
+    public void StoreSameRepresentation_On_CreateAndReplaceNumber()
     {
         const string formattedNumber = " +1 (555) 123-4567 ";
 
         var created = ContactPhone.Create(formattedNumber, PhoneType.Mobile, false).Value;
-        var replaced = ValidPhone().WithNumber(formattedNumber).Value;
+        var replaced = ValidPhone().ReplaceNumber(formattedNumber).Value;
 
         created.Number.ShouldBe(replaced.Number);
         created.Number.Value.ShouldBe("+15551234567");
     }
 
     [Fact]
-    public void ReturnErrorAndLeaveOriginalUnchanged_On_WithNumber_WhenNumberIsInvalid()
+    public void ReturnErrorAndLeaveOriginalUnchanged_On_ReplaceNumber_WhenNumberIsInvalid()
     {
         var original = ValidPhone();
-        original.WithNumber("invalid").Error.ShouldBe(PhoneNumber.InvalidMessage);
+        original.ReplaceNumber("invalid").Error.ShouldBe(PhoneNumber.InvalidMessage);
         original.Number.Value.ShouldBe("5551234567");
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_WithPhoneType_WhenPhoneTypeIsDefined() =>
-        ValidPhone().WithPhoneType(PhoneType.Work).Value.PhoneType.ShouldBe(PhoneType.Work);
+    public void ReturnUpdatedCopy_On_ReplacePhoneType_WhenPhoneTypeIsDefined() =>
+        ValidPhone().ReplacePhoneType(PhoneType.Work).Value.PhoneType.ShouldBe(PhoneType.Work);
 
     [Fact]
-    public void ReturnError_On_WithPhoneType_WhenPhoneTypeIsUndefined() =>
-        ValidPhone().WithPhoneType((PhoneType)(-1)).Error.ShouldBe(ContactPhone.PhoneTypeInvalidMessage);
+    public void ReturnError_On_ReplacePhoneType_WhenPhoneTypeIsUndefined() =>
+        ValidPhone().ReplacePhoneType((PhoneType)(-1)).Error.ShouldBe(ContactPhone.PhoneTypeInvalidMessage);
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ReturnUpdatedCopy_On_WithIsPrimary_WhenValueIsProvided(bool primary)
+    public void ReturnUpdatedCopy_On_ReplaceIsPrimary_WhenValueIsProvided(bool primary)
     {
         var original = ValidPhone();
-        var updated = original.WithIsPrimary(primary);
+        var updated = original.ReplaceIsPrimary(primary);
 
         updated.IsPrimary.ShouldBe(primary);
         original.IsPrimary.ShouldBeFalse();

@@ -18,6 +18,7 @@ the result of applying its acceptance criteria.
 
 - **Pass:** migrated public optional properties expose absence through `Maybe<T>`.
 - **Pass:** migrated optional mutations provide explicit set and clear behavior.
+- **Pass:** value-object copy methods consistently use `Replace...`, `AddOrReplace...`, and `Remove...` names instead of ambiguous `With...` and `Without...` prefixes.
 - **Pass:** business contacts and employee exit dates now also have explicit clear operations and presence/absence tests.
 - **Pass:** required parameters are non-nullable even where implementations defensively produce failures for null input.
 - **Pass:** unconditional preference, person, primary-flag, boolean, fee, and assignment operations do not return success-only `Result` values.
