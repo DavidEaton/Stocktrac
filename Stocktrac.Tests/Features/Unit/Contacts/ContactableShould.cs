@@ -86,10 +86,10 @@ public class ContactableShould
         var person = CreatePerson(emails: [], phones: []);
         var originalName = person.Name;
 
-        person.WithName(null!).Error.ShouldBe(Person.NameRequiredMessage);
-        person.WithBirthday(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.WithDriversLicense(null!).Error.ShouldBe(Contactable.RequiredMessage);
-        person.WithAddress(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.UpdateName(null!).Error.ShouldBe(Person.NameRequiredMessage);
+        person.UpdateBirthday(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.UpdateDriversLicense(null!).Error.ShouldBe(Contactable.RequiredMessage);
+        person.ReplaceAddress(null!).Error.ShouldBe(Contactable.RequiredMessage);
 
         person.Name.ShouldBe(originalName);
         person.Birthday.HasValue.ShouldBeFalse();
@@ -142,10 +142,10 @@ public class ContactableShould
         var person = CreatePerson(emails: [], phones: []);
         var address = CreateAddress("123 Main St", "Anytown", State.NY, "12345");
 
-        person.WithAddress(address);
+        person.UpdateAddress(address);
         person.Address.ShouldBe(address);
         person.Address.ShouldBe(address);
-        person.WithoutAddress();
+        person.RemoveAddress();
         person.Address.HasValue.ShouldBe(false);
     }
 
@@ -235,7 +235,9 @@ public class ContactableShould
     public void RejectInvalidCollections_BeforeConstructingPerson()
     {
         var result = Person.Create(
-            PersonName.Create("Doe", "Jane").Value,
+            PersonName.Create(
+                NonEmptyString.Create("Doe").Value,
+                NonEmptyString.Create("Jane").Value).Value,
             Note.Create("Some notes.").Value,
             [
                 CreateEmail("first@example.com", true),
@@ -243,8 +245,8 @@ public class ContactableShould
             ],
             [],
             Maybe<Birthday>.None,
-            Maybe<Address>.None,
-            Maybe<DriversLicense>.None);
+            Maybe<DriversLicense>.None,
+            Maybe<Address>.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Contactable.MultiplePrimariesMessage);
@@ -371,7 +373,7 @@ public class ContactableShould
         var person = CreatePerson(emails: [], phones: []);
         var replacement = Note.Create("Replacement notes").Value;
 
-        var result = person.WithNotes(replacement);
+        var result = person.ReplaceNotes(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         person.Notes.ShouldBe(replacement);
@@ -381,22 +383,24 @@ public class ContactableShould
         IReadOnlyList<ContactEmail>? emails,
         IReadOnlyList<ContactPhone>? phones) =>
         Person.Create(
-            PersonName.Create("Doe", "Jane").Value,
+            PersonName.Create(
+                NonEmptyString.Create("Doe").Value,
+                NonEmptyString.Create("Jane").Value).Value,
             Note.Create("Some notes.").Value,
             emails ?? CreateEmails(),
             phones ?? CreatePhones(),
             Maybe<Birthday>.None,
-            Maybe<Address>.None,
-            Maybe<DriversLicense>.None
-            ).Value;
+            Maybe<DriversLicense>.None,
+            Maybe<Address>.None).Value;
 
     private static IReadOnlyList<ContactPhone> CreatePhones() => [];
 
     private static IReadOnlyList<ContactEmail> CreateEmails() => [];
 
     private static ContactPhone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
-        ContactPhone.Create(number, phoneType, isPrimary).Value;
-
+        ContactPhone.Create(
+            PhoneNumber.Create(number).Value, phoneType, isPrimary).Value;
+            
     private static ContactEmail CreateEmail(string address, bool isPrimary) =>
         ContactEmail.Create(address, isPrimary).Value;
 

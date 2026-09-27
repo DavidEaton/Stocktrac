@@ -12,11 +12,11 @@ public interface IContactable
 
     IReadOnlyList<ContactEmail> Emails { get; }
 
-    Result WithNotes(Note note);
+    Result ReplaceNotes(Note note);
 
-    Result WithAddress(Address address);
+    Result ReplaceAddress(Address address);
 
-    void WithoutAddress();
+    void RemoveAddress();
 
     Result<ContactPhone> AddPhone(ContactPhone phone);
 

@@ -14,11 +14,11 @@ public sealed class Person : Contactable, ICustomerEntity
 
     private Person(
         PersonName name,
+        Maybe<Birthday> birthday,
+        Maybe<DriversLicense> driversLicense,
         Note notes,
         Maybe<Address> address,
-        ValidatedContactCollections contacts,
-        Maybe<DriversLicense> driversLicense,
-        Maybe<Birthday> birthday)
+        ValidatedContactCollections contacts)
         : base(notes, address, contacts)
     {
         Name = name;
@@ -31,34 +31,48 @@ public sealed class Person : Contactable, ICustomerEntity
         Note notes,
         IReadOnlyList<ContactEmail> emails,
         IReadOnlyList<ContactPhone> phones,
-        Maybe<Birthday> birthday,
-        Maybe<Address> address,
-        Maybe<DriversLicense> driversLicense) =>
-        Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(name is null, NameRequiredMessage))
-            .Bind(() => ValidateContactCollections(phones, emails))
-            .Map(contacts => new Person(
-                name!, notes, address, contacts, driversLicense, birthday));
+        Maybe<Birthday> birthday = default,
+        Maybe<DriversLicense> driversLicense = default,
+        Maybe<Address> address = default)
+    {
+        var contacts = ValidateContactCollections(phones, emails);
 
-    public Result WithName(PersonName name) =>
+        return Result.Combine(
+                Environment.NewLine,
+                name.AsRequired(),
+                contacts)
+            .Map(() => new Person(
+                name,
+                birthday,
+                driversLicense,
+                notes,
+                address,
+                contacts.Value));
+    }
+
+    public Result UpdateName(PersonName name) =>
         name is null
             ? Result.Failure(NameRequiredMessage)
             : Result.Success().Tap(() => Name = name);
 
-    public Result WithBirthday(Birthday birthday) =>
+    public Result UpdateBirthday(Birthday birthday) =>
         birthday is null
-            ? Result.Failure(Contactable.RequiredMessage)
+            ? Result.Failure(RequiredMessage)
             : Result.Success().Tap(() => Birthday = birthday);
+
+    public Result UpdateDriversLicense(DriversLicense driversLicense) =>
+        driversLicense is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success().Tap(() => DriversLicense = driversLicense);
+
+    public Result UpdateAddress (Address address) =>
+        address is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success().Tap(() => Address = address);
 
     public void RemoveBirthday() => Birthday = Maybe<Birthday>.None;
 
     public void RemoveDriversLicense() => DriversLicense = Maybe<DriversLicense>.None;
-
-    public Result WithDriversLicense(DriversLicense driversLicense) =>
-        driversLicense is null
-            ? Result.Failure(Contactable.RequiredMessage)
-            : Result.Success().Tap(() => DriversLicense = driversLicense);
 
     public override string ToString() =>
         Name.ToString();

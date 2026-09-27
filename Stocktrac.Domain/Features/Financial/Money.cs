@@ -26,10 +26,10 @@ public readonly record struct Money
         Combine(other, static (left, right) => left.Subtract(right));
 
     public Result<Money> Multiply(decimal multiplier) =>
-        WithCurrency(Amount.Multiply(multiplier));
+        ReplaceCurrency(Amount.Multiply(multiplier));
 
     public Result<Money> Negate() =>
-        WithCurrency(Amount.Negate());
+        ReplaceCurrency(Amount.Negate());
 
     private Result<Money> Combine(
         Money other,
@@ -38,10 +38,10 @@ public readonly record struct Money
         if (CurrencyCode != other.CurrencyCode)
             return Result.Failure<Money>(CurrencyMismatchMessage);
 
-        return WithCurrency(operation(Amount, other.Amount));
+        return ReplaceCurrency(operation(Amount, other.Amount));
     }
 
-    private Result<Money> WithCurrency(Result<Amount> result)
+    private Result<Money> ReplaceCurrency(Result<Amount> result)
     {
         var currencyCode = CurrencyCode;
 

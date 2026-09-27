@@ -160,15 +160,15 @@ public sealed class Employee : Entity
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    public Result WithNotes(Note notes) =>
+    public Result ReplaceNotes(Note notes) =>
         Result.Success().Tap(() => Notes = notes);
 
-    public void WithoutNotes() => Notes = Maybe<Note>.None;
+    public void RemoveNotes() => Notes = Maybe<Note>.None;
 
-    public Result WithSSN(SSN ssn) =>
+    public Result ReplaceSSN(SSN ssn) =>
         ssn is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => SSN = ssn);
 
-    public Result SetCertificationNumber(string certificationNumber)
+    public Result AddOrReplaceCertificationNumber(string certificationNumber)
     {
         certificationNumber = certificationNumber?.Trim() ?? string.Empty;
 
@@ -204,8 +204,11 @@ public sealed class Employee : Entity
     private Employee()
     {
         roleAssignments = [];
-        var personName = PersonName.Create("LastName", "FirstName").Value;
-        PersonEmployed = Person.Create(personName, Note.Create(string.Empty).Value, [], [], Maybe<Birthday>.None, Maybe<Address>.None, Maybe<DriversLicense>.None).Value;
+        var personName = PersonName.Create(
+            NonEmptyString.Create("LastName").Value,
+            NonEmptyString.Create("FirstName").Value
+            ).Value;
+        PersonEmployed = Person.Create(personName, Note.Create(string.Empty).Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
         SSN = SSN.Create(string.Empty).Value;
         Hired = DateTime.Today;
         Notes = Maybe<Note>.None;

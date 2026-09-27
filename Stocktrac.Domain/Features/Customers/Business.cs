@@ -12,7 +12,7 @@ public sealed class Business : Contactable, ICustomerEntity
 
     public BusinessName Name { get; private set; }
     public Maybe<Person> Contact { get; private set; }
-    public override string ToString() => Name.Name;
+    public override string ToString() => Name.ToString();
     public EntityType EntityType => EntityType.Business;
 
     private Business(
@@ -42,7 +42,7 @@ public sealed class Business : Contactable, ICustomerEntity
             .Map(contacts => new Business(name!, address, notes, contact, contacts));
     }
 
-    public Result WithName(BusinessName name) =>
+    public Result ReplaceName(BusinessName name) =>
         name is null ? Result.Failure(InvalidMessage) : Result.Success().Tap(() => Name = name);
 
     public Result SetContact(Person contact) =>
@@ -56,6 +56,6 @@ public sealed class Business : Contactable, ICustomerEntity
     // EF requires a parameterless constructor
     private Business() =>
         Name = BusinessName.Create(
-            "Business Name")
-            .Value;
+            NonEmptyString.Create(
+                "Business Name").Value).Value;
 }

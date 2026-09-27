@@ -1,4 +1,5 @@
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
@@ -146,12 +147,12 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReplaceNumberAndPreserveOtherComponents_On_WithNumber_WhenNumberIsProvided()
+    public void ReplaceNumberAndPreserveOtherComponents_On_ReplaceNumber_WhenNumberIsProvided()
     {
         var original = CreateLicense();
         var replacement = CreateNumber("B987654");
 
-        var result = original.WithNumber(replacement);
+        var result = original.ReplaceNumber(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Number.ShouldBe(replacement);
@@ -161,11 +162,11 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnRequiredError_On_WithNumber_WhenNumberIsNull()
+    public void ReturnRequiredError_On_ReplaceNumber_WhenNumberIsNull()
     {
         var original = CreateLicense();
 
-        var result = original.WithNumber(null!);
+        var result = original.ReplaceNumber(null!);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicense.RequiredMessage);
@@ -173,11 +174,11 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReplaceStateAndPreserveOtherComponents_On_WithState_WhenStateIsDefined()
+    public void ReplaceStateAndPreserveOtherComponents_On_ReplaceState_WhenStateIsDefined()
     {
         var original = CreateLicense();
 
-        var result = original.WithState(State.NY);
+        var result = original.ReplaceState(State.NY);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.State.ShouldBe(State.NY);
@@ -189,21 +190,21 @@ public class DriversLicenseShould
     [Theory]
     [InlineData(-1)]
     [InlineData(64)]
-    public void ReturnStateInvalidError_On_WithState_WhenStateIsUndefined(int stateValue)
+    public void ReturnStateInvalidError_On_ReplaceState_WhenStateIsUndefined(int stateValue)
     {
-        var result = CreateLicense().WithState((State)stateValue);
+        var result = CreateLicense().ReplaceState((State)stateValue);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("A valid State is required.");
     }
 
     [Fact]
-    public void ReplaceValidDateRangeAndPreserveOtherComponents_On_WithValidDateRange_WhenRangeIsProvided()
+    public void ReplaceValidDateRangeAndPreserveOtherComponents_On_ReplaceValidDateRange_WhenRangeIsProvided()
     {
         var original = CreateLicense();
         var replacement = CreateRange(Start.AddDays(-100), Start.AddYears(3));
 
-        var result = original.WithValidDateRange(replacement, Start);
+        var result = original.ReplaceValidDateRange(replacement, Start);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ValidDateRange.ShouldBeEquivalentTo(replacement);
@@ -213,11 +214,11 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnRequiredError_On_WithValidDateRange_WhenRangeIsNull()
+    public void ReturnRequiredError_On_ReplaceValidDateRange_WhenRangeIsNull()
     {
         var original = CreateLicense();
 
-        var result = original.WithValidDateRange(null!, Start);
+        var result = original.ReplaceValidDateRange(null!, Start);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicense.RequiredMessage);
@@ -225,14 +226,14 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnValidationError_On_WithValidDateRange_WhenRangeExceedsMaximumValidity()
+    public void ReturnValidationError_On_ReplaceValidDateRange_WhenRangeExceedsMaximumValidity()
     {
         var original = CreateLicense();
         var invalidRange = CreateRange(
             Start,
             Start.AddYears(DriversLicense.MaximumValidityYears).AddDays(1));
 
-        var result = original.WithValidDateRange(invalidRange, Start);
+        var result = original.ReplaceValidDateRange(invalidRange, Start);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicense.DateRangeTooLongMessage);
@@ -298,7 +299,9 @@ public class DriversLicenseShould
         CreateRange(Start, Start.AddYears(4)), Start).Value;
 
     private static DriversLicenseNumber CreateNumber(string number) =>
-        DriversLicenseNumber.Create(number).Value;
+        DriversLicenseNumber.Create(
+            NonEmptyString.Create(number).Value)
+                .Value;
 
     private static DateRange CreateRange(DateOnly start, DateOnly end) =>
         DateRange.Create(start, end).Value;

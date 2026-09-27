@@ -49,7 +49,7 @@ public sealed class Customer : Entity
                 code,
                 ContactPreferences.Create(true, true, true)));
 
-    public Result WithAddress(Address address)
+    public Result ReplaceAddress(Address address)
     {
         if (address is null)
             return Result.Failure(RequiredMessage);
@@ -57,11 +57,11 @@ public sealed class Customer : Entity
         switch (CustomerEntity)
         {
             case Person person:
-                person.WithAddress(address);
+                person.ReplaceAddress(address);
                 return Result.Success();
 
             case Business business:
-                business.WithAddress(address);
+                business.ReplaceAddress(address);
                 return Result.Success();
 
             default:
@@ -69,16 +69,16 @@ public sealed class Customer : Entity
         }
     }
 
-    public void WithoutAddress()
+    public void RemoveAddress()
     {
         switch (CustomerEntity)
         {
             case Person person:
-                person.WithoutAddress();
+                person.RemoveAddress();
                 break;
 
             case Business business:
-                business.WithoutAddress();
+                business.RemoveAddress();
                 break;
 
             default:
@@ -154,10 +154,10 @@ public sealed class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result WithCode(CustomerCode code) =>
+    public Result ReplaceCode(CustomerCode code) =>
         code is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Code = code);
 
-    public void WithoutCode() => Code = Maybe<CustomerCode>.None;
+    public void ReplaceoutCode() => Code = Maybe<CustomerCode>.None;
 
     public Result SetCustomerEntity(ICustomerEntity entity)
     {

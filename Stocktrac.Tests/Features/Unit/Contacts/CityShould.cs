@@ -28,17 +28,6 @@ public class CityShould
     }
 
     [Fact]
-    public void ReturnUpperCaseCopy_On_ToUpper()
-    {
-        var city = City.Create(NonEmptyString.Create("New York").Value).Value;
-
-        var upperCase = city.ToUpper();
-
-        upperCase.Value.Value.ShouldBe("NEW YORK");
-        city.Value.Value.ShouldBe("New York");
-    }
-
-    [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenValuesAreEqual()
     {
         var first = City.Create(NonEmptyString.Create("Albany").Value).Value;

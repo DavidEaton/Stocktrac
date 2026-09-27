@@ -1,10 +1,10 @@
 namespace Stocktrac.Domain.Features.Contacts;
 
-public record struct ContactPreferences
+public readonly record struct ContactPreferences
 {
-    public bool AllowMail { get; private set; }
-    public bool AllowEmail { get; private set; }
-    public bool AllowSms { get; private set; }
+    public bool AllowMail { get; }
+    public bool AllowEmail { get; }
+    public bool AllowSms { get; }
 
     private ContactPreferences(bool allowMail, bool allowEmail, bool allowSms)
     {
@@ -16,12 +16,12 @@ public record struct ContactPreferences
     public static ContactPreferences Create(bool allowMail, bool allowEmail, bool allowSms) =>
         new(allowMail, allowEmail, allowSms);
 
-    public ContactPreferences WithAllowMail(bool allowMail) =>
-        this with { AllowMail = allowMail };
+    public readonly ContactPreferences ReplaceAllowMail(bool allowMail) =>
+        new(allowMail, AllowEmail, AllowSms);
 
-    public ContactPreferences WithAllowEmail(bool allowEmail) =>
-        this with { AllowEmail = allowEmail };
+    public readonly ContactPreferences ReplaceAllowEmail(bool allowEmail) =>
+        new(AllowMail, allowEmail, AllowSms);
 
-    public ContactPreferences WithAllowSms(bool allowSms) =>
-        this with { AllowSms = allowSms };
+    public readonly ContactPreferences ReplaceAllowSms(bool allowSms) =>
+        new(AllowMail, AllowEmail, allowSms);
 }

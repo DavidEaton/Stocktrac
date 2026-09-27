@@ -125,6 +125,10 @@ public class AddressShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.PostalCode.ShouldBe(replacement);
         AssertOnlyExpectedValueChanged(original, result.Value, nameof(Address.PostalCode));
+
+        NonEmptyString moops = default;
+        moops.ShouldBeSameAs(default(NonEmptyString));
+
     }
 
     [Fact]

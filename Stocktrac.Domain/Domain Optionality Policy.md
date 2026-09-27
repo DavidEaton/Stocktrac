@@ -116,7 +116,7 @@ Address corrected = address
 Address withoutSecondLine = corrected.RemoveAddressLine2();
 
 // Immutable value object: returns a changed copy.
-DateRange extended = period.WithEnd(newEnd);
+DateRange extended = period.ReplaceEnd(newEnd);
 ```
 
 ### Boundary normalization

@@ -18,9 +18,9 @@ public abstract partial class Contactable : Entity, IContactable
 
     private readonly ContactCollection<ContactEmail, EmailAddress> emailCollection;
 
-    public Note Notes { get; private set; }
+    public Note Notes { get; protected set; }
 
-    public Maybe<Address> Address { get; private set; }
+    public Maybe<Address> Address { get; protected set; }
 
     public IReadOnlyList<ContactPhone> Phones => phoneCollection.Items;
 
@@ -53,14 +53,14 @@ public abstract partial class Contactable : Entity, IContactable
     public Result ReplaceEmails(IReadOnlyList<ContactEmail> requestedEmails) =>
         emailCollection.Replace(requestedEmails);
 
-    public Result WithNotes(Note note) => Result.Success().Tap(() => Notes = note);
+    public Result ReplaceNotes(Note note) => Result.Success().Tap(() => Notes = note);
 
-    public Result WithAddress(Address address) =>
+    public Result ReplaceAddress(Address address) =>
         address is null
             ? Result.Failure(RequiredMessage)
             : Result.Success().Tap(() => Address = address);
 
-    public void WithoutAddress() => Address = Maybe<Address>.None;
+    public void RemoveAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
         PhoneNumber.Create(number)

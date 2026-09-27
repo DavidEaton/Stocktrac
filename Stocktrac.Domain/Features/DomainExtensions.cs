@@ -6,50 +6,6 @@ namespace Stocktrac.Domain.Features;
 
 public static class DomainExtensions
 {
-    extension(string value)
-    {
-        /// <summary>
-        /// Validates a string to ensure it is not null or whitespace.
-        /// </summary>
-        public Result<string> AsNonEmptyString() =>
-            string.IsNullOrWhiteSpace(value)
-                ? Result.Failure<string>("Value cannot be empty")
-                : Result.Success(value);
-
-        /// <summary>
-        /// Determines whether a string is not null or whitespace.
-        /// </summary>
-        public bool IsNonEmptyString() =>
-            !string.IsNullOrWhiteSpace(value);
-
-        /// <summary>
-        /// Validates a string to ensure it is a valid required person name part.
-        /// </summary>
-        internal Result<string> AsValidRequiredPersonNamePart() =>
-            Result.Success(value)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(
-                    normalized => normalized.IsNonEmptyString(),
-                    PersonName.RequiredMessage)
-                .Ensure(
-                    normalized => normalized.Length.IsWithin(
-                        PersonName.MinimumLength,
-                        PersonName.MaximumLength),
-                    PersonName.InvalidLengthMessage);
-
-        /// <summary>
-        /// Validates a string to ensure it is a valid optional person name part.
-        /// </summary>
-        internal Result<string> AsValidOptionalPersonNamePart() =>
-            Result.Success(value)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(
-                    normalized => normalized.Length.IsWithin(
-                        PersonName.MinimumLength,
-                        PersonName.MaximumLength),
-                    PersonName.InvalidLengthMessage);
-    }
-
     extension(int value)
     {
         /// <summary>
@@ -58,6 +14,18 @@ public static class DomainExtensions
         public bool IsWithin(int minimum, int maximum) =>
             value >= minimum && value <= maximum;
     }
+
+    // extension(NonEmptyString nonEmptyString)
+    // {
+    //     /// <summary>
+    //     /// Validates that a NonEmptyString value object was supplied.
+    //     /// </summary>
+    //     // internal Result<NonEmptyString> AsRequired() =>
+    //     //     nonEmptyString is null
+    //     //         ? Result.Failure<NonEmptyString>(NonEmptyString.RequiredMessage)
+    //     //         : Result.Success(nonEmptyString);
+    // }
+
 
     extension(PhoneType phoneType)
     {
@@ -71,6 +39,17 @@ public static class DomainExtensions
                     ContactPhone.PhoneTypeInvalidMessage);
     }
 
+    extension(PhoneNumber phoneNumber)
+    {
+        /// <summary>
+        /// Validates that an PhoneNumber value object was supplied.
+        /// </summary>
+        internal Result<PhoneNumber> AsRequired() =>
+            phoneNumber is null
+                ? Result.Failure<PhoneNumber>(NonEmptyString.RequiredMessage)
+                : Result.Success(phoneNumber);
+    }
+
     extension(AddressLine line)
     {
         /// <summary>
@@ -81,6 +60,17 @@ public static class DomainExtensions
             line is null
                 ? Result.Failure<AddressLine>(NonEmptyString.RequiredMessage)
                 : Result.Success(line);
+    }
+    extension(PersonName name)
+    {
+        /// <summary>
+        /// Validates that a PersonName value object was supplied.
+        /// The PersonName itself is responsible for validating its own invariants.
+        /// </summary>
+        internal Result<PersonName> AsRequired() =>
+            name is null
+                ? Result.Failure<PersonName>(NonEmptyString.RequiredMessage)
+                : Result.Success(name);
     }
 
     extension(City city)

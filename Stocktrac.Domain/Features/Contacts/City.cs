@@ -15,7 +15,6 @@ namespace Stocktrac.Domain.Features.Contacts
                 .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
                 .Map(value => new City(value));
 
-        public City ToUpper() => new(Value.ToUpper());
         public override string ToString() => Value.ToString();
     }
 }

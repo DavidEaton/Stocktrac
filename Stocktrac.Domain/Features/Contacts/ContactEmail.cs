@@ -16,11 +16,11 @@ public sealed record ContactEmail : IHasPrimary
         EmailAddress.Create(address)
             .Map(validAddress => new ContactEmail(validAddress, isPrimary));
 
-    public Result<ContactEmail> WithAddress(string address) =>
+    public Result<ContactEmail> ReplaceAddress(string address) =>
         EmailAddress.Create(address)
             .Map(validAddress => new ContactEmail(validAddress, IsPrimary));
 
-    public ContactEmail WithIsPrimary(bool isPrimary) => new(Address, isPrimary);
+    public ContactEmail ReplaceIsPrimary(bool isPrimary) => new(Address, isPrimary);
 
     public override string ToString() => Address.ToString();
 }

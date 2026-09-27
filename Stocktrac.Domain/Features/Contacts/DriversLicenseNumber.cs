@@ -4,26 +4,22 @@ namespace Stocktrac.Domain.Features.Contacts
 {
     public sealed record DriversLicenseNumber
     {
-        public const int MinimumLength = 3;
         public const int MaximumLength = 255;
-        public static readonly string InvalidLengthMessage = $"Value must be between {MinimumLength} and {MaximumLength} characters.";
-        public const string RequiredMessage = "Drivers License Number is required.";
+        public static readonly string InvalidLengthMessage = $"Drivers License Number must not exceed {MaximumLength} characters.";
 
-        public string Number { get; }
+        public NonEmptyString Number { get; }
 
-        private DriversLicenseNumber(string number) =>
+        private DriversLicenseNumber(NonEmptyString number) =>
             Number = number;
 
-        public static Result<DriversLicenseNumber> Create(string number) =>
+        public static Result<DriversLicenseNumber> Create(NonEmptyString number) =>
             Result.Success(number)
-                .Map(input => input?.Trim() ?? string.Empty)
-                .Ensure(normalized => normalized.IsNonEmptyString(), RequiredMessage)
-                .Ensure(normalized => normalized.Length.IsWithin(MinimumLength, MaximumLength), InvalidLengthMessage)
-                .Map(normalized => new DriversLicenseNumber(normalized));
+                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
+                .Map(value => new DriversLicenseNumber(value));
 
-        public static Result<DriversLicenseNumber> NewNumber(string newNumber) =>
-            Create(newNumber);
+        public static Result<DriversLicenseNumber> ReplaceNumber(NonEmptyString number) =>
+            Create(number);
 
-        public override string ToString() => Number;
+        public override string ToString() => Number.ToString();
     }
 }

@@ -33,7 +33,9 @@ public sealed class Company : Entity
     // EF requires a parameterless constructor
     private Company() =>
         Business = Business.Create(
-            BusinessName.Create("Business Name").Value,
+            BusinessName.Create(
+                NonEmptyString.Create("Business Name").Value)
+                .Value,
             Maybe<Address>.None,
             Note.Create(string.Empty).Value,
             Maybe<Person>.None,
