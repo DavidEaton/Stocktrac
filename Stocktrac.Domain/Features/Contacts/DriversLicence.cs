@@ -49,27 +49,23 @@ public sealed record DriversLicense
         DateRange dateRange,
         DateOnly today)
     {
-        var numberResult = number.AsValidDriversLicenseNumber();
         var stateResult = state.AsValidState();
         var dateRangeResult = dateRange.AsValidDriversLicenseDateRange(today);
 
         return Result.Combine(
                 Environment.NewLine,
-                numberResult,
                 stateResult,
                 dateRangeResult)
             .Map(() =>
                 new DriversLicense(
-                    numberResult.Value,
+                    number,
                     stateResult.Value,
                     dateRangeResult.Value));
     }
 
     public Result<DriversLicense> ReplaceNumber(
         DriversLicenseNumber number) =>
-        number.AsValidDriversLicenseNumber()
-            .Map(validNumber =>
-                this with { Number = validNumber });
+        Result.Success(this with { Number = number });
 
     public Result<DriversLicense> ReplaceState(State state) =>
         state.AsValidState()
