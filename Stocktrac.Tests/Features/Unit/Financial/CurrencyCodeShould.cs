@@ -1,3 +1,4 @@
+using Stocktrac.Domain.Features;
 using System.Globalization;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
@@ -14,7 +15,7 @@ public class CurrencyCodeShould
     [InlineData("XAU")]
     public void ReturnSuccessfulResult_On_Create_WhenCodeIsActive(string code)
     {
-        var result = CurrencyCode.Create(code);
+        var result = CurrencyCode.Create(NonEmptyString.Create(code).Value);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(code);
@@ -23,13 +24,11 @@ public class CurrencyCodeShould
     [Theory]
     [InlineData("usd", "USD")]
     [InlineData("cAd", "CAD")]
-    [InlineData("  EUR  ", "EUR")]
-    [InlineData("\tjpY\r\n", "JPY")]
-    public void TrimAndUppercaseCode_On_Create_WhenCodeRequiresNormalization(
+    public void UppercaseCode_On_Create_WhenCodeRequiresNormalization(
         string code,
         string expected)
     {
-        var result = CurrencyCode.Create(code);
+        var result = CurrencyCode.Create(NonEmptyString.Create(code).Value);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(expected);
@@ -44,7 +43,7 @@ public class CurrencyCodeShould
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
 
-            CurrencyCode.Create("try").Value.Value.ShouldBe("TRY");
+            CurrencyCode.Create(NonEmptyString.Create("try").Value).Value.Value.ShouldBe("TRY");
         }
         finally
         {
@@ -63,34 +62,18 @@ public class CurrencyCodeShould
     [InlineData("ＵＳＤ")]
     public void ReturnInvalidFailure_On_Create_WhenCodeIsNotThreeAsciiLetters(string code)
     {
-        var result = CurrencyCode.Create(code);
+        var result = CurrencyCode.Create(NonEmptyString.Create(code).Value);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CurrencyCode.InvalidMessage);
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("\t\r\n")]
-    public void ReturnInvalidFailure_On_Create_WhenCodeIsMissing(string? code)
-    {
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = CurrencyCode.Create(code);
-#pragma warning restore CS8604 // Possible null reference argument.
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CurrencyCode.RequiredMessage);
-    }
-
-    [Theory]
     [InlineData("ZZZ")]
     [InlineData("ABC")]
-    [InlineData(" zzz ")]
     public void ReturnUnsupportedFailure_On_Create_WhenNormalizedCodeIsNotActive(string code)
     {
-        var result = CurrencyCode.Create(code);
+        var result = CurrencyCode.Create(NonEmptyString.Create(code).Value);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CurrencyCode.UnsupportedMessage);
@@ -117,8 +100,8 @@ public class CurrencyCodeShould
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenNormalizedCodesAreEqual()
     {
-        var first = CurrencyCode.Create(" cad ").Value;
-        var second = CurrencyCode.Create("CAD").Value;
+        var first = CurrencyCode.Create(NonEmptyString.Create("cad").Value).Value;
+        var second = CurrencyCode.Create(NonEmptyString.Create("CAD").Value).Value;
 
         (first == second).ShouldBeTrue();
         first.Equals(second).ShouldBeTrue();
@@ -128,8 +111,8 @@ public class CurrencyCodeShould
     [Fact]
     public void NotBeEqual_WhenCodesDiffer()
     {
-        var cad = CurrencyCode.Create("CAD").Value;
-        var eur = CurrencyCode.Create("EUR").Value;
+        var cad = CurrencyCode.Create(NonEmptyString.Create("CAD").Value).Value;
+        var eur = CurrencyCode.Create(NonEmptyString.Create("EUR").Value).Value;
 
         (cad != eur).ShouldBeTrue();
         cad.Equals(eur).ShouldBeFalse();
@@ -138,7 +121,7 @@ public class CurrencyCodeShould
     [Fact]
     public void BeEqualToDefault_WhenCodeIsUsd()
     {
-        CurrencyCode.Create("USD").Value.ShouldBe(default(CurrencyCode));
+        CurrencyCode.Create(NonEmptyString.Create("USD").Value).Value.ShouldBe(default(CurrencyCode));
         CurrencyCode.Usd.ShouldBe(CurrencyCode.Default);
     }
 
@@ -148,7 +131,7 @@ public class CurrencyCodeShould
     [InlineData("EUR")]
     public void ReturnValue_On_ToString_WhenCodeIsValid(string code)
     {
-        CurrencyCode.Create(code).Value.ToString().ShouldBe(code);
+        CurrencyCode.Create(NonEmptyString.Create(code).Value).Value.ToString().ShouldBe(code);
     }
 
     [Fact]
@@ -156,7 +139,6 @@ public class CurrencyCodeShould
     {
         CurrencyCode.CodeLength.ShouldBe(3);
         CurrencyCode.DefaultCode.ShouldBe("USD");
-        CurrencyCode.RequiredMessage.ShouldBe("Currency code is required.");
         CurrencyCode.InvalidMessage.ShouldBe("Currency code must be three alphabetic characters.");
         CurrencyCode.UnsupportedMessage.ShouldBe("Currency code is not an active ISO 4217 code.");
     }

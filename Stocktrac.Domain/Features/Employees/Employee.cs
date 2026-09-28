@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
 
@@ -208,8 +208,8 @@ public sealed class Employee : Entity
             NonEmptyString.Create("LastName").Value,
             NonEmptyString.Create("FirstName").Value
             ).Value;
-        PersonEmployed = Person.Create(personName, Note.Create(string.Empty).Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
-        SSN = SSN.Create(string.Empty).Value;
+        PersonEmployed = Person.Create(personName, Note.Create(NonEmptyString.Create("No notes").Value).Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
+        SSN = SSN.Create(NonEmptyString.Create("000-00-0000").Value).Value;
         Hired = DateTime.Today;
         Notes = Maybe<Note>.None;
         CertificationNumber = Maybe<string>.None;

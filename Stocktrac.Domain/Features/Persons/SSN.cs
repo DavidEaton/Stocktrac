@@ -13,30 +13,22 @@ public sealed record SSN
     private const int SecondHyphenIndex =
         AreaNumberLength + GroupNumberLength + 1;
     private const int FormattedLength = NormalizedLength + 2;
-    public const string RequiredMessage =
-        "A Social Security number is required.";
     public const string InvalidFormatMessage =
         "The Social Security number must contain exactly nine digits.";
 
-    public string Value { get; }
+    public NonEmptyString Value { get; }
 
     public string Masked =>
-        $"***-**-{Value[^SerialNumberLength..]}";
+        $"***-**-{Value.Value[^SerialNumberLength..]}";
 
-    private SSN(string value) =>
+    private SSN(NonEmptyString value) =>
         Value = value;
 
-    public static Result<SSN> Create(string value)
-    {
-        var input = value?.Trim() ?? string.Empty;
-        var normalized = Normalize(input);
-
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(string.IsNullOrWhiteSpace(input), RequiredMessage),
-                Result.FailureIf(!string.IsNullOrWhiteSpace(input) && normalized is null, InvalidFormatMessage))
-            .Map(() => new SSN(normalized!));
-    }
+    public static Result<SSN> Create(NonEmptyString value) =>
+        Result.Success(value)
+            .Ensure(input => Normalize(input.Value) is not null, InvalidFormatMessage)
+            .Map(input => NonEmptyString.Create(Normalize(input.Value)!).Value)
+            .Map(normalized => new SSN(normalized));
 
     private static string? Normalize(string value) =>
         value.Length switch
@@ -51,9 +43,9 @@ public sealed record SSN
         var secondGroupStart = AreaNumberLength;
         var serialNumberStart = AreaNumberLength + GroupNumberLength;
 
-        return $"{Value[..AreaNumberLength]}-" +
-               $"{Value[secondGroupStart..serialNumberStart]}-" +
-               $"{Value[serialNumberStart..]}";
+        return $"{Value.Value[..AreaNumberLength]}-" +
+               $"{Value.Value[secondGroupStart..serialNumberStart]}-" +
+               $"{Value.Value[serialNumberStart..]}";
     }
 
     public override string ToString() => Masked;

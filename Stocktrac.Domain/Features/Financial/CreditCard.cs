@@ -38,7 +38,8 @@ public sealed class CreditCard : Entity
             .Map(() => new CreditCard(name!, feeType, fee!, addedToDeposit));
 
     public Result<CreditCard> ChangeName(string name) =>
-        CreditCardName.Create(name?.Trim() ?? string.Empty)
+        NonEmptyString.Create(name)
+            .Bind(CreditCardName.Create)
             .Tap(validName => Name = validName)
             .Map(_ => this);
 

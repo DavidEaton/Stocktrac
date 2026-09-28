@@ -2,25 +2,21 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Contacts
 {
-    public readonly record struct Note
+    public sealed record Note
     {
         public const int MaximumLength = 10000;
         public static readonly string MaximumLengthMessage = $"Notes must be {MaximumLength} or fewer characters in length.";
-        // A nullable backing field is required because default(Note) cannot invoke a
-        // struct constructor. The public domain value is nevertheless always non-null.
-        private readonly string? value;
-        public string Value => value ?? string.Empty;
+        public NonEmptyString Value { get; }
 
-        public static Result<Note> Create(string notes) =>
-            Result.Success(Normalize(notes))
+        public static Result<Note> Create(NonEmptyString notes) =>
+            Result.Success(notes)
                 .Ensure(
-                    value => value.Length <= MaximumLength,
+                    value => value.Value.Length <= MaximumLength,
                     MaximumLengthMessage)
                 .Map(value => new Note(value));
 
-        private Note(string note) => value = note;
+        private Note(NonEmptyString note) => Value = note;
 
-        private static string Normalize(string? notes) =>
-            notes?.Trim() ?? string.Empty;
+        public override string ToString() => Value.ToString();
     }
 }

@@ -70,7 +70,7 @@ public class PersonShould
             PersonName.Create(
                 NonEmptyString.Create("Doe").Value,
                 NonEmptyString.Create("Jane").Value).Value,
-            Note.Create("Some notes.").Value,
+            Note.Create(NonEmptyString.Create("Some notes.").Value).Value,
             [],
             [],
             birthday,

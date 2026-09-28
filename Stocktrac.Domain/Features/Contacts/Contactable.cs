@@ -63,13 +63,15 @@ public abstract partial class Contactable : Entity, IContactable
     public void RemoveAddress() => Address = Maybe<Address>.None;
 
     public bool HasPhoneNumber(string number) =>
-        PhoneNumber.Create(number)
+        NonEmptyString.Create(number)
+            .Bind(PhoneNumber.Create)
             .Match(phoneCollection.Contains, otherwise => false);
 
     public bool HasPrimaryPhone() => phoneCollection.HasPrimary;
 
     public bool HasEmailAddress(string address) =>
-        EmailAddress.Create(address)
+        NonEmptyString.Create(address)
+            .Bind(EmailAddress.Create)
             .Match(HasEmailAddress, otherwise => false);
 
     private bool HasEmailAddress(EmailAddress address) =>

@@ -38,13 +38,13 @@ public class DomainObjectConversionsShould
             input => NonEmptyString.Create(input).Bind(PostalCode.Create),
             value => value.Value.ToString());
 
-        AssertStringValue("owner@example.com", EmailAddress.Create, value => value.Value);
-        AssertStringValue("Remember this", Note.Create, value => value.Value);
-        AssertStringValue("15551234567", PhoneNumber.Create, value => value.Value);
-        AssertStringValue("CUST-100", CustomerCode.Create, value => value.Value);
-        AssertStringValue("Visa", CreditCardName.Create, value => value.Value);
-        AssertStringValue("CAD", CurrencyCode.Create, value => value.Value);
-        AssertStringValue("123456789", SSN.Create, value => value.Value);
+        AssertStringValue("owner@example.com", input => NonEmptyString.Create(input).Bind(EmailAddress.Create), value => value.Value.Value);
+        AssertStringValue("Remember this", input => NonEmptyString.Create(input).Bind(Note.Create), value => value.Value.Value);
+        AssertStringValue("15551234567", input => NonEmptyString.Create(input).Bind(PhoneNumber.Create), value => value.Value.Value);
+        AssertStringValue("CUST-100", input => NonEmptyString.Create(input).Bind(CustomerCode.Create), value => value.Value.Value);
+        AssertStringValue("Visa", input => NonEmptyString.Create(input).Bind(CreditCardName.Create), value => value.Value.Value);
+        AssertStringValue("CAD", input => NonEmptyString.Create(input).Bind(CurrencyCode.Create), value => value.Value);
+        AssertStringValue("123456789", input => NonEmptyString.Create(input).Bind(SSN.Create), value => value.Value.Value);
     }
 
     [Fact]

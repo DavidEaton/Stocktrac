@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
 using Stocktrac.Domain.Features.Persons;
@@ -37,7 +37,7 @@ public sealed class Company : Entity
                 NonEmptyString.Create("Business Name").Value)
                 .Value,
             Maybe<Address>.None,
-            Note.Create(string.Empty).Value,
+            Note.Create(NonEmptyString.Create("No notes").Value).Value,
             Maybe<Person>.None,
             [],
             [])

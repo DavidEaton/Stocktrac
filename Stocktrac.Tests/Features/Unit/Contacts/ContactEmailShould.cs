@@ -1,3 +1,4 @@
+using Stocktrac.Domain.Features;
 using Shouldly;
 using Stocktrac.Domain.Features.Contacts;
 
@@ -79,5 +80,5 @@ public class ContactEmailShould
         ContactEmail.Create(CreateAddress("email@email.com"), true).Value;
 
     private static EmailAddress CreateAddress(string value) =>
-        EmailAddress.Create(value).Value;
+        EmailAddress.Create(NonEmptyString.Create(value).Value).Value;
 }
