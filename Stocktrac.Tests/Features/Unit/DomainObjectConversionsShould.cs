@@ -13,17 +13,16 @@ public class DomainObjectConversionsShould
     [Fact]
     public void CreateStringBackedValuesFromValidStrings()
     {
-        // var acme = NonEmptyString.Create("Acme Automotive").Value;
-        // var driversLicenseNumber = NonEmptyString.Create("D123456").Value;
-        // AssertStringValue(acme, BusinessName.Create, value => value.Name);
-        // AssertStringValue(driversLicenseNumber, DriversLicenseNumber.Create, value => value.Number);
-        AssertStringValue("owner@example.com", EmailAddress.Create, value => value.Value);
-        AssertStringValue("Remember this", Note.Create, value => value.Value);
-        AssertStringValue("15551234567", PhoneNumber.Create, value => value.Value);
-        AssertStringValue("CUST-100", CustomerCode.Create, value => value.Value);
-        AssertStringValue("Visa", CreditCardName.Create, value => value.Value);
-        AssertStringValue("CAD", CurrencyCode.Create, value => value.Value);
-        AssertStringValue("123456789", SSN.Create, value => value.Value);
+        AssertStringValue(
+            "Acme Automotive",
+            input => NonEmptyString.Create(input).Bind(BusinessName.Create),
+            value => value.Name.Value);
+
+        AssertStringValue(
+            "D123456",
+            input => NonEmptyString.Create(input).Bind(DriversLicenseNumber.Create),
+            value => value.Number.Value);
+
         AssertStringValue(
             "123 Main Street",
             input => NonEmptyString.Create(input).Bind(AddressLine.Create),
@@ -38,6 +37,14 @@ public class DomainObjectConversionsShould
             "90210",
             input => NonEmptyString.Create(input).Bind(PostalCode.Create),
             value => value.Value.ToString());
+
+        AssertStringValue("owner@example.com", EmailAddress.Create, value => value.Value);
+        AssertStringValue("Remember this", Note.Create, value => value.Value);
+        AssertStringValue("15551234567", PhoneNumber.Create, value => value.Value);
+        AssertStringValue("CUST-100", CustomerCode.Create, value => value.Value);
+        AssertStringValue("Visa", CreditCardName.Create, value => value.Value);
+        AssertStringValue("CAD", CurrencyCode.Create, value => value.Value);
+        AssertStringValue("123456789", SSN.Create, value => value.Value);
     }
 
     [Fact]

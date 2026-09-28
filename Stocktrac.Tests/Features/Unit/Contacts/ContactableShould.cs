@@ -3,7 +3,6 @@ using Shouldly;
 using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
-using Entity = Stocktrac.Domain.Features.Entity;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 
@@ -14,8 +13,8 @@ public class ContactableShould
     {
         var person = CreatePerson(emails: [], phones: []);
 
-        Address.Default.HasValue.ShouldBe(false);
-        person.Address.ShouldBe(Address.Default);
+        person.Address.HasValue.ShouldBe(false);
+        person.Address.ShouldBe(Maybe<Address>.None);
     }
 
     [Fact]

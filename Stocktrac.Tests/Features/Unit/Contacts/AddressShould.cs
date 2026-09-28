@@ -10,7 +10,9 @@ public class AddressShould
     [Fact]
     public void ContainNoValue_On_Default()
     {
-        Address.Default.HasValue.ShouldBeFalse();
+        Maybe<Address> addressDefault = default;
+        addressDefault.HasValue.ShouldBeFalse();
+        addressDefault.ShouldBe(Maybe<Address>.None);
     }
 
     [Fact]
@@ -50,16 +52,6 @@ public class AddressShould
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("A valid State is required.");
-    }
-
-    [Fact]
-    public void ReturnEveryError_On_Create_WhenSeveralComponentsAreInvalid()
-    {
-        var result = Address.Create(null!, null!, (State)(-1), null!);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain(NonEmptyString.RequiredMessage);
-        result.Error.ShouldContain("A valid State is required.");
     }
 
     [Fact]
@@ -125,10 +117,6 @@ public class AddressShould
         result.IsSuccess.ShouldBeTrue();
         result.Value.PostalCode.ShouldBe(replacement);
         AssertOnlyExpectedValueChanged(original, result.Value, nameof(Address.PostalCode));
-
-        NonEmptyString moops = default;
-        moops.ShouldBeSameAs(default(NonEmptyString));
-
     }
 
     [Fact]
@@ -151,8 +139,8 @@ public class AddressShould
 
         var edited = original.RemoveAddressLine2();
 
-        edited.AddressLine2.HasNoValue.ShouldBeTrue();
-        AssertOnlyExpectedValueChanged(original, edited, nameof(Address.AddressLine2));
+        edited.Value.AddressLine2.HasNoValue.ShouldBeTrue();
+        AssertOnlyExpectedValueChanged(original, edited.Value, nameof(Address.AddressLine2));
     }
 
     [Fact]

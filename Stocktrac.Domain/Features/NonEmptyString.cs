@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features
 {
-    public record struct NonEmptyString
+    public sealed record NonEmptyString
     {
         public const string RequiredMessage = "Value is required.";
         private NonEmptyString(string value) => Value = value;
@@ -14,6 +14,6 @@ namespace Stocktrac.Domain.Features
                 .Ensure(value => !string.IsNullOrWhiteSpace(value), RequiredMessage)
                 .Map(value => new NonEmptyString(value));
 
-        public override readonly string ToString() => Value;
+        public override string ToString() => Value;
     }
 }
