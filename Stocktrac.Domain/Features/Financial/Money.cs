@@ -16,7 +16,9 @@ public readonly record struct Money
         new(amount, currencyCode);
 
     public static Result<Money> Create(decimal amount, string currencyCode) =>
-        CurrencyCode.Create(currencyCode).Map(
+        NonEmptyString.Create(currencyCode)
+            .Bind(CurrencyCode.Create)
+            .Map(
             code => Create(Amount.FromDecimal(amount), code));
 
     public Result<Money> Add(Money other) =>

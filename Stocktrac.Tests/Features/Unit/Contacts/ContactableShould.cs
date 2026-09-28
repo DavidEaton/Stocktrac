@@ -237,7 +237,7 @@ public class ContactableShould
             PersonName.Create(
                 NonEmptyString.Create("Doe").Value,
                 NonEmptyString.Create("Jane").Value).Value,
-            Note.Create("Some notes.").Value,
+            Note.Create(NonEmptyString.Create("Some notes.").Value).Value,
             [
                 CreateEmail("first@example.com", true),
                 CreateEmail("second@example.com", true)
@@ -370,7 +370,7 @@ public class ContactableShould
     public void UpdateNotes_On_WithNotes_WhenNoteIsValid()
     {
         var person = CreatePerson(emails: [], phones: []);
-        var replacement = Note.Create("Replacement notes").Value;
+        var replacement = Note.Create(NonEmptyString.Create("Replacement notes").Value).Value;
 
         var result = person.ReplaceNotes(replacement);
 
@@ -385,7 +385,7 @@ public class ContactableShould
             PersonName.Create(
                 NonEmptyString.Create("Doe").Value,
                 NonEmptyString.Create("Jane").Value).Value,
-            Note.Create("Some notes.").Value,
+            Note.Create(NonEmptyString.Create("Some notes.").Value).Value,
             emails ?? CreateEmails(),
             phones ?? CreatePhones(),
             Maybe<Birthday>.None,
@@ -398,10 +398,10 @@ public class ContactableShould
 
     private static ContactPhone CreatePhone(string number, PhoneType phoneType, bool isPrimary) =>
         ContactPhone.Create(
-            PhoneNumber.Create(number).Value, phoneType, isPrimary).Value;
+            PhoneNumber.Create(NonEmptyString.Create(number).Value).Value, phoneType, isPrimary).Value;
             
     private static ContactEmail CreateEmail(string address, bool isPrimary) =>
-        ContactEmail.Create(EmailAddress.Create(address).Value, isPrimary).Value;
+        ContactEmail.Create(EmailAddress.Create(NonEmptyString.Create(address).Value).Value, isPrimary).Value;
 
     private static Address CreateAddress(string line, string city, State state, string postalCode) =>
         Address.Create(

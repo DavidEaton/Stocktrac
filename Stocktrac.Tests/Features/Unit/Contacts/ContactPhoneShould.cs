@@ -1,3 +1,4 @@
+using Stocktrac.Domain.Features;
 using CSharpFunctionalExtensions;
 using Shouldly;
 using Stocktrac.Domain.Features.Contacts;
@@ -12,7 +13,7 @@ public class ContactPhoneShould
         var result = Create(" 555-123-4567 ", PhoneType.Mobile, true);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Number.Value.ShouldBe("5551234567");
+        result.Value.Number.Value.Value.ShouldBe("5551234567");
         result.Value.PhoneType.ShouldBe(PhoneType.Mobile);
         result.Value.IsPrimary.ShouldBeTrue();
     }
@@ -28,7 +29,7 @@ public class ContactPhoneShould
         var result = Create(number, PhoneType.Mobile, false);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Number.Value.ShouldBe(canonicalNumber);
+        result.Value.Number.Value.Value.ShouldBe(canonicalNumber);
         result.Value.ToString().ShouldBe(canonicalNumber);
     }
 
@@ -84,10 +85,10 @@ public class ContactPhoneShould
         var original = ValidPhone();
         var updated = ReplaceNumber(original, " 555-987-6543 ").Value;
 
-        updated.Number.Value.ShouldBe("5559876543");
+        updated.Number.Value.Value.ShouldBe("5559876543");
         updated.PhoneType.ShouldBe(original.PhoneType);
         updated.IsPrimary.ShouldBe(original.IsPrimary);
-        original.Number.Value.ShouldBe("5551234567");
+        original.Number.Value.Value.ShouldBe("5551234567");
     }
 
     [Fact]
@@ -95,7 +96,7 @@ public class ContactPhoneShould
     {
         var updated = ReplaceNumber(ValidPhone(), "+33 (1) 42 68 53 00").Value;
 
-        updated.Number.Value.ShouldBe("+33142685300");
+        updated.Number.Value.Value.ShouldBe("+33142685300");
     }
 
     [Fact]
@@ -107,7 +108,7 @@ public class ContactPhoneShould
         var replaced = ReplaceNumber(ValidPhone(), formattedNumber).Value;
 
         created.Number.ShouldBe(replaced.Number);
-        created.Number.Value.ShouldBe("+15551234567");
+        created.Number.Value.Value.ShouldBe("+15551234567");
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class ContactPhoneShould
     {
         var original = ValidPhone();
         ReplaceNumber(original, "invalid").Error.ShouldBe(PhoneNumber.InvalidMessage);
-        original.Number.Value.ShouldBe("5551234567");
+        original.Number.Value.Value.ShouldBe("5551234567");
     }
 
     [Fact]
@@ -143,18 +144,18 @@ public class ContactPhoneShould
     public void UseValueEquality_WhenValuesAreTheSame()
     {
         var first = ValidPhone();
-        var second = Create(first.Number.Value, first.PhoneType, first.IsPrimary).Value;
+        var second = Create(first.Number.Value.Value, first.PhoneType, first.IsPrimary).Value;
 
         first.ShouldBe(second);
         first.ShouldNotBeSameAs(second);
     }
 
     private static Result<ContactPhone> Create(string number, PhoneType phoneType, bool isPrimary) =>
-        PhoneNumber.Create(number)
+        PhoneNumber.Create(NonEmptyString.Create(number).Value)
             .Bind(validNumber => ContactPhone.Create(validNumber, phoneType, isPrimary));
 
     private static Result<ContactPhone> ReplaceNumber(ContactPhone phone, string number) =>
-        PhoneNumber.Create(number)
+        PhoneNumber.Create(NonEmptyString.Create(number).Value)
             .Bind(validNumber => phone.ReplaceNumber(validNumber));
 
     private static ContactPhone ValidPhone() => Create("555-123-4567", PhoneType.Mobile, false).Value;

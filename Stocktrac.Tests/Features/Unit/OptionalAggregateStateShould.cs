@@ -16,7 +16,7 @@ public class OptionalAggregateStateShould
         var business = Business.Create(
             BusinessName.Create(NonEmptyString.Create("Acme Repair").Value).Value,
             Maybe<Address>.None,
-            Note.Create(string.Empty).Value,
+            Note.Create(NonEmptyString.Create("No notes").Value).Value,
             Maybe<Person>.None,
             [],
             []).Value;
@@ -36,9 +36,9 @@ public class OptionalAggregateStateShould
         var employee = Employee.Create(
             CreatePerson(),
             [],
-            SSN.Create("123-45-6789").Value,
+            SSN.Create(NonEmptyString.Create("123-45-6789").Value).Value,
             hired,
-            Note.Create(string.Empty).Value).Value;
+            Note.Create(NonEmptyString.Create("No notes").Value).Value).Value;
 
         employee.SetExited(DateTime.Today).IsSuccess.ShouldBeTrue();
         employee.Exited.Value.ShouldBe(DateTime.Today);
@@ -54,7 +54,7 @@ public class OptionalAggregateStateShould
             PersonName.Create(
                 NonEmptyString.Create("Doe").Value,
                 NonEmptyString.Create("Jane").Value).Value,
-            Note.Create(string.Empty).Value,
+            Note.Create(NonEmptyString.Create("No notes").Value).Value,
             [],
             [],
             Maybe<Birthday>.None,

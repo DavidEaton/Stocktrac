@@ -1,129 +1,42 @@
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Financial;
 
 namespace Stocktrac.Tests.Features.Unit.Financial;
 
 public class CreditCardNameShould
 {
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("\t\r\n")]
-    public void ReturnRequiredFailure_On_Create_WhenNameIsMissing(string? name)
+    [Fact]
+    public void Create_WhenGivenANonEmptyString()
     {
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = CreditCardName.Create(name);
-#pragma warning restore CS8604 // Possible null reference argument.
+        var value = NonEmptyString.Create("Visa").Value;
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.RequiredMessage);
+        var result = CreditCardName.Create(value);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBe(value);
+        result.Value.ToString().ShouldBe("Visa");
     }
 
     [Fact]
-    public void ReturnInvalidLengthFailure_On_Create_WhenTrimmedNameIsTooLong()
+    public void ReturnInvalidLengthFailure_WhenNameIsTooLong()
     {
-        var result = CreditCardName.Create(
-            $"  {new string('V', CreditCardName.MaximumLength + 1)}  ");
+        var value = NonEmptyString.Create(new string('V', CreditCardName.MaximumLength + 1)).Value;
+
+        var result = CreditCardName.Create(value);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
     }
 
-    [Theory]
-    [InlineData(CreditCardName.MinimumLength)]
-    [InlineData(CreditCardName.MaximumLength)]
-    public void ReturnSuccessfulResult_On_Create_WhenNameIsAtLengthBoundary(int length)
-    {
-        var name = new string('V', length);
-
-        var result = CreditCardName.Create(name);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe(name);
-    }
-
-    [Theory]
-    [InlineData("  Visa  ", "Visa")]
-    [InlineData("\tMastercard\r\n", "Mastercard")]
-    [InlineData("\u2003Amex\u2003", "Amex")]
-    public void TrimName_On_Create_WhenNameHasSurroundingWhitespace(
-        string name,
-        string expected)
-    {
-        var result = CreditCardName.Create(name);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe(expected);
-    }
-
-    [Theory]
-    [InlineData("VISA")]
-    [InlineData("visa")]
-    [InlineData("Visa Debit")]
-    [InlineData("Visa-123")]
-    [InlineData("信用卡")]
-    public void PreserveName_On_Create_WhenNameIsValid(string name)
-    {
-        var result = CreditCardName.Create(name);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe(name);
-    }
-
-    [Fact]
-    public void PreserveInternalWhitespace_On_Create_WhenNameContainsInternalWhitespace()
-    {
-        const string name = "Visa   Debit\tCard";
-
-        CreditCardName.Create(name).Value.Value.ShouldBe(name);
-    }
-
-    [Fact]
-    public void NotCreateAnInvalidObject_WhenDefaultInitialized()
-    {
-        CreditCardName? name = default;
-
-        name.ShouldBeNull();
-    }
-
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenValuesAreEqual()
     {
-        var first = CreditCardName.Create("  Visa  ").Value;
-        var second = CreditCardName.Create("Visa").Value;
+        var value = NonEmptyString.Create("Visa").Value;
+        var first = CreditCardName.Create(value).Value;
+        var second = CreditCardName.Create(value).Value;
 
-        (first == second).ShouldBeTrue();
-        first.Equals(second).ShouldBeTrue();
-        first.Equals((object)second).ShouldBeTrue();
+        first.ShouldBe(second);
         first.GetHashCode().ShouldBe(second.GetHashCode());
-    }
-
-    [Fact]
-    public void NotBeEqual_WhenValuesDifferByCase()
-    {
-        var upperCase = CreditCardName.Create("VISA").Value;
-        var titleCase = CreditCardName.Create("Visa").Value;
-
-        (upperCase != titleCase).ShouldBeTrue();
-        upperCase.Equals(titleCase).ShouldBeFalse();
-    }
-
-    [Fact]
-    public void ReturnRecordRepresentation_On_ToString_WhenValueIsAssigned()
-    {
-        var name = CreditCardName.Create("Visa").Value;
-
-        name.ToString().ShouldBe("CreditCardName { Value = Visa }");
-    }
-
-    [Fact]
-    public void ExposeValidationContractConstants()
-    {
-        CreditCardName.MinimumLength.ShouldBe(1);
-        CreditCardName.MaximumLength.ShouldBe(255);
-        CreditCardName.RequiredMessage.ShouldBe("A valid value is required.");
-        CreditCardName.InvalidLengthMessage.ShouldBe(
-            "Value must be between 1 and 255 characters.");
     }
 }

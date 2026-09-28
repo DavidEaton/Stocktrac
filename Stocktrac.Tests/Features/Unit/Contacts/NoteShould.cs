@@ -1,4 +1,5 @@
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
@@ -6,25 +7,25 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class NoteShould
 {
     [Fact]
-    public void ExposeEmptyNonNullValue_WhenDefaultConstructed()
+    public void Create_WhenGivenANonEmptyString()
     {
-        default(Note).Value.ShouldBe(string.Empty);
-    }
-    [Fact]
-    public void NormalizeWhitespace_WhenCreated()
-    {
-        var result = Note.Create("   ");
+        var value = NonEmptyString.Create("A useful note.").Value;
+
+        var result = Note.Create(value);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBeEmpty();
+        result.Value.Value.ShouldBe(value);
+        result.Value.ToString().ShouldBe("A useful note.");
     }
 
     [Fact]
-    public void TrimValue_WhenCreated()
+    public void ReturnMaximumLengthError_WhenValueExceedsMaximumLength()
     {
-        var result = Note.Create("  A useful note.  ");
+        var value = NonEmptyString.Create(new string('a', Note.MaximumLength + 1)).Value;
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe("A useful note.");
+        var result = Note.Create(value);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Note.MaximumLengthMessage);
     }
 }

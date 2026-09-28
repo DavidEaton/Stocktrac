@@ -1,3 +1,4 @@
+using Stocktrac.Domain.Features;
 using Shouldly;
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Financial;
@@ -60,7 +61,7 @@ public class CreditCardShould
         var result = card.ChangeName(name);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(CreditCardName.RequiredMessage);
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
         card.Name.ShouldBe(CreateName("Visa"));
     }
 
@@ -87,7 +88,7 @@ public class CreditCardShould
         var result = card.ChangeName(name);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Name.Value.ShouldBe(name);
+        result.Value.Name.Value.Value.ShouldBe(name);
     }
 
     [Fact]
@@ -186,5 +187,5 @@ public class CreditCardShould
             DateTime.MinValue).Value;
 
     private static CreditCardName CreateName(string name) =>
-        CreditCardName.Create(name).Value;
+        CreditCardName.Create(NonEmptyString.Create(name).Value).Value;
 }

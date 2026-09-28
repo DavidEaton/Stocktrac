@@ -1,3 +1,4 @@
+using Stocktrac.Domain.Features;
 using System.Globalization;
 using Shouldly;
 using Stocktrac.Domain.Features.Financial;
@@ -11,7 +12,7 @@ public class MoneyShould
     public void SetAmountAndCurrency_On_Create_WhenGivenAmountAndCurrencyCode()
     {
         var amount = Amount.FromDecimal(12.34m);
-        var currencyCode = CurrencyCode.Create("CAD").Value;
+        var currencyCode = CurrencyCode.Create(NonEmptyString.Create("CAD").Value).Value;
 
         var money = Money.Create(amount, currencyCode);
 

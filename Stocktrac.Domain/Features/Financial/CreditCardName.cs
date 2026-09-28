@@ -8,20 +8,16 @@ public sealed record CreditCardName
     // For now, they are hard-coded to match the current validation rules in StockTrac.
     public const int MinimumLength = 1;
     public const int MaximumLength = 255;
-    public const string RequiredMessage = "A valid value is required.";
     public static readonly string InvalidLengthMessage =
         $"Value must be between {MinimumLength} and {MaximumLength} characters.";
-    public string Value { get; }
-    private CreditCardName(string value) =>
+    public NonEmptyString Value { get; }
+    private CreditCardName(NonEmptyString value) =>
         Value = value;
 
-    public static Result<CreditCardName> Create(string name)
-    {
-        var normalized = name?.Trim() ?? string.Empty;
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(string.IsNullOrWhiteSpace(normalized), RequiredMessage),
-                Result.FailureIf(!string.IsNullOrWhiteSpace(normalized) && normalized.Length is < MinimumLength or > MaximumLength, InvalidLengthMessage))
-            .Map(() => new CreditCardName(normalized));
-    }
+    public static Result<CreditCardName> Create(NonEmptyString name) =>
+        Result.Success(name)
+            .Ensure(value => value.Value.Length is >= MinimumLength and <= MaximumLength, InvalidLengthMessage)
+            .Map(value => new CreditCardName(value));
+
+    public override string ToString() => Value.ToString();
 }
