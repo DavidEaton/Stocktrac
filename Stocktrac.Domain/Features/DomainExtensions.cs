@@ -15,18 +15,6 @@ public static class DomainExtensions
             value >= minimum && value <= maximum;
     }
 
-    // extension(NonEmptyString nonEmptyString)
-    // {
-    //     /// <summary>
-    //     /// Validates that a NonEmptyString value object was supplied.
-    //     /// </summary>
-    //     // internal Result<NonEmptyString> AsRequired() =>
-    //     //     nonEmptyString is null
-    //     //         ? Result.Failure<NonEmptyString>(NonEmptyString.RequiredMessage)
-    //     //         : Result.Success(nonEmptyString);
-    // }
-
-
     extension(PhoneType phoneType)
     {
         /// <summary>
@@ -39,28 +27,6 @@ public static class DomainExtensions
                     ContactPhone.PhoneTypeInvalidMessage);
     }
 
-    extension(PhoneNumber phoneNumber)
-    {
-        /// <summary>
-        /// Validates that an PhoneNumber value object was supplied.
-        /// </summary>
-        internal Result<PhoneNumber> AsRequired() =>
-            phoneNumber is null
-                ? Result.Failure<PhoneNumber>(NonEmptyString.RequiredMessage)
-                : Result.Success(phoneNumber);
-    }
-
-    extension(AddressLine line)
-    {
-        /// <summary>
-        /// Validates that an AddressLine value object was supplied.
-        /// The AddressLine itself is responsible for validating its own invariants.
-        /// </summary>
-        internal Result<AddressLine> AsRequired() =>
-            line is null
-                ? Result.Failure<AddressLine>(NonEmptyString.RequiredMessage)
-                : Result.Success(line);
-    }
     extension(PersonName name)
     {
         /// <summary>
@@ -73,30 +39,6 @@ public static class DomainExtensions
                 : Result.Success(name);
     }
 
-    extension(City city)
-    {
-        /// <summary>
-        /// Validates that a City value object was supplied.
-        /// The City itself is responsible for validating its own invariants.
-        /// </summary>
-        internal Result<City> AsRequired() =>
-            city is null
-                ? Result.Failure<City>(NonEmptyString.RequiredMessage)
-                : Result.Success(city);
-    }
-
-    extension(PostalCode postalCode)
-    {
-        /// <summary>
-        /// Validates that a PostalCode value object was supplied.
-        /// The PostalCode itself is responsible for validating its own invariants.
-        /// </summary>
-        internal Result<PostalCode> AsRequired() =>
-            postalCode is null
-                ? Result.Failure<PostalCode>(NonEmptyString.RequiredMessage)
-                : Result.Success(postalCode);
-    }
-
     extension(State state)
     {
         /// <summary>
@@ -106,18 +48,6 @@ public static class DomainExtensions
             Enum.IsDefined(state)
                 ? Result.Success(state)
                 : Result.Failure<State>("A valid State is required.");
-    }
-
-    extension(DriversLicenseNumber number)
-    {
-        /// <summary>
-        /// Validates that a DriversLicenseNumber was supplied.
-        /// </summary>
-        internal Result<DriversLicenseNumber> AsValidDriversLicenseNumber() =>
-            number is null
-                ? Result.Failure<DriversLicenseNumber>(
-                    DriversLicense.RequiredMessage)
-                : Result.Success(number);
     }
 
     extension(DateRange dateRange)

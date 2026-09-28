@@ -162,18 +162,6 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnRequiredError_On_ReplaceNumber_WhenNumberIsNull()
-    {
-        var original = CreateLicense();
-
-        var result = original.ReplaceNumber(null!);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicense.RequiredMessage);
-        original.Number.ShouldBe(CreateNumber("A123456"));
-    }
-
-    [Fact]
     public void ReplaceStateAndPreserveOtherComponents_On_ReplaceState_WhenStateIsDefined()
     {
         var original = CreateLicense();
