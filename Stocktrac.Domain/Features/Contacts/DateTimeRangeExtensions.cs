@@ -19,7 +19,7 @@ public static class DateRangeExtensions
             ? Result.Failure<DateRange>(DateRange.EndBeforeStartMessage)
             : DateRange.Create(range.Start, newEnd);
 
-    public static Result<DateRange> ReplaceoutEnd(this DateRange range) =>
+    public static Result<DateRange> RemoveEnd(this DateRange range) =>
         range is null
             ? Result.Failure<DateRange>(DateRange.EndBeforeStartMessage)
             : DateRange.Create(range.Start, DateOnly.MaxValue);

@@ -11,13 +11,13 @@ public class PersonNameShould
     {
         var original = ValidName();
 
-        var result = original.ReplaceLastName("  Jones  ");
+        var result = original.ReplaceLastName(NonEmptyString.Create("Jones").Value);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.LastName.ShouldBe("Jones");
+        result.Value.LastName.Value.ShouldBe("Jones");
         result.Value.FirstName.ShouldBe(original.FirstName);
         result.Value.MiddleName.ShouldBe(original.MiddleName);
-        original.LastName.ShouldBe("Smith");
+        original.LastName.Value.ShouldBe("Smith");
     }
 
     [Fact]
@@ -25,42 +25,39 @@ public class PersonNameShould
     {
         var original = ValidName();
 
-        var result = original.ReplaceFirstName("  Jane  ");
+        var result = original.ReplaceFirstName(NonEmptyString.Create("Jane").Value);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.FirstName.ShouldBe("Jane");
+        result.Value.FirstName.Value.ShouldBe("Jane");
         result.Value.LastName.ShouldBe(original.LastName);
         result.Value.MiddleName.ShouldBe(original.MiddleName);
-        original.FirstName.ShouldBe("John");
+        original.FirstName.Value.ShouldBe("John");
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceMiddleName_WhenNameIsValid()
+    public void ReturnUpdatedCopy_On_AddOrReplaceMiddleName_WhenNameIsValid()
     {
         var original = ValidName();
 
-        var result = original.ReplaceMiddleName("  Quinn  ");
+        var result = original.AddOrReplaceMiddleName(NonEmptyString.Create("Quinn").Value);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.MiddleName.Value.ShouldBe("Quinn");
+        result.Value.MiddleName.Value.Value.ShouldBe("Quinn");
         result.Value.LastName.ShouldBe(original.LastName);
         result.Value.FirstName.ShouldBe(original.FirstName);
-        original.MiddleName.Value.ShouldBe("Paul");
+        original.MiddleName.Value.Value.ShouldBe("Paul");
     }
 
     [Fact]
-    public void ReturnFailure_On_ReplaceLastName_WhenNameIsMissing()
+    public void ReturnFailure_On_NonEmptyStringCreate_WhenNameIsMissing()
     {
-        var original = ValidName();
+        var result = NonEmptyString.Create("  ");
 
-        var result = original.ReplaceLastName("  ");
-
-        result.Error.ShouldBe(PersonName.RequiredMessage);
-        original.LastName.ShouldBe("Smith");
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
     }
 
     [Fact]
-    public void ReturnCopyReplaceoutMiddleName_On_RemoveMiddleName_WhenMiddleNameExists()
+    public void ReturnCopyWithoutMiddleName_On_RemoveMiddleName_WhenMiddleNameExists()
     {
         var original = ValidName();
 
