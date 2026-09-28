@@ -1,4 +1,5 @@
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
@@ -11,81 +12,60 @@ public class DriversLicenseNumberShould
     [InlineData("   ")]
     public void ReturnRequiredError_On_Create_WhenNumberIsBlank(string? number)
     {
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = DriversLicenseNumber.Create(number);
-#pragma warning restore CS8604 // Possible null reference argument.
+        var result = NonEmptyString.Create(number!);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicenseNumber.RequiredMessage);
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(256)]
-    public void ReturnLengthError_On_Create_WhenTrimmedNumberIsOutsideBounds(int length)
+    [Fact]
+    public void ReturnLengthError_On_Create_WhenNumberExceedsMaximumLength()
     {
-        var result = DriversLicenseNumber.Create($"  {new string('x', length)}  ");
+        var number = NonEmptyString.Create(new string('x', DriversLicenseNumber.MaximumLength + 1)).Value;
+
+        var result = DriversLicenseNumber.Create(number);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(DriversLicenseNumber.InvalidLengthMessage);
     }
 
     [Theory]
-    [InlineData(3)]
+    [InlineData(1)]
     [InlineData(255)]
-    public void PreserveTrimmedNumber_On_Create_WhenNumberIsAtLengthBoundary(int length)
+    public void PreserveNumber_On_Create_WhenNumberIsAtLengthBoundary(int length)
     {
         var number = new string('x', length);
 
-        var result = DriversLicenseNumber.Create($"  {number}  ");
+        var result = Create(number);
+
+        result.Number.Value.ShouldBe(number);
+    }
+
+    [Fact]
+    public void PreserveWhitespaceAndCasing_On_Create_WhenNumberIsValid()
+    {
+        const string number = "Ab 12-cD";
+
+        Create(number).Number.Value.ShouldBe(number);
+    }
+
+    [Fact]
+    public void ReturnReplacement_On_ReplaceNumber_WhenNumberIsValid()
+    {
+        var replacement = NonEmptyString.Create("A123").Value;
+
+        var result = DriversLicenseNumber.ReplaceNumber(replacement);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Number.ShouldBe(number);
-    }
-
-    [Fact]
-    public void PreserveInternalWhitespaceAndCasing_On_Create_WhenNumberIsValid()
-    {
-        var result = DriversLicenseNumber.Create("  Ab 12-cD  ");
-
-        result.Value.Number.ShouldBe("Ab 12-cD");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void ReturnRequiredError_On_NewNumber_WhenNumberIsBlank(string? number)
-    {
-        var result = DriversLicenseNumber.NewNumber(number!);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicenseNumber.RequiredMessage);
-    }
-
-    [Theory]
-    [InlineData(2)]
-    [InlineData(256)]
-    public void ReturnLengthError_On_NewNumber_WhenTrimmedNumberIsOutsideBounds(int length)
-    {
-        var result = DriversLicenseNumber.NewNumber($"  {new string('x', length)}  ");
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicenseNumber.InvalidLengthMessage);
-    }
-
-    [Fact]
-    public void PreserveTrimmedNumber_On_NewNumber_WhenNumberIsValid()
-    {
-        DriversLicenseNumber.NewNumber("  A123  ").Value.Number.ShouldBe("A123");
+        result.Value.Number.ShouldBe(replacement);
     }
 
     [Fact]
     public void BeEqualAndHaveMatchingHashCodes_WhenNumbersAreEqual()
     {
-        var first = DriversLicenseNumber.Create("A123").Value;
-        var second = DriversLicenseNumber.Create("A123").Value;
-        var different = DriversLicenseNumber.Create("a123").Value;
+        var first = Create("A123");
+        var second = Create("A123");
+        var different = Create("a123");
 
         first.ShouldBe(second);
         first.GetHashCode().ShouldBe(second.GetHashCode());
@@ -102,12 +82,6 @@ public class DriversLicenseNumberShould
         number.ShouldBeNull();
     }
 
-    [Fact]
-    public void ExposeValidationContractConstants()
-    {
-        DriversLicenseNumber.MinimumLength.ShouldBe(3);
-        DriversLicenseNumber.MaximumLength.ShouldBe(255);
-        DriversLicenseNumber.RequiredMessage.ShouldBe("Drivers License Number is required.");
-        DriversLicenseNumber.InvalidLengthMessage.ShouldBe("Value must be between 3 and 255 characters.");
-    }
+    private static DriversLicenseNumber Create(string number) =>
+        DriversLicenseNumber.Create(NonEmptyString.Create(number).Value).Value;
 }

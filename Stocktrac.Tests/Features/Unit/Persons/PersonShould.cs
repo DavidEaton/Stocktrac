@@ -28,12 +28,12 @@ public class PersonShould
     }
 
     [Fact]
-    public void ReplaceBirthday_On_WithBirthday_WhenBirthdayIsValid()
+    public void ReplaceBirthday_On_UpdateBirthday_WhenBirthdayIsValid()
     {
         var person = CreatePerson(Birthday.Create(new DateOnly(1990, 6, 15)).Value);
         var replacement = Birthday.Create(new DateOnly(1991, 7, 16)).Value;
 
-        var result = person.WithBirthday(replacement);
+        var result = person.UpdateBirthday(replacement);
 
         result.IsSuccess.ShouldBeTrue();
         person.Birthday.Value.ShouldBe(replacement);
@@ -67,11 +67,13 @@ public class PersonShould
 
     private static Person CreatePerson(Maybe<Birthday> birthday) =>
         Person.Create(
-            PersonName.Create("Doe", "Jane").Value,
+            PersonName.Create(
+                NonEmptyString.Create("Doe").Value,
+                NonEmptyString.Create("Jane").Value).Value,
             Note.Create("Some notes.").Value,
             [],
             [],
             birthday,
-            Maybe<Address>.None,
-            Maybe<DriversLicense>.None).Value;
+            Maybe<DriversLicense>.None,
+            Maybe<Address>.None).Value;
 }

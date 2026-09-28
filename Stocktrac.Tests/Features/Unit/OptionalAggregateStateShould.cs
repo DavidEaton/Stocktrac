@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Customers;
 using Stocktrac.Domain.Features.Employees;
@@ -13,7 +14,7 @@ public class OptionalAggregateStateShould
     public void ExplicitlySetAndClearBusinessContact()
     {
         var business = Business.Create(
-            BusinessName.Create("Acme Repair").Value,
+            BusinessName.Create(NonEmptyString.Create("Acme Repair").Value).Value,
             Maybe<Address>.None,
             Note.Create(string.Empty).Value,
             Maybe<Person>.None,
@@ -50,11 +51,13 @@ public class OptionalAggregateStateShould
 
     private static Person CreatePerson() =>
         Person.Create(
-            PersonName.Create("Doe", "Jane").Value,
+            PersonName.Create(
+                NonEmptyString.Create("Doe").Value,
+                NonEmptyString.Create("Jane").Value).Value,
             Note.Create(string.Empty).Value,
             [],
             [],
             Maybe<Birthday>.None,
-            Maybe<Address>.None,
-            Maybe<DriversLicense>.None).Value;
+            Maybe<DriversLicense>.None,
+            Maybe<Address>.None).Value;
 }
