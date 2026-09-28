@@ -401,7 +401,7 @@ public class ContactableShould
             PhoneNumber.Create(number).Value, phoneType, isPrimary).Value;
             
     private static ContactEmail CreateEmail(string address, bool isPrimary) =>
-        ContactEmail.Create(address, isPrimary).Value;
+        ContactEmail.Create(EmailAddress.Create(address).Value, isPrimary).Value;
 
     private static Address CreateAddress(string line, string city, State state, string postalCode) =>
         Address.Create(

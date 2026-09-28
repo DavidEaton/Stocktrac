@@ -30,5 +30,6 @@ public sealed record ContactPhone : IHasPrimary
         phoneType.AsValidPhoneType()
             .Map(validPhoneType => new ContactPhone(Number, validPhoneType, IsPrimary));
 
-    public ContactPhone ReplaceIsPrimary(bool isPrimary) => new(Number, PhoneType, isPrimary);
+    public Result<ContactPhone> ReplaceIsPrimary(bool isPrimary) =>
+        Result.Success(new ContactPhone(Number, PhoneType, isPrimary));
 }
