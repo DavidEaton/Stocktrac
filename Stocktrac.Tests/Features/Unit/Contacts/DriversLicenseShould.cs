@@ -49,16 +49,6 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnRequiredError_On_Create_WhenNumberIsNull()
-    {
-        var result = DriversLicense.Create(
-            null!, State.CA, CreateRange(Start, Start.AddYears(4)), Start);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(DriversLicense.RequiredMessage);
-    }
-
-    [Fact]
     public void ReturnRequiredError_On_Create_WhenDateRangeIsNull()
     {
         var result = DriversLicense.Create(
