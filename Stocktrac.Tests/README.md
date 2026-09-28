@@ -73,20 +73,20 @@ _On_Create
 Ask: **Under what condition should this happen?**
 
 ```text
-_WhenAddressIsNull
+_WhenValueIsNull
 ```
 
-Name the relevant value precisely. Here, the `address` argument is null—not the `ContactEmail` object—so `WhenAddressIsNull` is clearer than `WhenEmailIsNull`.
+Name the relevant value precisely. Here, the `value` argument is null—not the `EmailAddress` object—so `WhenValueIsNull` is clearer than `WhenEmailIsNull`.
 
 ### 5. Combine the parts
 
 ```csharp
-public class ContactEmailShould
+public class EmailAddressShould
 {
     [Fact]
-    public void ReturnFailureResult_On_Create_WhenAddressIsNull()
+    public void ReturnFailureResult_On_Create_WhenValueIsNull()
     {
-        var result = ContactEmail.Create(address: null!, isPrimary: true);
+        var result = EmailAddress.Create(null!);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(EmailAddress.EmptyMessage);
@@ -97,7 +97,7 @@ public class ContactEmailShould
 The fully qualified name is:
 
 ```text
-ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
+EmailAddressShould.ReturnFailureResult_On_Create_WhenValueIsNull
 ```
 
 ## Formatting rules

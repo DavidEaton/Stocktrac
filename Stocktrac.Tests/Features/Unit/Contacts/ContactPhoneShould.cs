@@ -132,9 +132,10 @@ public class ContactPhoneShould
     public void ReturnUpdatedCopy_On_ReplaceIsPrimary_WhenValueIsProvided(bool primary)
     {
         var original = ValidPhone();
-        var updated = original.ReplaceIsPrimary(primary);
+        var result = original.ReplaceIsPrimary(primary);
 
-        updated.IsPrimary.ShouldBe(primary);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.IsPrimary.ShouldBe(primary);
         original.IsPrimary.ShouldBeFalse();
     }
 
