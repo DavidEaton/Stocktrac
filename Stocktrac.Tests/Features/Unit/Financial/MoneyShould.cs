@@ -1,8 +1,7 @@
-using Stocktrac.Domain.Features;
 using System.Globalization;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Financial;
-using Stocktrac.Domain.Features.Financial.Extensions;
 
 namespace Stocktrac.Tests.Features.Unit.Financial;
 
@@ -16,43 +15,8 @@ public class MoneyShould
 
         var money = Money.Create(amount, currencyCode);
 
-        money.Amount.ShouldBe(amount);
-        money.CurrencyCode.ShouldBe(currencyCode);
-    }
-
-    [Theory]
-    [InlineData("usd", "USD")]
-    [InlineData(" EUR ", "EUR")]
-    [InlineData("XAU", "XAU")]
-    public void ReturnMoneyWithNormalizedCurrency_On_Create_WhenGivenValidCurrencyText(
-        string currencyCode,
-        string expectedCurrencyCode)
-    {
-        var result = Money.Create(12.34m, currencyCode);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Amount.ShouldBe(Amount.FromDecimal(12.34m));
-        result.Value.CurrencyCode.Value.ShouldBe(expectedCurrencyCode);
-    }
-
-    [Theory]
-    [InlineData(null, NonEmptyString.RequiredMessage)]
-    [InlineData("", NonEmptyString.RequiredMessage)]
-    [InlineData("   ", NonEmptyString.RequiredMessage)]
-    [InlineData("US", CurrencyCode.InvalidMessage)]
-    [InlineData("US1", CurrencyCode.InvalidMessage)]
-    [InlineData("USDD", CurrencyCode.InvalidMessage)]
-    [InlineData("ZZZ", CurrencyCode.UnsupportedMessage)]
-    public void ReturnCurrencyFailure_On_Create_WhenGivenInvalidCurrencyText(
-        string? currencyCode,
-        string expectedError)
-    {
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = Money.Create(1m, currencyCode);
-#pragma warning restore CS8604 // Possible null reference argument.
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(expectedError);
+        money.Value.Amount.ShouldBe(amount);
+        money.Value.CurrencyCode.ShouldBe(currencyCode);
     }
 
     [Theory]
@@ -65,7 +29,7 @@ public class MoneyShould
     {
         var amount = decimal.Parse(amountText, CultureInfo.InvariantCulture);
 
-        var result = Money.Create(amount, "USD");
+        var result = Money.Create(Amount.FromDecimal(amount), CurrencyCode.Usd);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Amount.Value.ShouldBe(amount);
@@ -81,10 +45,10 @@ public class MoneyShould
     }
 
     [Fact]
-    public void BeEqual_WhenAmountAndNormalizedCurrencyAreEqual()
+    public void BeEqual_WhenAmountAndCurrencyAreEqual()
     {
-        var first = Money.Create(10m, "USD").Value;
-        var second = Money.Create(10m, " usd ").Value;
+        var first = CreateMoney(10m, "USD");
+        var second = CreateMoney(10m, "USD");
 
         (first == second).ShouldBeTrue();
         first.ShouldBe(second);
@@ -100,8 +64,8 @@ public class MoneyShould
         string firstCurrency,
         string secondCurrency)
     {
-        var first = Money.Create(firstAmount, firstCurrency).Value;
-        var second = Money.Create(secondAmount, secondCurrency).Value;
+        var first = CreateMoney(firstAmount, firstCurrency);
+        var second = CreateMoney(secondAmount, secondCurrency);
 
         (first == second).ShouldBeFalse();
         (first != second).ShouldBeTrue();
@@ -117,13 +81,13 @@ public class MoneyShould
         decimal rightAmount,
         decimal expectedAmount)
     {
-        var left = Money.Create(leftAmount, "CAD").Value;
-        var right = Money.Create(rightAmount, "CAD").Value;
+        var left = CreateMoney(leftAmount, "CAD");
+        var right = CreateMoney(rightAmount, "CAD");
 
         var result = left.Add(right);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(Money.Create(expectedAmount, "CAD").Value);
+        result.Value.ShouldBe(CreateMoney(expectedAmount, "CAD"));
     }
 
     [Theory]
@@ -136,20 +100,20 @@ public class MoneyShould
         decimal rightAmount,
         decimal expectedAmount)
     {
-        var left = Money.Create(leftAmount, "GBP").Value;
-        var right = Money.Create(rightAmount, "GBP").Value;
+        var left = CreateMoney(leftAmount, "GBP");
+        var right = CreateMoney(rightAmount, "GBP");
 
         var result = left.Subtract(right);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(Money.Create(expectedAmount, "GBP").Value);
+        result.Value.ShouldBe(CreateMoney(expectedAmount, "GBP"));
     }
 
     [Fact]
     public void ReturnCurrencyMismatchFailure_On_Add_WhenCurrenciesDiffer()
     {
-        var dollars = Money.Create(10m, "USD").Value;
-        var euros = Money.Create(10m, "EUR").Value;
+        var dollars = CreateMoney(10m, "USD");
+        var euros = CreateMoney(10m, "EUR");
 
         var result = dollars.Add(euros);
 
@@ -160,8 +124,8 @@ public class MoneyShould
     [Fact]
     public void ReturnCurrencyMismatchFailure_On_Subtract_WhenCurrenciesDiffer()
     {
-        var dollars = Money.Create(10m, "USD").Value;
-        var euros = Money.Create(10m, "EUR").Value;
+        var dollars = CreateMoney(10m, "USD");
+        var euros = CreateMoney(10m, "EUR");
 
         var result = dollars.Subtract(euros);
 
@@ -172,9 +136,9 @@ public class MoneyShould
     [Fact]
     public void ReturnOverflowFailure_On_Add_WhenResultExceedsDecimalRange()
     {
-        var maximum = Money.Create(decimal.MaxValue, "USD").Value;
+        var maximum = CreateMoney(decimal.MaxValue, "USD");
 
-        var result = maximum.Add(Money.Create(1m, "USD").Value);
+        var result = maximum.Add(CreateMoney(1m, "USD"));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Amount.OverflowMessage);
@@ -183,9 +147,9 @@ public class MoneyShould
     [Fact]
     public void ReturnOverflowFailure_On_Add_WhenResultFallsBelowDecimalRange()
     {
-        var minimum = Money.Create(decimal.MinValue, "USD").Value;
+        var minimum = CreateMoney(decimal.MinValue, "USD");
 
-        var result = minimum.Add(Money.Create(-1m, "USD").Value);
+        var result = minimum.Add(CreateMoney(-1m, "USD"));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Amount.OverflowMessage);
@@ -194,9 +158,9 @@ public class MoneyShould
     [Fact]
     public void ReturnOverflowFailure_On_Subtract_WhenResultExceedsDecimalRange()
     {
-        var maximum = Money.Create(decimal.MaxValue, "USD").Value;
+        var maximum = CreateMoney(decimal.MaxValue, "USD");
 
-        var result = maximum.Subtract(Money.Create(-1m, "USD").Value);
+        var result = maximum.Subtract(CreateMoney(-1m, "USD"));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Amount.OverflowMessage);
@@ -205,9 +169,9 @@ public class MoneyShould
     [Fact]
     public void ReturnOverflowFailure_On_Subtract_WhenResultFallsBelowDecimalRange()
     {
-        var minimum = Money.Create(decimal.MinValue, "USD").Value;
+        var minimum = CreateMoney(decimal.MinValue, "USD");
 
-        var result = minimum.Subtract(Money.Create(1m, "USD").Value);
+        var result = minimum.Subtract(CreateMoney(1m, "USD"));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Amount.OverflowMessage);
@@ -224,12 +188,12 @@ public class MoneyShould
         decimal multiplier,
         decimal expectedAmount)
     {
-        var money = Money.Create(amount, "JPY").Value;
+        var money = CreateMoney(amount, "JPY");
 
         var result = money.Multiply(multiplier);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(Money.Create(expectedAmount, "JPY").Value);
+        result.Value.ShouldBe(CreateMoney(expectedAmount, "JPY"));
     }
 
     [Theory]
@@ -242,7 +206,7 @@ public class MoneyShould
         decimal multiplier)
     {
         var amount = useMaximum ? decimal.MaxValue : decimal.MinValue;
-        var money = Money.Create(amount, "USD").Value;
+        var money = CreateMoney(amount, "USD");
 
         var result = money.Multiply(multiplier);
 
@@ -258,23 +222,23 @@ public class MoneyShould
         decimal amount,
         decimal expectedAmount)
     {
-        var money = Money.Create(amount, "AUD").Value;
+        var money = CreateMoney(amount, "AUD");
 
         var result = money.Negate();
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(Money.Create(expectedAmount, "AUD").Value);
+        result.Value.ShouldBe(CreateMoney(expectedAmount, "AUD"));
     }
 
     [Fact]
     public void ReturnDecimalMaxValue_On_Negate_WhenAmountIsDecimalMinimum()
     {
-        var minimum = Money.Create(decimal.MinValue, "USD").Value;
+        var minimum = CreateMoney(decimal.MinValue, "USD");
 
         var result = minimum.Negate();
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(Money.Create(decimal.MaxValue, "USD").Value);
+        result.Value.ShouldBe(CreateMoney(decimal.MaxValue, "USD"));
     }
 
     [Fact]
@@ -283,4 +247,10 @@ public class MoneyShould
         Money.CurrencyMismatchMessage.ShouldBe(
             "Money values must have the same currency.");
     }
+
+    private static Money CreateMoney(decimal amount, string currencyCode) =>
+        Money.Create(Amount.FromDecimal(amount), CreateCurrency(currencyCode)).Value;
+
+    private static CurrencyCode CreateCurrency(string currencyCode) =>
+        CurrencyCode.Create(NonEmptyString.Create(currencyCode).Value).Value;
 }
