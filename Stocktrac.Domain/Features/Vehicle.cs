@@ -21,6 +21,7 @@ public sealed class Vehicle : Entity
     public const string NonTraditionalVehicleInvalidMakeModelMessage = "Please enter Make or Model.";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
     public const string InvalidPlateStateProvinceMessage = "Plate State/Province is invalid.";
+    public const string OptionalTextRequiredMessage = "Use the remove operation to clear an optional value.";
 
     public Maybe<string> VIN { get; private set; } // Refactor to ValueObject
     public Maybe<int> Year { get; private set; }
@@ -142,10 +143,7 @@ public sealed class Vehicle : Entity
 
     private static Result ValidatePlate(Maybe<string> plate)
     {
-        return plate.HasValue && plate.Value.Length > MaximumPlateLength
-            ? Result.Failure(
-                InvalidMaximumLengthMessage(MaximumPlateLength))
-            : Result.Success();
+        return ValidateOptionalText(plate, MaximumPlateLength);
     }
 
     private static Result ValidatePlateStateProvince(Maybe<State> plateStateProvince) =>
@@ -155,18 +153,25 @@ public sealed class Vehicle : Entity
 
     private static Result ValidateUnitNumber(Maybe<string> unitNumber)
     {
-        return unitNumber.HasValue && unitNumber.Value.Length > MaximumUnitNumberLength
-            ? Result.Failure(
-                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
-            : Result.Success();
+        return ValidateOptionalText(unitNumber, MaximumUnitNumberLength);
     }
 
     private static Result ValidateColor(Maybe<string> color)
     {
-        return color.HasValue && color.Value.Length > MaximumColorLength
-            ? Result.Failure(
-                InvalidMaximumLengthMessage(MaximumColorLength))
-            : Result.Success();
+        return ValidateOptionalText(color, MaximumColorLength);
+    }
+
+    private static Result ValidateOptionalText(Maybe<string> value, int maximumLength)
+    {
+        if (value.HasNoValue)
+            return Result.Success();
+
+        if (string.IsNullOrWhiteSpace(value.Value))
+            return Result.Failure(OptionalTextRequiredMessage);
+
+        return value.Value.Length <= maximumLength
+            ? Result.Success()
+            : Result.Failure(InvalidMaximumLengthMessage(maximumLength));
     }
 
     public Result<Maybe<string>> UpdateVin(string vin)
@@ -207,10 +212,8 @@ public sealed class Vehicle : Entity
     public Result<Maybe<string>> UpdatePlate(string plate)
     {
         plate = plate?.Trim() ?? string.Empty;
-        return plate.Length > MaximumPlateLength
-            ? Result.Failure<Maybe<string>>(
-                InvalidMaximumLengthMessage(MaximumPlateLength))
-            : Result.Success(Plate = plate);
+        return ValidateOptionalText(plate, MaximumPlateLength)
+            .Map(() => Plate = plate);
     }
 
     public void RemovePlate() => Plate = Maybe<string>.None;
@@ -225,10 +228,8 @@ public sealed class Vehicle : Entity
     public Result<Maybe<string>> UpdateUnitNumber(string unitNumber)
     {
         unitNumber = unitNumber?.Trim() ?? string.Empty;
-        return unitNumber.Length > MaximumUnitNumberLength
-            ? Result.Failure<Maybe<string>>(
-                InvalidMaximumLengthMessage(MaximumUnitNumberLength))
-            : Result.Success(UnitNumber = unitNumber);
+        return ValidateOptionalText(unitNumber, MaximumUnitNumberLength)
+            .Map(() => UnitNumber = unitNumber);
     }
 
     public void RemoveUnitNumber() => UnitNumber = Maybe<string>.None;
@@ -236,10 +237,8 @@ public sealed class Vehicle : Entity
     public Result<Maybe<string>> UpdateColor(string color)
     {
         color = color?.Trim() ?? string.Empty;
-        return color.Length > MaximumColorLength
-            ? Result.Failure<Maybe<string>>(
-                InvalidMaximumLengthMessage(MaximumColorLength))
-            : Result.Success(Color = color);
+        return ValidateOptionalText(color, MaximumColorLength)
+            .Map(() => Color = color);
     }
 
     public void RemoveColor() => Color = Maybe<string>.None;

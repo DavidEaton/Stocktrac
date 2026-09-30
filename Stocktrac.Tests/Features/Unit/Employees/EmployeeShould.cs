@@ -53,6 +53,44 @@ public class EmployeeShould
         employee.Active.ShouldBeTrue();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ReturnFailureAndPreserveAbsence_On_UpdateCertificationNumber_WhenValueIsMissing(string? value)
+    {
+        var employee = CreateEmployee();
+
+        var result = employee.UpdateCertificationNumber(value!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Employee.OptionalTextRequiredMessage);
+        employee.CertificationNumber.HasNoValue.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void StoreTrimmedValue_On_UpdatePrintedName_WhenValueIsPresent()
+    {
+        var employee = CreateEmployee();
+
+        var result = employee.UpdatePrintedName("  Jane Doe  ");
+
+        result.IsSuccess.ShouldBeTrue();
+        employee.PrintedName.Value.ShouldBe("Jane Doe");
+    }
+
+    [Fact]
+    public void ReturnFailureAndPreserveNotes_On_UpdateNotes_WhenValueIsNull()
+    {
+        var employee = CreateEmployee();
+        var original = employee.Notes;
+
+        var result = employee.UpdateNotes(null!);
+
+        result.IsFailure.ShouldBeTrue();
+        employee.Notes.ShouldBe(original);
+    }
+
     private static Employee CreateEmployee() =>
         Employee.Create(
             CreatePerson(),

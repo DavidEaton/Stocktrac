@@ -7,7 +7,7 @@ namespace Stocktrac.Tests.Features.Unit;
 public class MaybeValueConvertersShould
 {
     [Fact]
-    public void RoundTripPresentAndAbsentStrings()
+    public void RoundTripPresentAndAbsentValues_On_StringConversion()
     {
         var converter = MaybeValueConverters.String;
         var toProvider = converter.ConvertToProviderExpression.Compile();
@@ -19,8 +19,27 @@ public class MaybeValueConvertersShould
             .ShouldBe(Maybe<string>.None);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ReturnNone_On_StringConversion_WhenStoredValueIsMissing(string? storedValue)
+    {
+        var fromProvider = MaybeValueConverters.String.ConvertFromProviderExpression.Compile();
+
+        fromProvider(storedValue).ShouldBe(Maybe<string>.None);
+    }
+
     [Fact]
-    public void RoundTripPresentAndAbsentDates()
+    public void ReturnTrimmedValue_On_StringConversion_WhenStoredValueIsPresent()
+    {
+        var fromProvider = MaybeValueConverters.String.ConvertFromProviderExpression.Compile();
+
+        fromProvider(" logo.png ").ShouldBe(Maybe<string>.From("logo.png"));
+    }
+
+    [Fact]
+    public void RoundTripPresentAndAbsentValues_On_DateTimeConversion()
     {
         var converter = MaybeValueConverters.DateTime;
         var toProvider = converter.ConvertToProviderExpression.Compile();
@@ -31,5 +50,16 @@ public class MaybeValueConvertersShould
             .ShouldBe(Maybe<DateTime>.From(value));
         fromProvider(toProvider(Maybe<DateTime>.None))
             .ShouldBe(Maybe<DateTime>.None);
+    }
+
+    [Fact]
+    public void RoundTripPresentAndAbsentValues_On_Int32Conversion()
+    {
+        var converter = MaybeValueConverters.Int32;
+        var toProvider = converter.ConvertToProviderExpression.Compile();
+        var fromProvider = converter.ConvertFromProviderExpression.Compile();
+
+        fromProvider(toProvider(42)).ShouldBe(Maybe<int>.From(42));
+        fromProvider(toProvider(Maybe<int>.None)).ShouldBe(Maybe<int>.None);
     }
 }
