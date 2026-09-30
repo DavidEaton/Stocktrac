@@ -24,11 +24,15 @@ public interface IContactable
 
     Result ReplacePhones(IReadOnlyList<ContactPhone> phones);
 
+    Result RemovePhones();
+
     Result<ContactEmail> AddEmail(ContactEmail email);
 
     Result<ContactEmail> RemoveEmail(ContactEmail email);
 
     Result ReplaceEmails(IReadOnlyList<ContactEmail> emails);
+
+    Result RemoveEmails();
 
     bool HasPhoneNumber(string number);
 

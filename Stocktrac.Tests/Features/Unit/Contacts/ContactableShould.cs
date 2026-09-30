@@ -185,15 +185,31 @@ public class ContactableShould
     }
 
     [Fact]
-    public void RemoveContacts_WhenRequestedCollectionsAreEmpty()
+    public void PreserveContacts_On_ReplaceContacts_WhenRequestedCollectionsAreEmpty()
+    {
+        var phone = CreatePhone("555-111-1111", PhoneType.Mobile, true);
+        var email = CreateEmail("person@example.com", true);
+        var person = CreatePerson(phones: [phone], emails: [email]);
+
+        person.ReplacePhones([]).Error.ShouldBe(Contactable.EmptyReplacementMessage);
+        person.ReplaceEmails([]).Error.ShouldBe(Contactable.EmptyReplacementMessage);
+
+        person.Phones.ShouldBe([phone]);
+        person.Emails.ShouldBe([email]);
+    }
+
+    [Fact]
+    public void RemoveAllContacts_On_RemovePhonesAndRemoveEmails()
     {
         var person = CreatePerson(
             phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)],
             emails: [CreateEmail("person@example.com", true)]);
 
-        person.ReplacePhones([]).IsSuccess.ShouldBeTrue();
-        person.ReplaceEmails([]).IsSuccess.ShouldBeTrue();
+        var phoneResult = person.RemovePhones();
+        var emailResult = person.RemoveEmails();
 
+        phoneResult.IsSuccess.ShouldBeTrue();
+        emailResult.IsSuccess.ShouldBeTrue();
         person.Phones.ShouldBeEmpty();
         person.Emails.ShouldBeEmpty();
     }
