@@ -9,6 +9,7 @@ public abstract partial class Contactable : Entity, IContactable
     public const string MultiplePrimariesMessage = "Only one contact may be primary.";
     public const string NotFoundMessage = "Entry not found.";
     public const string RequiredMessage = "Please include all required items.";
+    public const string EmptyReplacementMessage = "Use the explicit remove operation to remove all entries.";
 
     private readonly List<ContactPhone> phones = [];
 
@@ -46,12 +47,16 @@ public abstract partial class Contactable : Entity, IContactable
     public Result ReplacePhones(IReadOnlyList<ContactPhone> requestedPhones) =>
         phoneCollection.Replace(requestedPhones);
 
+    public Result RemovePhones() => phoneCollection.RemoveAll();
+
     public Result<ContactEmail> AddEmail(ContactEmail email) => emailCollection.Add(email);
 
     public Result<ContactEmail> RemoveEmail(ContactEmail email) => emailCollection.Remove(email);
 
     public Result ReplaceEmails(IReadOnlyList<ContactEmail> requestedEmails) =>
         emailCollection.Replace(requestedEmails);
+
+    public Result RemoveEmails() => emailCollection.RemoveAll();
 
     public Result ReplaceNotes(Note note) => Result.Success().Tap(() => Notes = note);
 

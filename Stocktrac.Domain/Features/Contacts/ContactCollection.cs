@@ -37,6 +37,9 @@ internal sealed class ContactCollection<TContact, TIdentity>
 
     internal Result Replace(IReadOnlyList<TContact> requestedContacts) =>
         Validate(requestedContacts, getIdentity)
+            .Ensure(
+                validContacts => validContacts.Count > 0,
+                Contactable.EmptyReplacementMessage)
             .Bind(validContacts =>
             {
                 contacts.Clear();
@@ -44,6 +47,8 @@ internal sealed class ContactCollection<TContact, TIdentity>
 
                 return Result.Success();
             });
+
+    internal Result RemoveAll() => Result.Success().Tap(contacts.Clear);
 
     internal bool Contains(TIdentity identity) =>
         contacts.Any(contact => HasIdentity(contact, identity));
