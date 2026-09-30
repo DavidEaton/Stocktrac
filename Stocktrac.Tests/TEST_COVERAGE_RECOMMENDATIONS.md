@@ -1,52 +1,23 @@
-# Test coverage recommendations
+# Test coverage priorities
 
-## Review outcome
+Existing tests cover email/contact behavior, financial value types, collection
+invariants, atomic failures, formatting, and credit-card setters.
 
-The existing suite exercises `ContactEmail`, the shared contact behavior through `Person`,
-and the financial value types. The added tests fill the most important missing
-branches in those classes: normalization, exact validation failures, mutation
-atomicity, collection invariants, boundary values, every arithmetic operation,
-overflow propagation, culture-independent formatting, and credit-card setters.
+Add coverage in this order:
 
-ContactPhone and email replacement is covered as aggregate behavior on `Person`, including
-successful replacement, clearing, validation failures, and mutation atomicity.
+1. Contact primitives: `ContactPhone`, `Address`, `DateRange`,
+   `DriversLicense`, and `BusinessName`.
+2. Identity: `PersonName`, `Person`, and `SSN`.
+3. Customers: `Customer`, `CustomerCode`, and `Business`.
+4. Traditional and non-traditional `Vehicle` rules.
+5. Employees, sale codes, company, and tenant validation.
+6. API validators, claims, EF configuration, and health checks.
 
-## Recommended next test classes
+For each area, cover normalization, exact boundaries and errors, invalid enum
+values, equality, and mutation atomicity. Test optional values in both states
+and collections for duplicates and primary cardinality.
 
-The domain contains many public behaviors with no dedicated tests yet. Add these
-in small, feature-focused changes, in the following order.
-
-1. **Contact primitives:** `ContactPhone`, `Address`, `DateRange`, `DriversLicense`,
-   and `BusinessName`. Cover null/blank input, trimming, every
-   minimum and maximum boundary, invalid enum values, equality, formatting, and
-   the guarantee that a failed `New...`/setter call leaves the original unchanged.
-2. **People and identity:** `PersonName`, `Person`, and `SSN`. Include today and
-   future birthdays, the exact 120-year boundary, leap day, optional middle names,
-   nine-digit and hyphenated SSNs, Unicode digits, masking, and `SSN.None` behavior.
-3. **Customers:** `Customer`, `CustomerCode`, and `Business`. Exercise both person
-   and business delegation paths, unsupported entity implementations, duplicate
-   vehicles with persisted and transient IDs, removals of absent vehicles, code
-   length boundaries, and notes truncation.
-4. **Vehicles:** cover traditional versus non-traditional requirements, VIN length,
-   nullable and boundary years, undefined states, all optional-field maximums,
-   trimming, setters preserving state on failure, and `ToString` with no year.
-5. **Employees, sale codes, company, and tenant:** build a validation matrix for
-   required values, enum validity, numeric limits (including `NaN` and infinities
-   where `double` is used), uniqueness/primary invariants, optional normalization,
-   and setter atomicity.
-6. **API layer:** add validator tests, `UserContext` tests for missing/malformed
-   claims, EF model-configuration tests, and health-check outcomes for complete,
-   missing, and invalid configuration.
-
-## Test design guidance
-
-- Prefer one theory row for each side of a boundary and separate assertions for
-  the exact error contract.
-- Assert both the returned `Result` and resulting object state; failure paths must
-  not partially mutate an entity.
-- Use concrete `Person` and `Business` instances to test `Contactable` behavior,
-  rather than coupling tests to the abstract base class.
-- Keep date assertions deterministic. Pass a clock into age/year policies before
-  attempting exhaustive tests of behavior currently based on `DateTime.Today`.
-- Add coverage collection in CI and treat the report as a discovery aid, not as a
-  substitute for invariant- and boundary-focused assertions.
+Use theories for boundaries, concrete aggregates for shared behavior, and a
+clock for date-sensitive rules. Assert both the `Result` and retained state.
+Use coverage reports to find gaps, not as a substitute for behavior-focused
+assertions.
