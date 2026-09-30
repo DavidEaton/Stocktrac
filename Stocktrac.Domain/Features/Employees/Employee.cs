@@ -96,7 +96,7 @@ public sealed class Employee : Entity
                 roleAssignments!,
                 ssn!,
                 hired,
-                notes,
+                notes!,
                 normalizedCertificationNumber,
                 normalizedPrintedName,
                 expenseCategory,
@@ -206,7 +206,14 @@ public sealed class Employee : Entity
             NonEmptyString.Create("LastName").Value,
             NonEmptyString.Create("FirstName").Value
             ).Value;
-        PersonEmployed = Person.Create(personName, Maybe<Note>.None, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
+        PersonEmployed = Person.Create(
+            personName,
+            Note.Create(NonEmptyString.Create("Notes").Value).Value,
+            [],
+            [],
+            Maybe<Birthday>.None,
+            Maybe<DriversLicense>.None,
+            Maybe<Address>.None).Value;
         SSN = SSN.Create(NonEmptyString.Create("000-00-0000").Value).Value;
         Hired = DateTime.Today;
         Notes = Maybe<Note>.None;
