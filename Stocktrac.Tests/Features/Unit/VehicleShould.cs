@@ -74,6 +74,38 @@ public class VehicleShould
         vehicle.NonTraditionalVehicle.ShouldBeTrue();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ReturnFailureAndPreserveAbsence_On_UpdatePlate_WhenValueIsMissing(string? value)
+    {
+        var vehicle = CreateTraditionalVehicle();
+
+        var result = vehicle.UpdatePlate(value!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Vehicle.OptionalTextRequiredMessage);
+        vehicle.Plate.HasNoValue.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReturnFailure_On_Create_WhenPresentColorIsMissing()
+    {
+        var result = Vehicle.Create(
+            "1HGCM82633A004352",
+            Maybe<int>.None,
+            "Honda",
+            "Accord",
+            Maybe<string>.None,
+            Maybe<State>.None,
+            Maybe<string>.None,
+            Maybe<string>.From("   "));
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldContain(Vehicle.OptionalTextRequiredMessage);
+    }
+
     private static Vehicle CreateTraditionalVehicle() =>
         Vehicle.Create(
             "1HGCM82633A004352",

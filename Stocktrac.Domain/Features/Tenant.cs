@@ -18,6 +18,9 @@ public sealed class Tenant : Entity<Guid>
     public const string CompanyNameRequiredMessage =
         "Company name is required.";
 
+    public const string LogoUrlRequiredMessage =
+        "Use RemoveLogoUrl to clear the logo URL.";
+
     public static readonly string InvalidNameLengthMessage =
         $"Tenant name must be between {MinimumNameLength} and {MaximumNameLength} characters.";
 
@@ -58,7 +61,7 @@ public sealed class Tenant : Entity<Guid>
                 Result.FailureIf(normalizedName.Length is < MinimumNameLength or > MaximumNameLength, InvalidNameLengthMessage),
                 Result.FailureIf(string.IsNullOrWhiteSpace(normalizedCompanyName), CompanyNameRequiredMessage),
                 Result.FailureIf(normalizedCompanyName.Length is < MinimumCompanyNameLength or > MaximumCompanyNameLength, InvalidCompanyNameLengthMessage),
-                Result.FailureIf(normalizedLogoUrl.HasValue && normalizedLogoUrl.Value.Length > MaximumLogoUrlLength, InvalidLogoUrlLengthMessage))
+                ValidateLogoUrl(normalizedLogoUrl))
             .Map(() => new Tenant(Guid.NewGuid(), normalizedName, normalizedCompanyName, normalizedLogoUrl));
     }
 
@@ -92,12 +95,24 @@ public sealed class Tenant : Entity<Guid>
     {
         logoUrl = logoUrl?.Trim() ?? string.Empty;
 
-        return logoUrl.Length > MaximumLogoUrlLength
-            ? Result.Failure(InvalidLogoUrlLengthMessage)
-            : Result.Success(LogoUrl = logoUrl);
+        return ValidateLogoUrl(logoUrl)
+            .Tap(() => LogoUrl = logoUrl);
     }
 
     public void RemoveLogoUrl() => LogoUrl = Maybe<string>.None;
+
+    private static Result ValidateLogoUrl(Maybe<string> logoUrl)
+    {
+        if (logoUrl.HasNoValue)
+            return Result.Success();
+
+        if (string.IsNullOrWhiteSpace(logoUrl.Value))
+            return Result.Failure(LogoUrlRequiredMessage);
+
+        return logoUrl.Value.Length <= MaximumLogoUrlLength
+            ? Result.Success()
+            : Result.Failure(InvalidLogoUrlLengthMessage);
+    }
 
     // Required by Entity Framework.
     private Tenant()

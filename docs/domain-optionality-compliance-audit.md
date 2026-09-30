@@ -18,3 +18,6 @@ The review covered public state, construction, mutation, and collections under
 Tests cover presence, absence, clearing, validation, atomic failure, and
 converter round trips. Database-backed aggregate round trips remain deferred
 until mapped aggregate roots and an integration-test provider exist.
+
+See [the project compliance review](project-compliance-review.md) for the
+project-by-project findings and the persistence-boundary safeguards.

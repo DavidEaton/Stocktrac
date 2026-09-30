@@ -12,7 +12,9 @@ public static class MaybeValueConverters
 {
     public static readonly ValueConverter<Maybe<string>, string?> String = new(
         optional => optional.HasValue ? optional.Value : null,
-        stored => stored == null ? Maybe<string>.None : Maybe<string>.From(stored));
+        stored => string.IsNullOrWhiteSpace(stored)
+            ? Maybe<string>.None
+            : Maybe<string>.From(stored.Trim()));
 
     public static readonly ValueConverter<Maybe<int>, int?> Int32 = new(
         optional => optional.HasValue ? optional.Value : null,

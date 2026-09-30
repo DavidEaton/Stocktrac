@@ -17,6 +17,7 @@ public sealed class Employee : Entity
     public static readonly double MinimumBenefitLoad = 0.0;
     public static readonly double MaximumBenefitLoad = 100.0;
     public const string RequiredMessage = "Please include all required items.";
+    public const string OptionalTextRequiredMessage = "Use the remove operation to clear an optional value.";
     public const string DateRangeMessage = "Employment date(s) invalid.";
     public const string InvalidExpenseCategoryMessage = "Expense category is invalid.";
     public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}.";
@@ -76,14 +77,18 @@ public sealed class Employee : Entity
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
     {
+        var normalizedCertificationNumber = certificationNumber.Map(value => value.Trim());
+        var normalizedPrintedName = printedName.Map(value => value.Trim());
+
         return Result.Combine(
                 Environment.NewLine,
                 Result.FailureIf(hiredPerson is null, RequiredMessage),
                 Result.FailureIf(roleAssignments is null || roleAssignments.Any(role => role is null), RequiredMessage),
                 Result.FailureIf(ssn is null, RequiredMessage),
+                Result.FailureIf(notes is null, RequiredMessage),
                 Result.FailureIf(hired < StartDateMinimum || hired > EndDateMaximum, DateRangeMessage),
-                ValidateCertificationNumber(certificationNumber),
-                ValidatePrintedName(printedName),
+                ValidateOptionalText(normalizedCertificationNumber, MaximumCertificationNumberLength),
+                ValidateOptionalText(normalizedPrintedName, MaximumPrintedNameLength),
                 ValidateExpenseCategory(expenseCategory),
                 ValidateBenefitLoad(benefitLoad))
             .Map(() => new Employee(
@@ -92,30 +97,23 @@ public sealed class Employee : Entity
                 ssn!,
                 hired,
                 notes,
-                certificationNumber,
-                printedName,
+                normalizedCertificationNumber,
+                normalizedPrintedName,
                 expenseCategory,
                 benefitLoad));
     }
 
-    private static Result ValidateCertificationNumber(Maybe<string> certificationNumber)
+    private static Result ValidateOptionalText(Maybe<string> value, int maximumLength)
     {
-        if (certificationNumber.HasNoValue)
+        if (value.HasNoValue)
             return Result.Success();
 
-        return certificationNumber.Value.Trim().Length <= MaximumCertificationNumberLength
-            ? Result.Success()
-            : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumCertificationNumberLength));
-    }
+        if (string.IsNullOrWhiteSpace(value.Value))
+            return Result.Failure(OptionalTextRequiredMessage);
 
-    private static Result ValidatePrintedName(Maybe<string> printedName)
-    {
-        if (printedName.HasNoValue)
-            return Result.Success();
-
-        return printedName.Value.Trim().Length <= MaximumPrintedNameLength
+        return value.Value.Length <= maximumLength
             ? Result.Success()
-            : Result.Failure<string>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
+            : Result.Failure(InvalidMaximumLengthMessage(maximumLength));
     }
 
     private static Result ValidateExpenseCategory(EmployeeExpenseCategory expenseCategory)
@@ -161,7 +159,9 @@ public sealed class Employee : Entity
         employmentDate <= EndDateMaximum;
 
     public Result UpdateNotes(Note notes) =>
-        Result.Success().Tap(() => Notes = notes);
+        notes is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success().Tap(() => Notes = notes);
 
     public void RemoveNotes() => Notes = Maybe<Note>.None;
 
@@ -172,9 +172,8 @@ public sealed class Employee : Entity
     {
         certificationNumber = certificationNumber?.Trim() ?? string.Empty;
 
-        return certificationNumber.Length > MaximumCertificationNumberLength
-            ? Result.Failure(InvalidMaximumLengthMessage(MaximumCertificationNumberLength))
-            : Result.Success(CertificationNumber = certificationNumber);
+        return ValidateOptionalText(certificationNumber, MaximumCertificationNumberLength)
+            .Tap(() => CertificationNumber = certificationNumber);
     }
 
     public void RemoveCertificationNumber() => CertificationNumber = Maybe<string>.None;
@@ -183,9 +182,8 @@ public sealed class Employee : Entity
     {
         printedName = printedName?.Trim() ?? string.Empty;
 
-        return printedName.Length <= MaximumPrintedNameLength
-            ? Result.Success(PrintedName = printedName)
-            : Result.Failure<Maybe<string>>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
+        return ValidateOptionalText(printedName, MaximumPrintedNameLength)
+            .Map(() => PrintedName = printedName);
     }
 
     public void RemovePrintedName() => PrintedName = Maybe<string>.None;
@@ -208,7 +206,7 @@ public sealed class Employee : Entity
             NonEmptyString.Create("LastName").Value,
             NonEmptyString.Create("FirstName").Value
             ).Value;
-        PersonEmployed = Person.Create(personName, Maybe<Note>.None.Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
+        PersonEmployed = Person.Create(personName, Maybe<Note>.None, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
         SSN = SSN.Create(NonEmptyString.Create("000-00-0000").Value).Value;
         Hired = DateTime.Today;
         Notes = Maybe<Note>.None;
