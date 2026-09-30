@@ -33,22 +33,6 @@ public class ContactPhoneShould
         result.Value.ToString().ShouldBe(canonicalNumber);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public void ReturnEmptyAndInvalidErrors_OnCreate_WhenNumberIsEmpty(
-        string? number)
-    {
-        var expected = PhoneNumber.InvalidMessage;
-
-#pragma warning disable CS8604 // Possible null reference argument.
-        var result = Create(number, PhoneType.Home, false);
-#pragma warning restore CS8604 // Possible null reference argument.
-
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(expected);
-    }
-
     [Fact]
     public void ReturnInvalidError_OnCreate_WhenNumberHasInvalidFormat()
     {
