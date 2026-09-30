@@ -1,5 +1,6 @@
 using System.Globalization;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Financial;
 
 namespace Stocktrac.Tests.Features.Unit.Financial;
@@ -53,9 +54,9 @@ public class FeeShould
     }
 
     [Theory]
-    [InlineData(null, CurrencyCode.RequiredMessage)]
-    [InlineData("", CurrencyCode.RequiredMessage)]
-    [InlineData("   ", CurrencyCode.RequiredMessage)]
+    [InlineData(null, NonEmptyString.RequiredMessage)]
+    [InlineData("", NonEmptyString.RequiredMessage)]
+    [InlineData("   ", NonEmptyString.RequiredMessage)]
     [InlineData("US", CurrencyCode.InvalidMessage)]
     [InlineData("US1", CurrencyCode.InvalidMessage)]
     [InlineData("USDD", CurrencyCode.InvalidMessage)]

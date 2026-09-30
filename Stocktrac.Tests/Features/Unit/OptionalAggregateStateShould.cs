@@ -11,7 +11,7 @@ namespace Stocktrac.Tests.Features.Unit;
 public class OptionalAggregateStateShould
 {
     [Fact]
-    public void ExplicitlySetAndClearBusinessContact()
+    public void ExplicitlyUpdateAndRemoveBusinessContact()
     {
         var business = Business.Create(
             BusinessName.Create(NonEmptyString.Create("Acme Repair").Value).Value,
@@ -22,15 +22,15 @@ public class OptionalAggregateStateShould
             []).Value;
         var contact = CreatePerson();
 
-        business.SetContact(contact);
+        business.UpdateContact(contact);
         business.Contact.Value.ShouldBe(contact);
 
-        business.ClearContact();
+        business.RemoveContact();
         business.Contact.HasNoValue.ShouldBeTrue();
     }
 
     [Fact]
-    public void ExplicitlySetAndClearEmployeeExitDate()
+    public void ExplicitlyUpdateAndRemoveEmployeeExitDate()
     {
         var hired = DateTime.Today.AddDays(-1);
         var employee = Employee.Create(
@@ -40,11 +40,11 @@ public class OptionalAggregateStateShould
             hired,
             Note.Create(NonEmptyString.Create("No notes").Value).Value).Value;
 
-        employee.SetExited(DateTime.Today).IsSuccess.ShouldBeTrue();
+        employee.UpdateExited(DateTime.Today).IsSuccess.ShouldBeTrue();
         employee.Exited.Value.ShouldBe(DateTime.Today);
         employee.Active.ShouldBeFalse();
 
-        employee.ClearExited();
+        employee.RemoveExited();
         employee.Exited.HasNoValue.ShouldBeTrue();
         employee.Active.ShouldBeTrue();
     }

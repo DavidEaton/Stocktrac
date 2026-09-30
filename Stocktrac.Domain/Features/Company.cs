@@ -25,7 +25,7 @@ public sealed class Company : Entity
                 Result.FailureIf(seed <= MinimumValue, MinimumValueMessage))
             .Map(() => new Company(business!, seed));
 
-    public Result<long> SetInvoiceNumberSeed(long seed) =>
+    public Result<long> ReplaceInvoiceNumberSeed(long seed) =>
         seed <= MinimumValue || seed > long.MaxValue
             ? Result.Failure<long>(MinimumValueMessage)
             : Result.Success(NextInvoiceNumberOrSeed = seed);

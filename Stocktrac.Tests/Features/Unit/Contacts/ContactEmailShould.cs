@@ -21,8 +21,12 @@ public class ContactEmailShould
     [Fact]
     public void ExposeImmutableProperties()
     {
-        typeof(ContactEmail).GetProperty(nameof(ContactEmail.Address))!.SetMethod.ShouldBeNull();
-        typeof(ContactEmail).GetProperty(nameof(ContactEmail.IsPrimary))!.SetMethod.ShouldBeNull();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        typeof(ContactEmail).GetProperty(nameof(ContactEmail.Address)).SetMethod.ShouldBeNull();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        typeof(ContactEmail).GetProperty(nameof(ContactEmail.IsPrimary)).SetMethod.ShouldBeNull();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
     [Fact]

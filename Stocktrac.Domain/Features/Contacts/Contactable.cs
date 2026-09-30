@@ -98,5 +98,6 @@ public abstract partial class Contactable : Entity, IContactable
     {
         phoneCollection = new(phones, phone => phone.Number);
         emailCollection = new(emails, email => email.Address);
+        Notes = Note.Create(NonEmptyString.Create("Notes").Value).Value;
     }
 }

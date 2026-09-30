@@ -169,7 +169,7 @@ public sealed class Vehicle : Entity
             : Result.Success();
     }
 
-    public Result<Maybe<string>> SetVin(string vin)
+    public Result<Maybe<string>> UpdateVin(string vin)
     {
         vin = vin?.Trim() ?? string.Empty;
         return vin.Length.Equals(VinRequiredLength)
@@ -177,18 +177,18 @@ public sealed class Vehicle : Entity
             : Result.Failure<Maybe<string>>(InvalidVinMessage);
     }
 
-    public Result ClearVin() => NonTraditionalVehicle
+    public Result RemoveVin() => NonTraditionalVehicle
         ? Result.Success().Tap(() => VIN = Maybe<string>.None)
         : Result.Failure(InvalidVinMessage);
 
-    public Result<Maybe<int>> SetYear(int year) =>
+    public Result<Maybe<int>> UpdateYear(int year) =>
         year > DateTime.Today.Year + 1 || year < YearMinimum
             ? Result.Failure<Maybe<int>>(InvalidYearMessage)
             : Result.Success(Year = year);
 
-    public void ClearYear() => Year = Maybe<int>.None;
+    public void RemoveYear() => Year = Maybe<int>.None;
 
-    public Result<string> SetMake(string make)
+    public Result<string> UpdateMake(string make)
     {
         make = (make ?? string.Empty).Trim();
         return make.Length < MinimumMakeModelLength || make.Length > MaximumMakeModelLength
@@ -196,7 +196,7 @@ public sealed class Vehicle : Entity
             : Result.Success(Make = make);
     }
 
-    public Result<string> SetModel(string model)
+    public Result<string> UpdateModel(string model)
     {
         model = (model ?? string.Empty).Trim();
         return model.Length < MinimumMakeModelLength || model.Length > MaximumMakeModelLength
@@ -204,7 +204,7 @@ public sealed class Vehicle : Entity
             : Result.Success(Model = model);
     }
 
-    public Result<Maybe<string>> SetPlate(string plate)
+    public Result<Maybe<string>> UpdatePlate(string plate)
     {
         plate = plate?.Trim() ?? string.Empty;
         return plate.Length > MaximumPlateLength
@@ -213,16 +213,16 @@ public sealed class Vehicle : Entity
             : Result.Success(Plate = plate);
     }
 
-    public void ClearPlate() => Plate = Maybe<string>.None;
+    public void RemovePlate() => Plate = Maybe<string>.None;
 
-    public Result<Maybe<State>> SetPlateStateProvince(State plateStateProvince) =>
+    public Result<Maybe<State>> UpdatePlateStateProvince(State plateStateProvince) =>
         !Enum.IsDefined(plateStateProvince)
             ? Result.Failure<Maybe<State>>(InvalidPlateStateProvinceMessage)
             : Result.Success(PlateStateProvince = plateStateProvince);
 
-    public void ClearPlateStateProvince() => PlateStateProvince = Maybe<State>.None;
+    public void RemovePlateStateProvince() => PlateStateProvince = Maybe<State>.None;
 
-    public Result<Maybe<string>> SetUnitNumber(string unitNumber)
+    public Result<Maybe<string>> UpdateUnitNumber(string unitNumber)
     {
         unitNumber = unitNumber?.Trim() ?? string.Empty;
         return unitNumber.Length > MaximumUnitNumberLength
@@ -231,9 +231,9 @@ public sealed class Vehicle : Entity
             : Result.Success(UnitNumber = unitNumber);
     }
 
-    public void ClearUnitNumber() => UnitNumber = Maybe<string>.None;
+    public void RemoveUnitNumber() => UnitNumber = Maybe<string>.None;
 
-    public Result<Maybe<string>> SetColor(string color)
+    public Result<Maybe<string>> UpdateColor(string color)
     {
         color = color?.Trim() ?? string.Empty;
         return color.Length > MaximumColorLength
@@ -242,11 +242,11 @@ public sealed class Vehicle : Entity
             : Result.Success(Color = color);
     }
 
-    public void ClearColor() => Color = Maybe<string>.None;
+    public void RemoveColor() => Color = Maybe<string>.None;
 
-    public void SetActive(bool active = true) => Active = active;
+    public void UpdateActive(bool active = true) => Active = active;
 
-    public Result SetNonTraditionalVehicle(bool nonTraditionalVehicle) =>
+    public Result UpdateNonTraditionalVehicle(bool nonTraditionalVehicle) =>
         Result.Combine(
                 ValidateVin(VIN, nonTraditionalVehicle),
                 ValidateMakeModel(Make, Model, nonTraditionalVehicle))

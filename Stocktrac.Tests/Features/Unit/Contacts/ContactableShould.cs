@@ -185,7 +185,7 @@ public class ContactableShould
     }
 
     [Fact]
-    public void ClearContacts_WhenRequestedCollectionsAreEmpty()
+    public void RemoveContacts_WhenRequestedCollectionsAreEmpty()
     {
         var person = CreatePerson(
             phones: [CreatePhone("555-111-1111", PhoneType.Mobile, true)],

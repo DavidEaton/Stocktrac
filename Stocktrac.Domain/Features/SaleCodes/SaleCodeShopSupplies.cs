@@ -52,29 +52,29 @@ namespace Stocktrac.Domain.Features.SaleCodes
                 includeParts,
                 includeLabor));
 
-        public Result<double> SetPercentage(double percentage) =>
+        public Result<double> UpdatePercentage(double percentage) =>
             !double.IsFinite(percentage) || percentage < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(Percentage = percentage);
 
-        public Result<double> SetMinimumJobAmount(double minimumJobAmount) =>
+        public Result<double> UpdateMinimumJobAmount(double minimumJobAmount) =>
             !double.IsFinite(minimumJobAmount) || minimumJobAmount < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MinimumJobAmount = minimumJobAmount);
 
-        public Result<double> SetMinimumCharge(double minimumCharge) =>
+        public Result<double> UpdateMinimumCharge(double minimumCharge) =>
             !double.IsFinite(minimumCharge) || minimumCharge < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MinimumCharge = minimumCharge);
 
-        public Result<double> SetMaximumCharge(double maximumCharge) =>
+        public Result<double> UpdateMaximumCharge(double maximumCharge) =>
             !double.IsFinite(maximumCharge) || maximumCharge < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(MaximumCharge = maximumCharge);
 
-        public void SetIncludeParts(bool includeParts) => IncludeParts = includeParts;
+        public void UpdateIncludeParts(bool includeParts) => IncludeParts = includeParts;
 
-        public void SetIncludeLabor(bool includeLabor) => IncludeLabor = includeLabor;
+        public void UpdateIncludeLabor(bool includeLabor) => IncludeLabor = includeLabor;
 
         // EF requires a parameterless constructor
         private SaleCodeShopSupplies() { }

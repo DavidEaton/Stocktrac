@@ -12,14 +12,8 @@ public readonly record struct Money
     private Money(Amount amount, CurrencyCode currencyCode) =>
         (Amount, CurrencyCode) = (amount, currencyCode);
 
-    public static Money Create(Amount amount, CurrencyCode currencyCode) =>
-        new(amount, currencyCode);
-
-    public static Result<Money> Create(decimal amount, string currencyCode) =>
-        NonEmptyString.Create(currencyCode)
-            .Bind(CurrencyCode.Create)
-            .Map(
-            code => Create(Amount.FromDecimal(amount), code));
+    public static Result<Money> Create(Amount amount, CurrencyCode currencyCode) =>
+        Result.Success(new Money(amount, currencyCode));
 
     public Result<Money> Add(Money other) =>
         Combine(other, static (left, right) => left.Add(right));
@@ -35,19 +29,16 @@ public readonly record struct Money
 
     private Result<Money> Combine(
         Money other,
-        Func<Amount, Amount, Result<Amount>> operation)
-    {
-        if (CurrencyCode != other.CurrencyCode)
-            return Result.Failure<Money>(CurrencyMismatchMessage);
-
-        return ReplaceCurrency(operation(Amount, other.Amount));
-    }
+        Func<Amount, Amount, Result<Amount>> operation) =>
+            CurrencyCode != other.CurrencyCode
+                ? Result.Failure<Money>(CurrencyMismatchMessage)
+                : ReplaceCurrency(operation(Amount, other.Amount));
 
     private Result<Money> ReplaceCurrency(Result<Amount> result)
     {
         var currencyCode = CurrencyCode;
 
         return result.Map(
-            amount => Create(amount, currencyCode));
+            amount => Create(amount, currencyCode).Value);
     }
 }

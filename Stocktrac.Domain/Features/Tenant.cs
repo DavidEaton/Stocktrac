@@ -62,7 +62,7 @@ public sealed class Tenant : Entity<Guid>
             .Map(() => new Tenant(Guid.NewGuid(), normalizedName, normalizedCompanyName, normalizedLogoUrl));
     }
 
-    public Result SetName(string name)
+    public Result UpdateName(string name)
     {
         name = name?.Trim() ?? string.Empty;
 
@@ -75,7 +75,7 @@ public sealed class Tenant : Entity<Guid>
             : Result.Success(Name = name);
     }
 
-    public Result SetCompanyName(string companyName)
+    public Result UpdateCompanyName(string companyName)
     {
         companyName = companyName?.Trim() ?? string.Empty;
 
@@ -88,7 +88,7 @@ public sealed class Tenant : Entity<Guid>
             : Result.Success(CompanyName = companyName);
     }
 
-    public Result SetLogoUrl(string logoUrl)
+    public Result UpdateLogoUrl(string logoUrl)
     {
         logoUrl = logoUrl?.Trim() ?? string.Empty;
 
@@ -97,7 +97,7 @@ public sealed class Tenant : Entity<Guid>
             : Result.Success(LogoUrl = logoUrl);
     }
 
-    public void ClearLogoUrl() => LogoUrl = Maybe<string>.None;
+    public void RemoveLogoUrl() => LogoUrl = Maybe<string>.None;
 
     // Required by Entity Framework.
     private Tenant()

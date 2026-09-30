@@ -21,7 +21,7 @@ namespace Stocktrac.Domain.Features.Employees
                 Result.FailureIf(!Enum.IsDefined(role), RequiredMessage))
                 .Map(() => new RoleAssignment(role, periodAssigned!));
 
-        public Result<EmploymentRole> SetRole(EmploymentRole role)
+        public Result<EmploymentRole> UpdateRole(EmploymentRole role)
         {
             return
                 !Enum.IsDefined(role)

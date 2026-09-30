@@ -90,7 +90,7 @@ public class DateRangeShould
         DateRangeExtensions.ReplaceEnd(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void SetMaximumEnd_On_RemoveEnd_WhenRangeIsFinite()
+    public void UpdateMaximumEnd_On_RemoveEnd_WhenRangeIsFinite()
     {
         var original = DateRange.Create(Start, Start.AddDays(2)).Value;
         var updated = original.RemoveEnd().Value;

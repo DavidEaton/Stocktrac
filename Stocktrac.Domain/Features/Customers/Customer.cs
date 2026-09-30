@@ -49,7 +49,7 @@ public sealed class Customer : Entity
                 code,
                 ContactPreferences.Create(true, true, true)));
 
-    public Result ReplaceAddress(Address address)
+    public Result UpdateAddress(Address address)
     {
         if (address is null)
             return Result.Failure(RequiredMessage);
@@ -57,11 +57,11 @@ public sealed class Customer : Entity
         switch (CustomerEntity)
         {
             case Person person:
-                person.ReplaceAddress(address);
+                person.UpdateAddress(address);
                 return Result.Success();
 
             case Business business:
-                business.ReplaceAddress(address);
+                business.UpdateAddress(address);
                 return Result.Success();
 
             default:
@@ -86,7 +86,7 @@ public sealed class Customer : Entity
         }
     }
 
-    public Result SetCustomerType(CustomerType customerType)
+    public Result UpdateCustomerType(CustomerType customerType)
     {
         if (Enum.IsDefined(customerType))
         {
@@ -154,12 +154,12 @@ public sealed class Customer : Entity
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
-    public Result ReplaceCode(CustomerCode code) =>
+    public Result UpdateCode(CustomerCode code) =>
         code is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Code = code);
 
-    public void ReplaceoutCode() => Code = Maybe<CustomerCode>.None;
+    public void RemoveCode() => Code = Maybe<CustomerCode>.None;
 
-    public Result SetCustomerEntity(ICustomerEntity entity)
+    public Result UpdateCustomerEntity(ICustomerEntity entity)
     {
         if (entity is null)
             return Result.Failure(RequiredMessage);

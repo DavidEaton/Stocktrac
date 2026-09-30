@@ -27,11 +27,11 @@ public sealed record DriversLicense
     public static readonly string DateRangeTooLongMessage =
         $"The driver's license validity period cannot exceed {MaximumValidityYears} years.";
 
-    public DriversLicenseNumber Number { get; private init; }
+    public DriversLicenseNumber Number { get; }
 
-    public DateRange ValidDateRange { get; private init; }
+    public DateRange ValidDateRange { get; }
 
-    public State State { get; private init; }
+    public State State { get; }
 
     private DriversLicense(
         DriversLicenseNumber number,
@@ -63,22 +63,19 @@ public sealed record DriversLicense
                     dateRangeResult.Value));
     }
 
-    public Result<DriversLicense> ReplaceNumber(
-        DriversLicenseNumber number) =>
-        Result.Success(this with { Number = number });
+    public Result<DriversLicense> ReplaceNumber(DriversLicenseNumber number) =>
+        Result.Success(
+            new DriversLicense(number, State, ValidDateRange));
 
     public Result<DriversLicense> ReplaceState(State state) =>
         state.AsValidState()
             .Map(validState =>
-                this with { State = validState });
+                new DriversLicense(Number, validState, ValidDateRange));
 
-    public Result<DriversLicense> ReplaceValidDateRange(
-        DateRange dateRange,
-        DateOnly today) =>
+    public Result<DriversLicense> ReplaceValidDateRange(DateRange dateRange, DateOnly today) =>
         dateRange.AsValidDriversLicenseDateRange(today)
             .Map(validDateRange =>
-                this with { ValidDateRange = validDateRange });
+                new DriversLicense(Number, State, validDateRange));
 
-    public bool IsExpired(DateOnly today) =>
-        ValidDateRange.End < today;
+    public bool IsExpired(DateOnly today) => ValidDateRange.End < today;
 }

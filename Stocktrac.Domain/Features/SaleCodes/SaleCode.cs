@@ -61,7 +61,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
                 .Map(() => new SaleCode(normalizedName, normalizedCode, laborRate, desiredMargin, shopSupplies!));
         }
 
-        public Result<string> SetName(string name)
+        public Result<string> UpdateName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return Result.Failure<string>(RequiredMessage);
@@ -74,7 +74,7 @@ namespace Stocktrac.Domain.Features.SaleCodes
             return Result.Success(Name = name);
         }
 
-        public Result<string> SetCode(string code, IReadOnlyList<string> saleCodes)
+        public Result<string> UpdateCode(string code, IReadOnlyList<string> saleCodes)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return Result.Failure<string>(RequiredMessage);
@@ -93,17 +93,17 @@ namespace Stocktrac.Domain.Features.SaleCodes
             return Result.Success(Code = code);
         }
 
-        public Result<double> SetLaborRate(double laborRate) =>
+        public Result<double> UpdateLaborRate(double laborRate) =>
             !double.IsFinite(laborRate) || laborRate < MinimumValue
                 ? Result.Failure<double>(MinimumValueMessage)
                 : Result.Success(LaborRate = laborRate);
 
-        public Result<double> SetDesiredMargin(double desiredMargin) =>
+        public Result<double> UpdateDesiredMargin(double desiredMargin) =>
             !double.IsFinite(desiredMargin) || desiredMargin < MinimumValue || desiredMargin > MaximumDesiredMarginValue
                 ? Result.Failure<double>(InvalidValueMessage(MinimumValue, MaximumDesiredMarginValue))
                 : Result.Success(DesiredMargin = desiredMargin);
 
-        public Result SetShopSupplies(SaleCodeShopSupplies shopSupplies) =>
+        public Result UpdateShopSupplies(SaleCodeShopSupplies shopSupplies) =>
             shopSupplies is null
                 ? Result.Failure(RequiredMessage)
                 : Result.Success().Tap(() => ShopSupplies = shopSupplies);

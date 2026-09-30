@@ -132,7 +132,7 @@ public sealed class Employee : Entity
             : Result.Failure<double>(BenefitLoadMessage);
     }
 
-    public Result<DateTime> SetHired(DateTime hired)
+    public Result<DateTime> UpdateHired(DateTime hired)
     {
         if (!IsEmploymentDateWithinAllowedRange(hired))
         {
@@ -148,27 +148,27 @@ public sealed class Employee : Entity
         return Result.Success(hired);
     }
 
-    public Result<DateTime> SetExited(DateTime exited) =>
+    public Result<DateTime> UpdateExited(DateTime exited) =>
         Result.Success(exited)
             .Ensure(IsEmploymentDateWithinAllowedRange, DateRangeMessage)
             .Ensure(value => value >= Hired, DateRangeMessage)
             .Tap(value => Exited = value);
 
-    public void ClearExited() => Exited = Maybe<DateTime>.None;
+    public void RemoveExited() => Exited = Maybe<DateTime>.None;
 
     private static bool IsEmploymentDateWithinAllowedRange(DateTime employmentDate) =>
         employmentDate >= StartDateMinimum &&
         employmentDate <= EndDateMaximum;
 
-    public Result ReplaceNotes(Note notes) =>
+    public Result UpdateNotes(Note notes) =>
         Result.Success().Tap(() => Notes = notes);
 
     public void RemoveNotes() => Notes = Maybe<Note>.None;
 
-    public Result ReplaceSSN(SSN ssn) =>
+    public Result UpdateSSN(SSN ssn) =>
         ssn is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => SSN = ssn);
 
-    public Result AddOrReplaceCertificationNumber(string certificationNumber)
+    public Result UpdateCertificationNumber(string certificationNumber)
     {
         certificationNumber = certificationNumber?.Trim() ?? string.Empty;
 
@@ -177,9 +177,9 @@ public sealed class Employee : Entity
             : Result.Success(CertificationNumber = certificationNumber);
     }
 
-    public void ClearCertificationNumber() => CertificationNumber = Maybe<string>.None;
+    public void RemoveCertificationNumber() => CertificationNumber = Maybe<string>.None;
 
-    public Result<Maybe<string>> SetPrintedName(string printedName)
+    public Result<Maybe<string>> UpdatePrintedName(string printedName)
     {
         printedName = printedName?.Trim() ?? string.Empty;
 
@@ -188,14 +188,14 @@ public sealed class Employee : Entity
             : Result.Failure<Maybe<string>>(InvalidMaximumLengthMessage(MaximumPrintedNameLength));
     }
 
-    public void ClearPrintedName() => PrintedName = Maybe<string>.None;
+    public void RemovePrintedName() => PrintedName = Maybe<string>.None;
 
-    public Result<EmployeeExpenseCategory> SetExpenseCategory(EmployeeExpenseCategory expenseCategory) =>
+    public Result<EmployeeExpenseCategory> UpdateExpenseCategory(EmployeeExpenseCategory expenseCategory) =>
         Enum.IsDefined(expenseCategory)
             ? Result.Success(ExpenseCategory = expenseCategory)
             : Result.Failure<EmployeeExpenseCategory>(InvalidExpenseCategoryMessage);
 
-    public Result<double> SetBenefitLoad(double benefitLoad) =>
+    public Result<double> UpdateBenefitLoad(double benefitLoad) =>
         double.IsFinite(benefitLoad) && benefitLoad >= MinimumBenefitLoad && benefitLoad <= MaximumBenefitLoad
             ? Result.Success(BenefitLoad = benefitLoad)
             : Result.Failure<double>(BenefitLoadMessage);
@@ -208,7 +208,7 @@ public sealed class Employee : Entity
             NonEmptyString.Create("LastName").Value,
             NonEmptyString.Create("FirstName").Value
             ).Value;
-        PersonEmployed = Person.Create(personName, Note.Create(NonEmptyString.Create("No notes").Value).Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
+        PersonEmployed = Person.Create(personName, Maybe<Note>.None.Value, [], [], Maybe<Birthday>.None, Maybe<DriversLicense>.None, Maybe<Address>.None).Value;
         SSN = SSN.Create(NonEmptyString.Create("000-00-0000").Value).Value;
         Hired = DateTime.Today;
         Notes = Maybe<Note>.None;

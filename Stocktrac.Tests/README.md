@@ -148,10 +148,10 @@ WhenCalled        // Usually adds no useful information.
 
 ### Keep the member name exact when practical
 
-If the production member is `SetAddress`, use:
+If the production member is `UpdateAddress`, use:
 
 ```text
-_On_SetAddress_
+_On_UpdateAddress_
 ```
 
 Exact names help a reader connect the test to the production API.
@@ -161,7 +161,7 @@ Exact names help a reader connect the test to the production API.
 ```text
 ContactEmailShould.ReturnFailureResult_On_Create_WhenAddressIsNull
 ContactEmailShould.TrimAddress_On_Create_WhenAddressContainsSurroundingWhitespace
-ContactEmailShould.UpdateAddress_On_SetAddress_WhenAddressIsValid
+ContactEmailShould.UpdateAddress_On_UpdateAddress_WhenAddressIsValid
 AmountShould.ContainExactValue_On_FromDecimal_WhenGivenAnyDecimal
 AmountShould.ReturnOverflowFailure_On_Add_WhenResultExceedsDecimalRange
 MoneyShould.ReturnCurrencyMismatchFailure_On_Add_WhenCurrenciesDiffer
@@ -177,7 +177,7 @@ MoneyShould.PreserveCurrency_On_Multiply_WhenResultIsInRange
 `After` may describe a post-operation state more accurately:
 
 ```text
-ContactEmailShould.ContainUpdatedAddress_After_SetAddress_WhenAddressIsValid
+ContactEmailShould.ContainUpdatedAddress_After_UpdateAddress_WhenAddressIsValid
 ```
 
 Use `After` only when the timing or resulting state matters. For a value returned directly by a method, `On` is usually clearer.

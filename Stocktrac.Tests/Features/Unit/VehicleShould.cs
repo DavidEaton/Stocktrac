@@ -31,21 +31,21 @@ public class VehicleShould
     }
 
     [Fact]
-    public void SupportExplicitSetAndClearOperations()
+    public void SupportExplicitUpdateAndRemoveOperations()
     {
         var vehicle = CreateTraditionalVehicle();
 
-        vehicle.SetYear(2020).IsSuccess.ShouldBeTrue();
-        vehicle.SetPlate("ABC123").IsSuccess.ShouldBeTrue();
-        vehicle.SetPlateStateProvince(State.NY).IsSuccess.ShouldBeTrue();
-        vehicle.SetUnitNumber("42").IsSuccess.ShouldBeTrue();
-        vehicle.SetColor("Blue").IsSuccess.ShouldBeTrue();
+        vehicle.UpdateYear(2020).IsSuccess.ShouldBeTrue();
+        vehicle.UpdatePlate("ABC123").IsSuccess.ShouldBeTrue();
+        vehicle.UpdatePlateStateProvince(State.NY).IsSuccess.ShouldBeTrue();
+        vehicle.UpdateUnitNumber("42").IsSuccess.ShouldBeTrue();
+        vehicle.UpdateColor("Blue").IsSuccess.ShouldBeTrue();
 
-        vehicle.ClearYear();
-        vehicle.ClearPlate();
-        vehicle.ClearPlateStateProvince();
-        vehicle.ClearUnitNumber();
-        vehicle.ClearColor();
+        vehicle.RemoveYear();
+        vehicle.RemovePlate();
+        vehicle.RemovePlateStateProvince();
+        vehicle.RemoveUnitNumber();
+        vehicle.RemoveColor();
 
         vehicle.Year.HasNoValue.ShouldBeTrue();
         vehicle.Plate.HasNoValue.ShouldBeTrue();
@@ -68,7 +68,7 @@ public class VehicleShould
             Maybe<string>.None,
             nonTraditionalVehicle: true).Value;
 
-        var result = vehicle.SetNonTraditionalVehicle(false);
+        var result = vehicle.UpdateNonTraditionalVehicle(false);
 
         result.IsFailure.ShouldBeTrue();
         vehicle.NonTraditionalVehicle.ShouldBeTrue();
