@@ -11,7 +11,7 @@ public class CreditCardShould
     public void SetAllRequestedValues_On_Create()
     {
         var name = CreateName("Visa");
-        var fee = Fee.Create(2.5m, "USD").Value;
+        var fee = CreateFee(2.5m, "USD");
         var depositedAt = new DateTime(2026, 8, 29, 12, 30, 0, DateTimeKind.Utc);
 
         var result = CreditCard.Create(
@@ -137,7 +137,7 @@ public class CreditCardShould
     public void ReplaceFee_On_ChangeFee()
     {
         var card = CreateCreditCard();
-        var fee = Fee.Create(3m, "CAD").Value;
+        var fee = CreateFee(3m, "CAD");
 
         var result = card.ChangeFee(fee);
 
@@ -188,4 +188,9 @@ public class CreditCardShould
 
     private static CreditCardName CreateName(string name) =>
         CreditCardName.Create(NonEmptyString.Create(name).Value).Value;
+
+    private static Fee CreateFee(decimal amount, string currencyCode) =>
+        Fee.Create(
+            Amount.FromDecimal(amount),
+            CurrencyCode.Create(NonEmptyString.Create(currencyCode).Value).Value).Value;
 }

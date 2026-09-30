@@ -1,5 +1,6 @@
 using System.Globalization;
 using Shouldly;
+using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Financial;
 using Stocktrac.Domain.Features.Financial.Extensions;
 
@@ -20,7 +21,7 @@ public class MoneyExtensionsShould
         string expected)
     {
         var amount = decimal.Parse(amountText, CultureInfo.InvariantCulture);
-        var money = Money.Create(amount, currencyCode).Value;
+        var money = CreateMoney(amount, currencyCode);
 
         var displayString = money.ToDisplayString();
 
@@ -39,7 +40,7 @@ public class MoneyExtensionsShould
         try
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
-            var money = Money.Create(1234.50m, "EUR").Value;
+            var money = CreateMoney(1234.50m, "EUR");
 
             money.ToDisplayString().ShouldBe("1234.50 EUR");
         }
@@ -60,7 +61,7 @@ public class MoneyExtensionsShould
     [Fact]
     public void ReturnNormalizedCurrency_On_ToDisplayString_WhenCurrencyInputIsNotNormalized()
     {
-        var money = Money.Create(10m, " eur ").Value;
+        var money = CreateMoney(10m, " eur ");
 
         money.ToDisplayString().ShouldBe("10 EUR");
     }
@@ -68,10 +69,15 @@ public class MoneyExtensionsShould
     [Fact]
     public void ReturnSameValue_On_ToDisplayString_WhenCalledAsStaticMethod()
     {
-        var money = Money.Create(19.99m, "USD").Value;
+        var money = CreateMoney(19.99m, "USD");
 
         var displayString = MoneyExtensions.ToDisplayString(money);
 
         displayString.ShouldBe("19.99 USD");
     }
+
+    private static Money CreateMoney(decimal amount, string currencyCode) =>
+        Money.Create(
+            Amount.FromDecimal(amount),
+            CurrencyCode.Create(NonEmptyString.Create(currencyCode).Value).Value).Value;
 }
