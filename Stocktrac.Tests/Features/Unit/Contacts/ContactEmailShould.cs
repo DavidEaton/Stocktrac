@@ -30,7 +30,7 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceAddress()
+    public void ReplaceOnlyAddressAndReturnDistinctInstance_On_ReplaceAddress()
     {
         var email = CreateValidPrimaryEmail();
         var replacement = CreateAddress("updated@address.com");
@@ -45,7 +45,7 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceIsPrimary()
+    public void ReplaceOnlyPrimaryStatusAndReturnDistinctInstance_On_ReplaceIsPrimary()
     {
         var email = CreateValidPrimaryEmail();
 

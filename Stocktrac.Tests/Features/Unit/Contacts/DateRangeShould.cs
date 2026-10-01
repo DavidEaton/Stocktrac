@@ -52,7 +52,7 @@ public class DateRangeShould
         DateRangeExtensions.DurationInDays(null!).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnCopy_On_ReplaceStart_WhenStartPrecedesEnd()
+    public void ReplaceOnlyStart_On_ReplaceStart_WhenStartPrecedesEnd()
     {
         var original = DateRange.Create(Start, Start.AddDays(2)).Value;
         var updated = original.ReplaceStart(Start.AddDays(1)).Value;
@@ -74,7 +74,7 @@ public class DateRangeShould
         DateRangeExtensions.ReplaceStart(null!, Start).Error.ShouldBe(DateRange.EndBeforeStartMessage);
 
     [Fact]
-    public void ReturnCopy_On_ReplaceEnd_WhenEndFollowsStart() =>
+    public void ReplaceEnd_On_ReplaceEnd_WhenEndFollowsStart() =>
         DateRange.Create(Start, Start.AddDays(2)).Value.ReplaceEnd(Start.AddDays(3)).Value.End
             .ShouldBe(Start.AddDays(3));
 

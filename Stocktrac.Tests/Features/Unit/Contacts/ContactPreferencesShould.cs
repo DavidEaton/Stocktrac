@@ -6,7 +6,7 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class ContactPreferencesShould
 {
     [Fact]
-    public void ReturnCopy_On_ReplaceAllowMail_WithoutChangingOtherPreferences()
+    public void ReplaceOnlyMailPreference_On_ReplaceAllowMail()
     {
         var original = ContactPreferences.Create(false, true, true);
 
@@ -19,7 +19,7 @@ public class ContactPreferencesShould
     }
 
     [Fact]
-    public void ReturnCopy_On_ReplaceAllowEmail_WithoutChangingOtherPreferences()
+    public void ReplaceOnlyEmailPreference_On_ReplaceAllowEmail()
     {
         var original = ContactPreferences.Create(true, false, true);
 
@@ -32,7 +32,7 @@ public class ContactPreferencesShould
     }
 
     [Fact]
-    public void ReturnCopy_On_ReplaceAllowSms_WithoutChangingOtherPreferences()
+    public void ReplaceOnlySmsPreference_On_ReplaceAllowSms()
     {
         var original = ContactPreferences.Create(true, true, false);
 

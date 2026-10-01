@@ -55,7 +55,7 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceAddressLine1_WithoutChangingOtherValues()
+    public void ReplaceOnlyAddressLine1_On_ReplaceAddressLine1()
     {
         var original = ValidAddress(CreateLine("Suite 1"));
         var replacement = CreateLine("456 Oak Ave");
@@ -68,7 +68,7 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceCity_WithoutChangingOtherValues()
+    public void ReplaceOnlyCity_On_ReplaceCity()
     {
         var original = ValidAddress(CreateLine("Suite 1"));
         var replacement = CreateCity("Buffalo");
@@ -81,7 +81,7 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceState_WhenStateIsDefined()
+    public void ReplaceOnlyState_On_ReplaceState_WhenStateIsDefined()
     {
         var original = ValidAddress(CreateLine("Suite 1"));
 
@@ -107,7 +107,7 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplacePostalCode_WithoutChangingOtherValues()
+    public void ReplaceOnlyPostalCode_On_ReplacePostalCode()
     {
         var original = ValidAddress(CreateLine("Suite 1"));
         var replacement = CreatePostalCode("90210");
@@ -120,7 +120,7 @@ public class AddressShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_AddOrReplaceAddressLine2_WhenValueIsPresent()
+    public void ReplaceOnlyAddressLine2_On_AddOrReplaceAddressLine2_WhenValueIsPresent()
     {
         var original = ValidAddress(Maybe<AddressLine>.None);
         var replacement = CreateLine("Suite 9");

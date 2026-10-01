@@ -7,7 +7,7 @@ namespace Stocktrac.Tests.Features.Unit.Persons;
 public class PersonNameShould
 {
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceLastName_WhenNameIsValid()
+    public void ReplaceOnlyLastName_On_ReplaceLastName_WhenNameIsValid()
     {
         var original = ValidName();
 
@@ -21,7 +21,7 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceFirstName_WhenNameIsValid()
+    public void ReplaceOnlyFirstName_On_ReplaceFirstName_WhenNameIsValid()
     {
         var original = ValidName();
 
@@ -35,7 +35,7 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_AddOrReplaceMiddleName_WhenNameIsValid()
+    public void ReplaceOnlyMiddleName_On_AddOrReplaceMiddleName_WhenNameIsValid()
     {
         var original = ValidName();
 
@@ -57,7 +57,7 @@ public class PersonNameShould
     }
 
     [Fact]
-    public void ReturnCopyWithoutMiddleName_On_RemoveMiddleName_WhenMiddleNameExists()
+    public void RemoveMiddleNameAndPreserveOriginal_On_RemoveMiddleName_WhenMiddleNameExists()
     {
         var original = ValidName();
 
