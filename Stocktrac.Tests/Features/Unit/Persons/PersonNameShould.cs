@@ -1,6 +1,7 @@
 using Shouldly;
 using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Persons;
+using static Stocktrac.Domain.Features.NonEmptyStringConstruction;
 
 namespace Stocktrac.Tests.Features.Unit.Persons;
 
@@ -53,7 +54,7 @@ public class PersonNameShould
     {
         var result = NonEmptyString.Create("  ");
 
-        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
+        result.Error.ShouldBe(RequiredMessage);
     }
 
     [Fact]

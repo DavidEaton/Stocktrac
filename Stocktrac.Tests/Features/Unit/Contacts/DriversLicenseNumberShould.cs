@@ -1,6 +1,7 @@
 using Shouldly;
 using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
+using static Stocktrac.Domain.Features.NonEmptyStringConstruction;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 
@@ -15,7 +16,7 @@ public class DriversLicenseNumberShould
         var result = NonEmptyString.Create(number!);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
+        result.Error.ShouldBe(RequiredMessage);
     }
 
     [Fact]
