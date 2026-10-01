@@ -64,7 +64,7 @@ public class ContactPhoneShould
         Create(number, PhoneType.Home, false).Value.ToString().ShouldBe(formatted);
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplaceNumber_WhenNumberIsValid()
+    public void ReplaceOnlyNumber_On_ReplaceNumber_WhenNumberIsValid()
     {
         var original = ValidPhone();
         var updated = ReplaceNumber(original, " 555-987-6543 ").Value;
@@ -104,7 +104,7 @@ public class ContactPhoneShould
     }
 
     [Fact]
-    public void ReturnUpdatedCopy_On_ReplacePhoneType_WhenPhoneTypeIsDefined() =>
+    public void ReplacePhoneType_On_ReplacePhoneType_WhenPhoneTypeIsDefined() =>
         ValidPhone().ReplacePhoneType(PhoneType.Work).Value.PhoneType.ShouldBe(PhoneType.Work);
 
     [Fact]
@@ -114,7 +114,7 @@ public class ContactPhoneShould
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ReturnUpdatedCopy_On_ReplaceIsPrimary_WhenValueIsProvided(bool primary)
+    public void ReplacePrimaryStatus_On_ReplaceIsPrimary_WhenValueIsProvided(bool primary)
     {
         var original = ValidPhone();
         var result = original.ReplaceIsPrimary(primary);
