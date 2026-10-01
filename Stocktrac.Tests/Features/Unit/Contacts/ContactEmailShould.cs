@@ -59,7 +59,7 @@ public class ContactEmailShould
     }
 
     [Fact]
-    public void ReturnEquivalentDistinctCopy_On_ReplaceIsPrimary_WhenValueDoesNotChange()
+    public void ReturnEqualButDistinctInstance_On_ReplaceIsPrimary_WhenPrimaryStatusIsUnchanged()
     {
         var email = CreateValidPrimaryEmail();
 
