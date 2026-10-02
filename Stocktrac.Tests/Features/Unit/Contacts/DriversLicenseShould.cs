@@ -1,6 +1,7 @@
 using Shouldly;
 using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
+using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 

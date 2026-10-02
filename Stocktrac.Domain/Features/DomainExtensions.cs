@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 using Stocktrac.Domain.Features.Persons;
-using static Stocktrac.Domain.Features.NonEmptyStringConstruction;
 
 namespace Stocktrac.Domain.Features;
 
@@ -36,7 +35,7 @@ public static class DomainExtensions
         /// </summary>
         internal Result<PersonName> AsRequired() =>
             name is null
-                ? Result.Failure<PersonName>(RequiredMessage)
+                ? Result.Failure<PersonName>(NonEmptyString.RequiredMessage)
                 : Result.Success(name);
     }
 

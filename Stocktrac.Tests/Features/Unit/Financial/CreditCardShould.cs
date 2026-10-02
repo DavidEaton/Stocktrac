@@ -2,7 +2,6 @@ using Stocktrac.Domain.Features;
 using Shouldly;
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Financial;
-using static Stocktrac.Domain.Features.NonEmptyStringConstruction;
 
 namespace Stocktrac.Tests.Features.Unit.Financial;
 
@@ -62,7 +61,7 @@ public class CreditCardShould
         var result = card.ChangeName(name);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(RequiredMessage);
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
         card.Name.ShouldBe(CreateName("Visa"));
     }
 

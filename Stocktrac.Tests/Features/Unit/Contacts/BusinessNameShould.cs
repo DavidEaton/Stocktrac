@@ -1,7 +1,6 @@
 using Shouldly;
 using Stocktrac.Domain.Features;
 using Stocktrac.Domain.Features.Contacts;
-using static Stocktrac.Domain.Features.NonEmptyStringConstruction;
 
 namespace Stocktrac.Tests.Features.Unit.Contacts;
 
@@ -16,7 +15,7 @@ public class BusinessNameShould
         var result = NonEmptyString.Create(name!);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(RequiredMessage);
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
     }
 
     [Fact]

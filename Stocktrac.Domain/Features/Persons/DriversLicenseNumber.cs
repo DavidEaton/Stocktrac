@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Contacts
+namespace Stocktrac.Domain.Features.Persons
 {
     public sealed record DriversLicenseNumber
     {

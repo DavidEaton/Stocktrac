@@ -1,5 +1,3 @@
-using Stocktrac.Domain.Features.Contacts;
-
 namespace Stocktrac.Domain.Features;
 
 public static class DateExtensions
