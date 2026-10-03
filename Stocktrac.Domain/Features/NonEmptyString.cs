@@ -14,5 +14,7 @@ namespace Stocktrac.Domain.Features
             string.IsNullOrWhiteSpace(value)
                 ? Result.Failure<NonEmptyString>(RequiredMessage)
                 : Result.Success(new NonEmptyString(value.Trim()));
+
+        public override string ToString() => Value;
     }
 }
