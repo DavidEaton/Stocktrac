@@ -5,7 +5,7 @@ namespace Stocktrac.Domain.Features.Financial;
 /// <summary>
 /// An ISO 4217-style alphabetic currency code.
 /// </summary>
-public readonly record struct CurrencyCode
+public  record struct CurrencyCode
 {
     public const int CodeLength = 3;
     public const string DefaultCode = "USD";
@@ -15,11 +15,13 @@ public readonly record struct CurrencyCode
     // null internally means DefaultCode.
     private readonly string? _nonDefaultCode;
 
-    public static CurrencyCode Usd => new("USD");
+    public static  CurrencyCode Usd => new("USD");
+    public static readonly CurrencyCode EUR = new("EUR");
 
     public static CurrencyCode Default => new(DefaultCode);
+    internal static CurrencyCode Empty => new(string.Empty);
 
-    public string Value =>
+    public readonly string Value =>
         _nonDefaultCode ?? DefaultCode;
 
     private CurrencyCode(string code) =>
@@ -34,6 +36,6 @@ public readonly record struct CurrencyCode
 
     private static string NormalizeCode(string code) => code.ToUpperInvariant();
 
-    public override string ToString() =>
+    public override readonly string ToString() =>
         Value;
 }

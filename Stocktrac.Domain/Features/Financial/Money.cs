@@ -8,6 +8,7 @@ public readonly record struct Money
 
     public Amount Amount { get; }
     public CurrencyCode CurrencyCode { get; }
+    public static Money Zero { get; } = new(Amount.FromDecimal(0), CurrencyCode.Empty);
 
     private Money(Amount amount, CurrencyCode currencyCode) =>
         (Amount, CurrencyCode) = (amount, currencyCode);

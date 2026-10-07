@@ -10,7 +10,7 @@ namespace Stocktrac.Domain.Features
 
         public string Value { get; }
 
-        public static Result<NonEmptyString> Create(string? value) =>
+        public static Result<NonEmptyString> Create(string value) =>
             string.IsNullOrWhiteSpace(value)
                 ? Result.Failure<NonEmptyString>(RequiredMessage)
                 : Result.Success(new NonEmptyString(value.Trim()));

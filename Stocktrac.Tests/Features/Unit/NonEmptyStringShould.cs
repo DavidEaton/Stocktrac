@@ -11,7 +11,9 @@ public class NonEmptyStringShould
     [InlineData("   ")]
     public void ReturnFailure_On_Create_WhenValueIsMissing(string? value)
     {
+#pragma warning disable CS8604 // Possible null reference argument.
         var result = NonEmptyString.Create(value);
+#pragma warning restore CS8604 // Possible null reference argument.
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(NonEmptyString.RequiredMessage);
