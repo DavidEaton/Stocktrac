@@ -70,8 +70,8 @@ public sealed class Person : Contactable
 
     public void RemoveBirthday() => Birthday = Maybe<Birthday>.None;
 
-    public void RemoveDriversLicense() => DriversLicense = Maybe<DriversLicense>.None;
+    public void RemoveDriversLicense() =>
+        DriversLicense = Maybe<DriversLicense>.None;
 
-    public override string ToString() =>
-        Name.ToString();
+    public override string ToString() => Name.ToString();
 }
