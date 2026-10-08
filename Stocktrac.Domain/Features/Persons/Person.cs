@@ -1,16 +1,14 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
-using Stocktrac.Domain.Features.Customers;
 
 namespace Stocktrac.Domain.Features.Persons;
 
-public sealed class Person : Contactable, ICustomerEntity
+public sealed class Person : Contactable
 {
     public const string NameRequiredMessage = "Person name is required.";
     public PersonName Name { get; private set; }
     public Maybe<Birthday> Birthday { get; private set; }
     public Maybe<DriversLicense> DriversLicense { get; private set; }
-    public EntityType EntityType => EntityType.Person;
 
     private Person(
         PersonName name,

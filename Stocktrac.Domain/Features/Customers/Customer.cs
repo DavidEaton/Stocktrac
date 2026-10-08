@@ -1,6 +1,5 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
-using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Customers;
 
@@ -11,23 +10,21 @@ public sealed class Customer : Entity
     public const string DuplicateItemMessagePrefix = "Customer already has this ";
     public const string UnknownCustomerTypeMessage = "Unknown type.";
     public const string RequiredMessage = "Please include all required items.";
-    public const string UnsupportedEntityTypeMessage = "Unsupported customer entity type.";
 
     public CustomerType CustomerType { get; private set; }
     public Maybe<CustomerCode> Code { get; private set; }
     public ContactPreferences ContactPreferences { get; private set; }
-    public ICustomerEntity CustomerEntity { get; private set; }
-    public EntityType EntityType => CustomerEntity.EntityType;
-    public string Name => CustomerEntity.ToString() ?? string.Empty;
-    public Maybe<Note> Notes => CustomerEntity.Notes;
-    public Maybe<Address> Address => CustomerEntity.Address;
+    public CustomerEntity CustomerEntity { get; private set; }
+    public string Name => CustomerEntity.Name;
+    public Note Notes => CustomerEntity.Contactable.Notes;
+    public Maybe<Address> Address => CustomerEntity.Contactable.Address;
     private readonly List<Vehicle> vehicles = [];
     public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
-    public IReadOnlyList<ContactPhone> Phones => CustomerEntity.Phones;
-    public IReadOnlyList<ContactEmail> Emails => CustomerEntity.Emails;
+    public IReadOnlyList<ContactPhone> Phones => CustomerEntity.Contactable.Phones;
+    public IReadOnlyList<ContactEmail> Emails => CustomerEntity.Contactable.Emails;
 
     private Customer(
-        ICustomerEntity entity,
+        CustomerEntity entity,
         CustomerType customerType,
         Maybe<CustomerCode> code,
         ContactPreferences contactPreferences)
@@ -38,53 +35,21 @@ public sealed class Customer : Entity
         ContactPreferences = contactPreferences;
     }
 
-    public static Result<Customer> Create(ICustomerEntity entity, CustomerType customerType, Maybe<CustomerCode> code) =>
+    public static Result<Customer> Create(CustomerEntity entity, CustomerType customerType, Maybe<CustomerCode> code) =>
         Result.Combine(
                 Environment.NewLine,
-                Result.FailureIf(entity is null, RequiredMessage),
+                Result.FailureIf(entity.Value is null, RequiredMessage),
                 Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
             .Map(() => new Customer(
-                entity!,
+                entity,
                 customerType,
                 code,
                 ContactPreferences.Create(true, true, true)));
 
-    public Result UpdateAddress(Address address)
-    {
-        if (address is null)
-            return Result.Failure(RequiredMessage);
+    public Result UpdateAddress(Address address) =>
+        CustomerEntity.Contactable.ReplaceAddress(address);
 
-        switch (CustomerEntity)
-        {
-            case Person person:
-                person.UpdateAddress(address);
-                return Result.Success();
-
-            case Business business:
-                business.UpdateAddress(address);
-                return Result.Success();
-
-            default:
-                 return Result.Failure(UnsupportedEntityTypeMessage);
-        }
-    }
-
-    public void RemoveAddress()
-    {
-        switch (CustomerEntity)
-        {
-            case Person person:
-                person.RemoveAddress();
-                break;
-
-            case Business business:
-                business.RemoveAddress();
-                break;
-
-            default:
-                throw new InvalidOperationException(UnsupportedEntityTypeMessage);
-        }
-    }
+    public void RemoveAddress() => CustomerEntity.Contactable.RemoveAddress();
 
     public Result UpdateCustomerType(CustomerType customerType)
     {
@@ -98,36 +63,16 @@ public sealed class Customer : Entity
     }
 
     public Result<ContactPhone> AddPhone(ContactPhone phone) =>
-        CustomerEntity switch
-        {
-            Person person => person.AddPhone(phone),
-            Business business => business.AddPhone(phone),
-            _ => Result.Failure<ContactPhone>(UnsupportedEntityTypeMessage),
-        };
+        CustomerEntity.Contactable.AddPhone(phone);
 
     public Result<ContactPhone> RemovePhone(ContactPhone phone) =>
-        CustomerEntity switch
-        {
-            Person person => person.RemovePhone(phone),
-            Business business => business.RemovePhone(phone),
-            _ => Result.Failure<ContactPhone>(UnsupportedEntityTypeMessage),
-        };
+        CustomerEntity.Contactable.RemovePhone(phone);
 
     public Result<ContactEmail> AddEmail(ContactEmail email) =>
-        CustomerEntity switch
-        {
-            Person person => person.AddEmail(email),
-            Business business => business.AddEmail(email),
-            _ => Result.Failure<ContactEmail>(UnsupportedEntityTypeMessage),
-        };
+        CustomerEntity.Contactable.AddEmail(email);
 
     public Result<ContactEmail> RemoveEmail(ContactEmail email) =>
-        CustomerEntity switch
-        {
-            Person person => person.RemoveEmail(email),
-            Business business => business.RemoveEmail(email),
-            _ => Result.Failure<ContactEmail>(UnsupportedEntityTypeMessage),
-        };
+        CustomerEntity.Contactable.RemoveEmail(email);
 
     public Result<Vehicle> AddVehicle(Vehicle vehicle)
     {
@@ -159,43 +104,8 @@ public sealed class Customer : Entity
 
     public void RemoveCode() => Code = Maybe<CustomerCode>.None;
 
-    public Result UpdateCustomerEntity(ICustomerEntity entity)
-    {
-        if (entity is null)
-            return Result.Failure(RequiredMessage);
-
-        switch (entity.EntityType)
-        {
-            case EntityType.Person or EntityType.Business:
-                CustomerEntity = entity;
-                break;
-
-            default:
-                return Result.Failure(UnsupportedEntityTypeMessage);
-        }
-
-        return Result.Success();
-    }
-
-    // Confirm that EF is okay with modelBuilder.ApplyConfiguration(new CustomerConfiguration()); ...and can create a Customer instance WITHOUT a parameterless constructor (namespace Menominee.Api.Features.Customers)
-    // EF requires a parameterless constructor??????????
-    // 
-    // private Customer()
-    // {
-    //     vehicles = [];
-    //     CustomerEntity = Person.Create(
-    //         PersonName.Create(
-    //             lastName: "First",
-    //             firstName: "Last").Value,
-    //         notes: null,
-    //         birthday: Birthday.Create(DateOnly.FromDateTime(DateTime.Today)).Value,
-    //         emails: null,
-    //         phones: null,
-    //         address: Maybe<Address>.None).Value;
-    //     ContactPreferences = ContactPreferences.Create(
-    //         allowMail: true,
-    //         allowEmail: true,
-    //         allowSms: true).Value;
-    //     CustomerType = CustomerType.Retail;
-    // }
+    public Result UpdateCustomerEntity(CustomerEntity entity) =>
+        entity.Value is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success().Tap(() => CustomerEntity = entity);
 }

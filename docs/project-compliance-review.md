@@ -18,6 +18,13 @@ the contact-collection design, and the test-naming guidance.
   present values fail without mutation rather than becoming hidden absence.
 - Contact collection replacement continues to validate complete input before
   mutation, as described in the collection design.
+- Customer entity alternatives and Vehicle kinds now use verified native C#
+  unions. Aggregate boundaries reject default/null-case unions; Vehicle case
+  properties are immutable and validated before aggregate assignment. Optional
+  non-traditional descriptions use `Maybe<string>` with explicit removal.
+  Shared Vehicle identity, lifecycle, and registration state remain on the
+  aggregate. See [the scoped migration report](customer-vehicle-union-migration.md)
+  for API changes and the persistence plan.
 
 ## Stocktrac.Api
 

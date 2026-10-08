@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
 
 namespace Stocktrac.Domain.Features;
@@ -23,36 +23,35 @@ public sealed class Vehicle : Entity
     public const string InvalidPlateStateProvinceMessage = "Plate State/Province is invalid.";
     public const string OptionalTextRequiredMessage = "Use the remove operation to clear an optional value.";
 
-    public Maybe<string> VIN { get; private set; } // Refactor to ValueObject
+    public const string KindRequiredMessage = "Vehicle kind is required.";
+
+    public VehicleKind Kind { get; private set; }
+    public Maybe<string> VIN => Kind.VIN;
     public Maybe<int> Year { get; private set; }
-    public string Make { get; private set; }
-    public string Model { get; private set; }
-    public bool NonTraditionalVehicle { get; private set; } = false; // We need to allow for non-traditional vehicles. For example, they may be servicing a trailer and just type in TRAILER for the Make and nothing else.
+    public Maybe<string> Make => Kind.Make;
+    public Maybe<string> Model => Kind.Model;
     public Maybe<string> Plate { get; private set; }
     public Maybe<State> PlateStateProvince { get; private set; }
     public Maybe<string> UnitNumber { get; private set; }
     public Maybe<string> Color { get; private set; }
     public bool Active { get; private set; } = true;
 
-    public override string ToString() => $"{Year.GetValueOrDefault()} {Make} {Model}";
+    public override string ToString() => string.Join(" ",
+        new[] { Year.Map(value => value.ToString()), Make, Model }
+            .Where(value => value.HasValue)
+            .Select(value => value.Value));
 
     private Vehicle(
-        Maybe<string> vin,
+        VehicleKind kind,
         Maybe<int> year,
-        string make,
-        string model,
-        bool nonTraditionalVehicle,
         Maybe<string> plate,
         Maybe<State> plateStateProvince,
         Maybe<string> unitNumber,
         Maybe<string> color,
         bool active)
     {
-        VIN = vin;
+        Kind = kind;
         Year = year;
-        Make = make;
-        Model = model;
-        NonTraditionalVehicle = nonTraditionalVehicle;
         Plate = plate;
         PlateStateProvince = plateStateProvince;
         UnitNumber = unitNumber;
@@ -61,79 +60,33 @@ public sealed class Vehicle : Entity
     }
 
     public static Result<Vehicle> Create(
-        Maybe<string> vin,
+        VehicleKind kind,
         Maybe<int> year,
-        string make,
-        string model,
         Maybe<string> plate,
         Maybe<State> plateStateProvince,
         Maybe<string> unitNumber,
         Maybe<string> color,
-        bool active = true,
-        bool nonTraditionalVehicle = false)
+        bool active = true)
     {
-        var normalizedMake = make?.Trim() ?? string.Empty;
-        var normalizedModel = model?.Trim() ?? string.Empty;
-        var normalizedVin = vin.Map(value => value.Trim());
         var normalizedPlate = plate.Map(value => value.Trim());
         var normalizedUnitNumber = unitNumber.Map(value => value.Trim());
         var normalizedColor = color.Map(value => value.Trim());
         return Result.Combine(
                 Environment.NewLine,
-                ValidateVin(normalizedVin, nonTraditionalVehicle),
-                ValidateMakeModel(normalizedMake, normalizedModel, nonTraditionalVehicle),
+                Result.FailureIf(kind.Value is null, KindRequiredMessage),
                 ValidateYear(year),
                 ValidatePlate(normalizedPlate),
                 ValidatePlateStateProvince(plateStateProvince),
                 ValidateUnitNumber(normalizedUnitNumber),
                 ValidateColor(normalizedColor))
             .Map(() => new Vehicle(
-                normalizedVin,
+                kind,
                 year,
-                normalizedMake,
-                normalizedModel,
-                nonTraditionalVehicle,
                 normalizedPlate,
                 plateStateProvince,
                 normalizedUnitNumber,
                 normalizedColor,
                 active));
-    }
-
-    private static Result ValidateMakeModel(string make, string model, bool nonTraditionalVehicle)
-    {
-        if (!nonTraditionalVehicle)
-        {
-            if (string.IsNullOrWhiteSpace(make) || string.IsNullOrWhiteSpace(model))
-                return Result.Failure(InvalidLengthMessage);
-
-            if (make.Length < MinimumMakeModelLength || make.Length > MaximumMakeModelLength ||
-                model.Length < MinimumMakeModelLength || model.Length > MaximumMakeModelLength)
-                return Result.Failure(InvalidLengthMessage);
-        }
-
-        if (nonTraditionalVehicle)
-            if (string.IsNullOrWhiteSpace(make) && string.IsNullOrWhiteSpace(model))
-                return Result.Failure(NonTraditionalVehicleInvalidMakeModelMessage);
-
-        return Result.Success();
-    }
-
-    private static Result ValidateVin(
-        Maybe<string> vin,
-        bool nonTraditionalVehicle)
-    {
-        if (vin.HasNoValue)
-        {
-            return nonTraditionalVehicle
-                ? Result.Success()
-                : Result.Failure(InvalidVinMessage);
-        }
-
-        if (vin.Value.Length != VinRequiredLength)
-            return Result.Failure(InvalidVinMessage);
-
-        return Result.Success();
     }
 
     private static Result ValidateYear(Maybe<int> year) =>
@@ -174,17 +127,33 @@ public sealed class Vehicle : Entity
             : Result.Failure(InvalidMaximumLengthMessage(maximumLength));
     }
 
+    public Result ReplaceKind(VehicleKind kind) =>
+        kind.Value is null
+            ? Result.Failure(KindRequiredMessage)
+            : Result.Success().Tap(() => Kind = kind);
+
     public Result<Maybe<string>> UpdateVin(string vin)
     {
-        vin = vin?.Trim() ?? string.Empty;
-        return vin.Length.Equals(VinRequiredLength)
-            ? Result.Success(VIN = vin)
-            : Result.Failure<Maybe<string>>(InvalidVinMessage);
+        if (string.IsNullOrWhiteSpace(vin))
+            return Result.Failure<Maybe<string>>(InvalidVinMessage);
+
+        var updatedKind = Kind switch
+        {
+            TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(vin, traditional.Make, traditional.Model)
+                .Map(value => (VehicleKind)value),
+            NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(vin, nonTraditional.Make, nonTraditional.Model)
+                .Map(value => (VehicleKind)value)
+        };
+        return updatedKind.Tap(value => Kind = value).Map(value => value.VIN);
     }
 
-    public Result RemoveVin() => NonTraditionalVehicle
-        ? Result.Success().Tap(() => VIN = Maybe<string>.None)
-        : Result.Failure(InvalidVinMessage);
+    public Result RemoveVin() => Kind switch
+    {
+        TraditionalVehicleKind => Result.Failure(InvalidVinMessage),
+        NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
+                Maybe<string>.None, nonTraditional.Make, nonTraditional.Model)
+            .Tap(value => Kind = value)
+    };
 
     public Result<Maybe<int>> UpdateYear(int year) =>
         year > DateTime.Today.Year + 1 || year < YearMinimum
@@ -195,19 +164,51 @@ public sealed class Vehicle : Entity
 
     public Result<string> UpdateMake(string make)
     {
-        make = (make ?? string.Empty).Trim();
-        return make.Length < MinimumMakeModelLength || make.Length > MaximumMakeModelLength
-            ? Result.Failure<string>(InvalidLengthMessage)
-            : Result.Success(Make = make);
+        make = make?.Trim() ?? string.Empty;
+        if (make.Length < MinimumMakeModelLength || make.Length > MaximumMakeModelLength)
+            return Result.Failure<string>(InvalidLengthMessage);
+
+        var updatedKind = Kind switch
+        {
+            TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(traditional.VIN, make, traditional.Model)
+                .Map(value => (VehicleKind)value),
+            NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(nonTraditional.VIN, make, nonTraditional.Model)
+                .Map(value => (VehicleKind)value)
+        };
+        return updatedKind.Tap(value => Kind = value).Map(value => value.Make.Value);
     }
 
     public Result<string> UpdateModel(string model)
     {
-        model = (model ?? string.Empty).Trim();
-        return model.Length < MinimumMakeModelLength || model.Length > MaximumMakeModelLength
-            ? Result.Failure<string>(InvalidLengthMessage)
-            : Result.Success(Model = model);
+        model = model?.Trim() ?? string.Empty;
+        if (model.Length < MinimumMakeModelLength || model.Length > MaximumMakeModelLength)
+            return Result.Failure<string>(InvalidLengthMessage);
+
+        var updatedKind = Kind switch
+        {
+            TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(traditional.VIN, traditional.Make, model)
+                .Map(value => (VehicleKind)value),
+            NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(nonTraditional.VIN, nonTraditional.Make, model)
+                .Map(value => (VehicleKind)value)
+        };
+        return updatedKind.Tap(value => Kind = value).Map(value => value.Model.Value);
     }
+
+    public Result RemoveMake() => Kind switch
+    {
+        TraditionalVehicleKind => Result.Failure(InvalidLengthMessage),
+        NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
+                nonTraditional.VIN, Maybe<string>.None, nonTraditional.Model)
+            .Tap(value => Kind = value)
+    };
+
+    public Result RemoveModel() => Kind switch
+    {
+        TraditionalVehicleKind => Result.Failure(InvalidLengthMessage),
+        NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
+                nonTraditional.VIN, nonTraditional.Make, Maybe<string>.None)
+            .Tap(value => Kind = value)
+    };
 
     public Result<Maybe<string>> UpdatePlate(string plate)
     {
@@ -244,21 +245,4 @@ public sealed class Vehicle : Entity
     public void RemoveColor() => Color = Maybe<string>.None;
 
     public void UpdateActive(bool active = true) => Active = active;
-
-    public Result UpdateNonTraditionalVehicle(bool nonTraditionalVehicle) =>
-        Result.Combine(
-                ValidateVin(VIN, nonTraditionalVehicle),
-                ValidateMakeModel(Make, Model, nonTraditionalVehicle))
-            .Tap(() => NonTraditionalVehicle = nonTraditionalVehicle);
-
-    // EF requires a parameterless constructor
-    private Vehicle()
-    {
-        Make = string.Empty;
-        Model = string.Empty;
-        Plate = Maybe<string>.None;
-        UnitNumber = Maybe<string>.None;
-        Color = Maybe<string>.None;
-        VIN = Maybe<string>.None;
-    }
 }
