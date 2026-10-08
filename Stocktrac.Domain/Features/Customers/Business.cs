@@ -4,7 +4,7 @@ using Stocktrac.Domain.Features.Persons;
 
 namespace Stocktrac.Domain.Features.Customers;
 
-public sealed class Business : Contactable, ICustomerEntity
+public sealed class Business : Contactable
 {
     // TODO: Move these constants to user-configurable settings in the future.
     // For now, they are hard-coded to match the current validation rules in StockTrac.
@@ -13,7 +13,6 @@ public sealed class Business : Contactable, ICustomerEntity
     public BusinessName Name { get; private set; }
     public Maybe<Person> Contact { get; private set; }
     public override string ToString() => Name.ToString();
-    public EntityType EntityType => EntityType.Business;
 
     private Business(
         BusinessName name,

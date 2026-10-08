@@ -50,14 +50,6 @@ public class PersonShould
     }
 
     [Fact]
-    public void ReturnPersonEntityType_On_EntityType()
-    {
-        var person = CreatePerson(Maybe<Birthday>.None);
-
-        person.EntityType.ShouldBe(EntityType.Person);
-    }
-
-    [Fact]
     public void ReturnName_On_ToString()
     {
         var person = CreatePerson(Maybe<Birthday>.None);
