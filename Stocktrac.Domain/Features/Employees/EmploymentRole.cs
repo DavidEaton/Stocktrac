@@ -1,31 +1,28 @@
-﻿using System.ComponentModel.DataAnnotations;
+using CSharpFunctionalExtensions;
 
-namespace Stocktrac.Domain.Features.Employees;
-
-public enum EmploymentRole
+namespace Stocktrac.Domain.Features.Employees
 {
-    [Display(Name = "Service Advisor")]
-    ServiceAdvisor,
+    public record EmploymentRole
+    {
+        public NonEmptyString Name { get; }
+        public NonEmptyString Description { get; }
+        public DateRange ValidDateRange { get; }
+        public List<EmploymentRole> SubordinateRoles { get; } = [];
+        private readonly List<EmploymentRole> subordinateRoles = [];
+        public EmploymentRole SuperiorRole { get; }
 
-    [Display(Name = "Technician")]
-    Technician,
+        private EmploymentRole(
+            NonEmptyString name,
+            NonEmptyString description,
+            DateRange dateRange,
+            EmploymentRole superiorRole) =>
+                (Name, Description, ValidDateRange, SuperiorRole) = (name, description, dateRange, superiorRole);
 
-    [Display(Name = "Inspector")]
-    Inspector,
-
-    [Display(Name = "Parts Specialist")]
-    PartsSpecialist,
-
-    [Display(Name = "Service Manager")]
-    ServiceManager,
-
-    [Display(Name = "Service Director")]
-    ServiceDirector,
-
-    [Display(Name = "General Manager")]
-    GeneralManager,
-    
-    [Display(Name = "Other")]
-    Other
-
+        public static Result<EmploymentRole> Create(
+            NonEmptyString name,
+            NonEmptyString description,
+            DateRange dateRange,
+            EmploymentRole superiorRole) =>
+                Result.Success(new EmploymentRole(name, description, dateRange, superiorRole));
+    }
 }

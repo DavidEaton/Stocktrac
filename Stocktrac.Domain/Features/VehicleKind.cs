@@ -8,19 +8,22 @@ public union VehicleKind(TraditionalVehicleKind, NonTraditionalVehicleKind)
     public Maybe<string> VIN => this switch
     {
         TraditionalVehicleKind traditional => traditional.VIN,
-        NonTraditionalVehicleKind nonTraditional => nonTraditional.VIN
+        NonTraditionalVehicleKind nonTraditional => nonTraditional.VIN,
+        null => Maybe<string>.None
     };
 
     public Maybe<string> Make => this switch
     {
         TraditionalVehicleKind traditional => traditional.Make,
-        NonTraditionalVehicleKind nonTraditional => nonTraditional.Make
+        NonTraditionalVehicleKind nonTraditional => nonTraditional.Make,
+        null => Maybe<string>.None
     };
 
     public Maybe<string> Model => this switch
     {
         TraditionalVehicleKind traditional => traditional.Model,
-        NonTraditionalVehicleKind nonTraditional => nonTraditional.Model
+        NonTraditionalVehicleKind nonTraditional => nonTraditional.Model,
+        null => Maybe<string>.None
     };
 }
 

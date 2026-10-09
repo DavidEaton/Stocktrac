@@ -29,9 +29,7 @@ public sealed record DriversLicense
         $"The driver's license validity period cannot exceed {MaximumValidityYears} years.";
 
     public DriversLicenseNumber Number { get; }
-
     public DateRange ValidDateRange { get; }
-
     public State State { get; }
 
     private DriversLicense(
@@ -78,5 +76,12 @@ public sealed record DriversLicense
             .Map(validDateRange =>
                 new DriversLicense(Number, State, validDateRange));
 
-    public bool IsExpired(DateOnly today) => ValidDateRange.End < today;
+    public bool IsActive(DateOnly today) =>
+        ValidDateRange.Start <= today && today <= ValidDateRange.End;
+
+    public bool IsExpired(DateOnly today) =>
+        ValidDateRange.End < today;
+
+    public bool IsNotYetValid(DateOnly today) =>
+        today < ValidDateRange.Start;
 }

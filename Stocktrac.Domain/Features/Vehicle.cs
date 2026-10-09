@@ -142,7 +142,8 @@ public sealed class Vehicle : Entity
             TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(vin, traditional.Make, traditional.Model)
                 .Map(value => (VehicleKind)value),
             NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(vin, nonTraditional.Make, nonTraditional.Model)
-                .Map(value => (VehicleKind)value)
+                .Map(value => (VehicleKind)value),
+            null => Result.Failure<VehicleKind>(KindRequiredMessage)
         };
         return updatedKind.Tap(value => Kind = value).Map(value => value.VIN);
     }
@@ -152,7 +153,8 @@ public sealed class Vehicle : Entity
         TraditionalVehicleKind => Result.Failure(InvalidVinMessage),
         NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
                 Maybe<string>.None, nonTraditional.Make, nonTraditional.Model)
-            .Tap(value => Kind = value)
+            .Tap(value => Kind = value),
+        null => Result.Failure(KindRequiredMessage)
     };
 
     public Result<Maybe<int>> UpdateYear(int year) =>
@@ -173,7 +175,8 @@ public sealed class Vehicle : Entity
             TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(traditional.VIN, make, traditional.Model)
                 .Map(value => (VehicleKind)value),
             NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(nonTraditional.VIN, make, nonTraditional.Model)
-                .Map(value => (VehicleKind)value)
+                .Map(value => (VehicleKind)value),
+            null => Result.Failure<VehicleKind>(KindRequiredMessage)
         };
         return updatedKind.Tap(value => Kind = value).Map(value => value.Make.Value);
     }
@@ -189,7 +192,8 @@ public sealed class Vehicle : Entity
             TraditionalVehicleKind traditional => TraditionalVehicleKind.Create(traditional.VIN, traditional.Make, model)
                 .Map(value => (VehicleKind)value),
             NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(nonTraditional.VIN, nonTraditional.Make, model)
-                .Map(value => (VehicleKind)value)
+                .Map(value => (VehicleKind)value),
+            null => Result.Failure<VehicleKind>(KindRequiredMessage)
         };
         return updatedKind.Tap(value => Kind = value).Map(value => value.Model.Value);
     }
@@ -199,7 +203,8 @@ public sealed class Vehicle : Entity
         TraditionalVehicleKind => Result.Failure(InvalidLengthMessage),
         NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
                 nonTraditional.VIN, Maybe<string>.None, nonTraditional.Model)
-            .Tap(value => Kind = value)
+            .Tap(value => Kind = value),
+        null => Result.Failure(KindRequiredMessage)
     };
 
     public Result RemoveModel() => Kind switch
@@ -207,7 +212,8 @@ public sealed class Vehicle : Entity
         TraditionalVehicleKind => Result.Failure(InvalidLengthMessage),
         NonTraditionalVehicleKind nonTraditional => NonTraditionalVehicleKind.Create(
                 nonTraditional.VIN, nonTraditional.Make, Maybe<string>.None)
-            .Tap(value => Kind = value)
+            .Tap(value => Kind = value),
+        null => Result.Failure(KindRequiredMessage)
     };
 
     public Result<Maybe<string>> UpdatePlate(string plate)

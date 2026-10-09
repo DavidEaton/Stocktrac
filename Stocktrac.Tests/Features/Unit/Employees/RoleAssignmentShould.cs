@@ -12,11 +12,16 @@ public class RoleAssignmentShould
     public void PreserveComponents_On_Create_WhenInputsAreValid()
     {
         var range = CreateRange(Start, Start.AddDays(5));
+        var role = EmploymentRole.Create(
+            NonEmptyString.Create("Role").Value,
+            NonEmptyString.Create("Description").Value,
+            range,
+            null).Value;
 
-        var result = RoleAssignment.Create(EmploymentRole.Inspector, range);
+        var result = RoleAssignment.Create(role, range);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Role.ShouldBe(EmploymentRole.Inspector);
+        result.Value.Role.ShouldBe(role);
         result.Value.PeriodAssigned.ShouldBe(range);
     }
 
