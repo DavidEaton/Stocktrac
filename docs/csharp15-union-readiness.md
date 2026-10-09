@@ -43,7 +43,10 @@ transport seams, and all tracked project documentation, including
    mode setter. Persistence and API migration are designed explicitly in the
    migration report; this repository has no active aggregate mappings or DTOs.
 3. **Employment lifecycle — possible value; deferred.** Employee remains outside
-   the requested scope. Hired/exited ordering still depends on validation; a
+   the original union-refactoring scope. The subsequent
+   [employee-role migration](employee-role-migration.md) adds explicit dates,
+   immutable assignment values, and role hierarchy invariants without a new
+   lifecycle union. Hired/exited ordering still depends on validation; a
    separate lifecycle design would be needed to justify a union.
 
 The following remain deliberately rejected:
@@ -51,8 +54,10 @@ The following remain deliberately rejected:
 - `Maybe<T>` and `Result<T>` model optionality and outcomes appropriately.
 - Contact permissions are independent flags, not alternative forms.
 - Primary-contact flags do not themselves express collection cardinality.
-- `PhoneType`, `EmploymentRole`, `EmployeeExpenseCategory`, `CreditCardFeeType`,
+- `PhoneType`, `EmployeeExpenseCategory`, `CreditCardFeeType`,
   and `CustomerType` are labels without distinct case payloads.
+- `EmploymentRole` is an entity with identity and hierarchical relationships,
+  not a closed set of alternatives.
 - Dates, addresses, names, money, and other value objects are products, not sums.
 
 ## Compiler limitations

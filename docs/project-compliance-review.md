@@ -5,13 +5,17 @@ the contact-collection design, and the test-naming guidance.
 
 ## Stocktrac.Domain
 
-- Required values remain non-nullable and optional state uses `Maybe<T>`.
+- Required values remain non-nullable and optional state uses `Maybe<T>`, with
+  the explicitly required `EmploymentRole.Empty` superior sentinel documented
+  as a specific exception.
 - Employee optional text is trimmed and validated before construction or
   mutation. A present blank value is rejected; callers must use the matching
   remove operation to represent absence.
 - Employee mutations validate before assignment, preserving prior state after
-  failure. The Entity Framework constructor now creates its placeholder person
-  with an absent note instead of reading `Maybe.None.Value`.
+  failure. The invalid Entity Framework placeholder constructor is removed.
+  The [employee-role migration](employee-role-migration.md) introduces entity
+  identity for EmploymentRole, immutable RoleAssignment values, validated
+  subordinate relationships, and caller-supplied dates for employee validation.
 - Tenant logo URLs follow the same explicit update/remove contract and cannot
   store a blank string as a present optional value.
 - Vehicle plates, unit numbers, and colors use that contract as well; blank
@@ -48,6 +52,8 @@ placed there because contracts may use nullable transport values.
 - Employee and tenant tests assert both the failure result and unchanged state
   for invalid mutations.
 - New and touched test names use the documented outcome-first naming pattern.
+- Employee-role tests cover activity at fixed dates, value and entity equality,
+  hierarchy consistency, cycles, collection validation, and failed reactivation.
 
 Database-backed aggregate round trips remain deferred until aggregate mappings
 and an integration-test provider exist, as recorded in the optionality audit.
