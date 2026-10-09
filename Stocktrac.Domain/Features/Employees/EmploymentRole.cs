@@ -7,7 +7,7 @@ namespace Stocktrac.Domain.Features.Employees
         public NonEmptyString Name { get; }
         public NonEmptyString Description { get; }
         public DateRange ValidDateRange { get; }
-        public List<EmploymentRole> SubordinateRoles { get; } = [];
+        public IReadOnlyList<EmploymentRole> SubordinateRoles => [.. subordinateRoles];
         private readonly List<EmploymentRole> subordinateRoles = [];
         public EmploymentRole SuperiorRole { get; }
 
