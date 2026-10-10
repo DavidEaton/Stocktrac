@@ -37,8 +37,8 @@ public sealed class EmploymentRole : Entity
         SuperiorRole = this;
     }
 
-    public bool IsActive(DateTime date) =>
-        !ReferenceEquals(this, Empty) && DateOnly.FromDateTime(date).InRange(ValidDateRange);
+    public bool IsActive(DateOnly date) =>
+        !ReferenceEquals(this, Empty) && date.InRange(ValidDateRange);
 
     public static Result<EmploymentRole> Create(
         NonEmptyString name,

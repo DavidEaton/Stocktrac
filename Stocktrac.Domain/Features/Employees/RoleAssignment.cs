@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 
 namespace Stocktrac.Domain.Features.Employees;
 
@@ -14,24 +14,14 @@ public sealed record RoleAssignment
     private RoleAssignment(EmploymentRole role, DateRange periodAssigned) =>
         (Role, PeriodAssigned) = (role, periodAssigned);
 
-    public bool IsActive(DateTime date) =>
-        DateOnly.FromDateTime(date).InRange(PeriodAssigned) && Role.IsActive(date);
+    public bool IsActive(DateOnly date) =>
+        date.InRange(PeriodAssigned) && Role.IsActive(date);
 
-    public static Result<RoleAssignment> Create(EmploymentRole role, DateRange periodAssigned)
-    {
-        if (role is null || periodAssigned is null)
-            return Result.Failure<RoleAssignment>(RequiredMessage);
-
-        if (ReferenceEquals(role, EmploymentRole.Empty))
-            return Result.Failure<RoleAssignment>(InvalidRoleMessage);
-
-        return Result.Success(role)
-            .Ensure(
-                value => periodAssigned.Start >= value.ValidDateRange.Start &&
-                         periodAssigned.End <= value.ValidDateRange.End,
-                InvalidPeriodMessage)
+    public static Result<RoleAssignment> Create(EmploymentRole role, DateRange periodAssigned) =>
+        Result.Success(role)
+            .Ensure(value =>
+                periodAssigned.IsWithin(value.ValidDateRange), InvalidPeriodMessage)
             .Map(value => new RoleAssignment(value, periodAssigned));
-    }
 
     public Result<RoleAssignment> ReplaceRole(EmploymentRole role) => Create(role, PeriodAssigned);
 

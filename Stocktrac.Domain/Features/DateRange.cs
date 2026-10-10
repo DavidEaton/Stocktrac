@@ -35,4 +35,7 @@ public sealed record DateRange
                 calculation,
                 _ => DateCalculationMessage)
             .Bind(end => Create(start, end));
+
+    public bool IsWithin(DateRange other) =>
+        Start >= other.Start && End <= other.End;
 }

@@ -6,12 +6,16 @@ namespace Stocktrac.Domain.Features.Employees;
 
 public sealed class Employee : Entity
 {
-    // TODO: Move these constants to user-configurable settings in the future.
-    // For now, they are hard-coded to match the current validation rules in StockTrac.
-    public static DateTime StartDateMinimum(DateTime date) =>
-        date.Year > 50 ? date.Date.AddYears(-50) : DateTime.MinValue;
-    public static DateTime EndDateMaximum(DateTime date) =>
-        date.Year < 9999 ? date.Date.AddYears(1) : DateTime.MaxValue.Date;
+    public static DateOnly StartDateMinimum(DateOnly date) =>
+        date.Year > 50
+            ? date.AddYears(-50)
+            : DateOnly.MinValue;
+
+    public static DateOnly EndDateMaximum(DateOnly date) =>
+        date.Year < 9999
+            ? date.AddYears(1)
+            : DateOnly.MaxValue;
+
     public const int MaximumNoteLength = 10000;
     public const int MaximumSSNLength = 12;
     public const int MaximumCertificationNumberLength = 20;
@@ -27,14 +31,14 @@ public sealed class Employee : Entity
     public const string InvalidExpenseCategoryMessage = "Expense category is invalid.";
     public static readonly string BenefitLoadMessage = $"Benefit load must be between {MinimumBenefitLoad} and {MaximumBenefitLoad}.";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
-    public Person PersonEmployed { get; private set; }
+    public Person EmployedPerson { get; private set; }
     public IReadOnlyList<RoleAssignment> RoleAssignments => [.. roleAssignments];
     private readonly List<RoleAssignment> roleAssignments = [];
     public Maybe<Note> Notes { get; private set; }
     public SSN SSN { get; private set; }
     public Maybe<string> CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object
-    public DateTime Hired { get; private set; }
-    public Maybe<DateTime> Exited { get; private set; }
+    public DateOnly Hired { get; private set; }
+    public Maybe<DateOnly> Exited { get; private set; }
     public bool Active => !Exited.HasValue;
     public Maybe<string> PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
@@ -43,14 +47,14 @@ public sealed class Employee : Entity
     private Employee(Person personEmployed,
         IReadOnlyList<RoleAssignment> roleAssignments,
         SSN ssn,
-        DateTime hired,
+        DateOnly hired,
         Note notes,
         Maybe<string> certificationNumber,
         Maybe<string> printedName,
         EmployeeExpenseCategory expenseCategory,
         double benefitLoad)
     {
-        PersonEmployed = personEmployed;
+        EmployedPerson = personEmployed;
         SSN = ssn;
         Hired = hired;
         Notes = notes;
@@ -62,7 +66,7 @@ public sealed class Employee : Entity
         this.roleAssignments.AddRange(roleAssignments);
     }
 
-    public Result<RoleAssignment> AddRoleAssignment(RoleAssignment assignment, DateTime date)
+    public Result<RoleAssignment> AddRoleAssignment(RoleAssignment assignment, DateOnly date)
     {
         if (assignment is null)
             return Result.Failure<RoleAssignment>(RequiredMessage);
@@ -71,7 +75,7 @@ public sealed class Employee : Entity
             .Map(() => assignment);
     }
 
-    public Result ReplaceRoleAssignments(IReadOnlyList<RoleAssignment> assignments, DateTime date) =>
+    public Result ReplaceRoleAssignments(IReadOnlyList<RoleAssignment> assignments, DateOnly date) =>
         ValidateRoleAssignments(assignments, Active, date)
             .Tap(() =>
             {
@@ -80,7 +84,7 @@ public sealed class Employee : Entity
                 roleAssignments.AddRange(replacement);
             });
 
-    public Result<RoleAssignment> RemoveRoleAssignment(RoleAssignment assignment, DateTime date)
+    public Result<RoleAssignment> RemoveRoleAssignment(RoleAssignment assignment, DateOnly date)
     {
         if (assignment is null)
             return Result.Failure<RoleAssignment>(RequiredMessage);
@@ -92,11 +96,11 @@ public sealed class Employee : Entity
             .Map(() => assignment);
     }
 
-    public Result ValidateRoleAssignments(DateTime date) =>
+    public Result ValidateRoleAssignments(DateOnly date) =>
         ValidateRoleAssignments(roleAssignments, Active, date);
 
     private static Result ValidateRoleAssignments(
-        IReadOnlyList<RoleAssignment> assignments, bool active, DateTime date)
+        IReadOnlyList<RoleAssignment> assignments, bool active, DateOnly date)
     {
         if (assignments is null || assignments.Any(assignment => assignment is null))
             return Result.Failure(RequiredMessage);
@@ -113,9 +117,9 @@ public sealed class Employee : Entity
         Person hiredPerson,
         IReadOnlyList<RoleAssignment> roleAssignments,
         SSN ssn,
-        DateTime hired,
+        DateOnly hired,
         Note notes,
-        DateTime date,
+        DateOnly date,
         Maybe<string> certificationNumber = default,
         Maybe<string> printedName = default,
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
@@ -174,33 +178,33 @@ public sealed class Employee : Entity
             : Result.Failure<double>(BenefitLoadMessage);
     }
 
-    public Result<DateTime> UpdateHired(DateTime hired, DateTime date)
+    public Result<DateOnly> UpdateHired(DateOnly hired, DateOnly date)
     {
         if (!IsEmploymentDateWithinAllowedRange(hired, date))
         {
-            return Result.Failure<DateTime>(DateRangeMessage);
+            return Result.Failure<DateOnly>(DateRangeMessage);
         }
 
         if (Exited.HasValue && hired > Exited.Value)
         {
-            return Result.Failure<DateTime>(DateRangeMessage);
+            return Result.Failure<DateOnly>(DateRangeMessage);
         }
 
         return ValidateRoleAssignments(date)
             .Map(() => Hired = hired);
     }
 
-    public Result<DateTime> UpdateExited(DateTime exited, DateTime date) =>
+    public Result<DateOnly> UpdateExited(DateOnly exited, DateOnly date) =>
         Result.Success(exited)
             .Ensure(value => IsEmploymentDateWithinAllowedRange(value, date), DateRangeMessage)
             .Ensure(value => value >= Hired, DateRangeMessage)
             .Tap(value => Exited = value);
 
-    public Result RemoveExited(DateTime date) =>
+    public Result RemoveExited(DateOnly date) =>
         ValidateRoleAssignments(roleAssignments, true, date)
-            .Tap(() => Exited = Maybe<DateTime>.None);
+            .Tap(() => Exited = Maybe<DateOnly>.None);
 
-    private static bool IsEmploymentDateWithinAllowedRange(DateTime employmentDate, DateTime date) =>
+    private static bool IsEmploymentDateWithinAllowedRange(DateOnly employmentDate, DateOnly date) =>
         employmentDate >= StartDateMinimum(date) &&
         employmentDate <= EndDateMaximum(date);
 
