@@ -7,6 +7,8 @@ namespace Stocktrac.Tests.Features.Unit;
 
 public class VehicleShould
 {
+    private static readonly DateOnly Today = new(2025, 6, 15);
+
     [Fact]
     public void RepresentOptionalValuesAsAbsent_On_Create_WhenKindIsNonTraditional()
     {
@@ -27,7 +29,7 @@ public class VehicleShould
     public void ClearOptionalValues_On_RemoveOperations_WhenValuesExist()
     {
         var vehicle = CreateTraditionalVehicle();
-        vehicle.UpdateYear(2020).IsSuccess.ShouldBeTrue();
+        vehicle.UpdateYear(2020, Today).IsSuccess.ShouldBeTrue();
         vehicle.UpdatePlate("ABC123").IsSuccess.ShouldBeTrue();
         vehicle.UpdatePlateStateProvince(State.NY).IsSuccess.ShouldBeTrue();
         vehicle.UpdateUnitNumber("42").IsSuccess.ShouldBeTrue();
@@ -50,7 +52,7 @@ public class VehicleShould
     public void PreserveSharedState_On_ReplaceKind_WhenTransitioningBetweenKinds()
     {
         var vehicle = CreateTraditionalVehicle();
-        vehicle.UpdateYear(2020);
+        vehicle.UpdateYear(2020, Today);
         vehicle.UpdatePlate("ABC123");
         vehicle.UpdatePlateStateProvince(State.NY);
         vehicle.UpdateUnitNumber("42");
@@ -348,22 +350,106 @@ public class VehicleShould
         var result = Vehicle.Create(
             TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
             Maybe<int>.None, Maybe<string>.None, Maybe<State>.None,
-            Maybe<string>.None, "   ");
+            Maybe<string>.None, "   ", Today);
 
         result.Error.ShouldContain(Vehicle.OptionalTextRequiredMessage);
     }
 
     [Theory]
-    [InlineData(1895)]
-    [InlineData(9999)]
-    public void ReturnFailure_On_Create_WhenYearIsInvalid(int year)
+    [InlineData(true, 1895)]
+    [InlineData(true, 2027)]
+    [InlineData(false, 1895)]
+    [InlineData(false, 2027)]
+    public void ReturnFailure_On_Create_WhenYearIsInvalid(bool traditional, int year)
     {
-        var result = Vehicle.Create(
-            TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
-            year, Maybe<string>.None, Maybe<State>.None,
-            Maybe<string>.None, Maybe<string>.None);
+        var result = CreateVehicle(CreateForKind(traditional).Kind, Today, year);
 
-        result.Error.ShouldBe(Vehicle.InvalidYearMessage);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Vehicle.InvalidYearMessage(Today));
+    }
+
+    [Theory]
+    [InlineData(true, 1896)]
+    [InlineData(true, 2026)]
+    [InlineData(false, 1896)]
+    [InlineData(false, 2026)]
+    public void AcceptYear_On_Create_WhenYearIsOnBoundary(bool traditional, int year)
+    {
+        var result = CreateVehicle(CreateForKind(traditional).Kind, Today, year);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Year.Value.ShouldBe(year);
+    }
+
+    [Theory]
+    [InlineData(true, 1896)]
+    [InlineData(true, 2026)]
+    [InlineData(false, 1896)]
+    [InlineData(false, 2026)]
+    public void ReplaceYear_On_UpdateYear_WhenYearIsOnBoundary(bool traditional, int year)
+    {
+        var vehicle = CreateForKind(traditional);
+
+        var result = vehicle.UpdateYear(year, Today);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBe(year);
+        vehicle.Year.Value.ShouldBe(year);
+    }
+
+    [Theory]
+    [InlineData(true, 1895)]
+    [InlineData(true, 2027)]
+    [InlineData(false, 1895)]
+    [InlineData(false, 2027)]
+    public void PreserveYear_On_UpdateYear_WhenYearIsInvalid(bool traditional, int year)
+    {
+        var vehicle = CreateForKind(traditional);
+        vehicle.UpdateYear(2020, Today).IsSuccess.ShouldBeTrue();
+
+        var result = vehicle.UpdateYear(year, Today);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe("Year must be between 1896 and 2026.");
+        vehicle.Year.Value.ShouldBe(2020);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void UseEvaluationYear_On_Create_WhenDatesCrossNewYear(bool traditional)
+    {
+        var kind = CreateForKind(traditional).Kind;
+        var beforeNewYear = new DateOnly(2025, 12, 31);
+        var afterNewYear = new DateOnly(2026, 1, 1);
+
+        CreateVehicle(kind, beforeNewYear, 2027).Error
+            .ShouldBe("Year must be between 1896 and 2026.");
+        CreateVehicle(kind, afterNewYear, 2027).Value.Year.Value.ShouldBe(2027);
+        CreateVehicle(kind, afterNewYear, 2028).Error
+            .ShouldBe("Year must be between 1896 and 2027.");
+        CreateVehicle(kind, beforeNewYear, 2027).Error
+            .ShouldBe("Year must be between 1896 and 2026.");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void UseEvaluationYear_On_UpdateYear_WhenDatesCrossNewYear(bool traditional)
+    {
+        var vehicle = CreateForKind(traditional);
+        var beforeNewYear = new DateOnly(2025, 12, 31);
+        var afterNewYear = new DateOnly(2026, 1, 1);
+
+        vehicle.UpdateYear(2027, beforeNewYear).Error
+            .ShouldBe("Year must be between 1896 and 2026.");
+        vehicle.Year.HasNoValue.ShouldBeTrue();
+        vehicle.UpdateYear(2027, afterNewYear).IsSuccess.ShouldBeTrue();
+        vehicle.UpdateYear(2028, afterNewYear).Error
+            .ShouldBe("Year must be between 1896 and 2027.");
+        vehicle.UpdateYear(2027, beforeNewYear).Error
+            .ShouldBe("Year must be between 1896 and 2026.");
+        vehicle.Year.Value.ShouldBe(2027);
     }
 
     [Fact]
@@ -372,7 +458,7 @@ public class VehicleShould
         var result = Vehicle.Create(
             TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
             Maybe<int>.None, Maybe<string>.None, (State)999,
-            Maybe<string>.None, Maybe<string>.None);
+            Maybe<string>.None, Maybe<string>.None, Today);
 
         result.Error.ShouldBe(Vehicle.InvalidPlateStateProvinceMessage);
     }
@@ -392,6 +478,9 @@ public class VehicleShould
         CreateVehicle(TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value).Value;
 
     private static Result<Vehicle> CreateVehicle(VehicleKind kind) =>
-        Vehicle.Create(kind, Maybe<int>.None, Maybe<string>.None, Maybe<State>.None,
-            Maybe<string>.None, Maybe<string>.None);
+        CreateVehicle(kind, Today);
+
+    private static Result<Vehicle> CreateVehicle(VehicleKind kind, DateOnly today, Maybe<int> year = default) =>
+        Vehicle.Create(kind, year, Maybe<string>.None, Maybe<State>.None,
+            Maybe<string>.None, Maybe<string>.None, today);
 }

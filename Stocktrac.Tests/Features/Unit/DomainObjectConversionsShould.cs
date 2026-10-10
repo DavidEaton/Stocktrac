@@ -57,11 +57,11 @@ public class DomainObjectConversionsShould
     }
 
     [Fact]
-    public void CreateBirthdayFromDateOnlyAndConvertBack()
+    public void PreserveDateOnlyValue_On_BirthdayCreate_WhenDateIsValid()
     {
         var date = new DateOnly(1990, 6, 15);
 
-        var result = Birthday.Create(date);
+        var result = Birthday.Create(date, new DateOnly(2025, 6, 15));
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(date);

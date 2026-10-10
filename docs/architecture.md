@@ -79,13 +79,17 @@ have unique phone numbers/email addresses and at most one primary per collection
 `RemoveEmails` to clear all contacts. Creation permits empty contact collections.
 
 Employment periods, role validity, and assignment periods use `DateOnly`.
-Employment and role checks take a caller-supplied evaluation date; use the same
-business date throughout an operation. `EmploymentPeriod.Active` means no exit
+Employment, role, birthday, and vehicle year checks take a caller-supplied
+evaluation date; use the same business date throughout an operation. Birthday
+creation accepts dates from 1900-01-01 through that date, and vehicle creation
+and year updates accept years from 1896 through the following year. Callers
+supply `today` to `Birthday.Create`, `Vehicle.Create`, and `Vehicle.UpdateYear`;
+these operations do not read or retain the system clock. Year error messages
+use that same date. `EmploymentPeriod.Active` means no exit
 is set, including for future dates. Active employees need an active assignment
 at the evaluation date; call `ValidateRoleAssignments(date)` when evaluating
 later. Assignment periods must fit within the role's validity period. Role
-hierarchy operations maintain both links and reject cycles. Vehicle year
-validation still reads `DateTime.Today`; clock independence is not universal.
+hierarchy operations maintain both links and reject cycles.
 
 ## Application and persistence boundaries
 

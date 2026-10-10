@@ -8,10 +8,12 @@ namespace Stocktrac.Tests.Features.Unit.Persons;
 
 public class PersonShould
 {
+    private static readonly DateOnly Today = new(2025, 6, 15);
+
     [Fact]
     public void PreserveBirthday_On_Create_WhenBirthdayIsProvided()
     {
-        var birthday = Birthday.Create(new DateOnly(1990, 6, 15)).Value;
+        var birthday = Birthday.Create(new DateOnly(1990, 6, 15), Today).Value;
 
         var person = CreatePerson(birthday);
 
@@ -30,8 +32,8 @@ public class PersonShould
     [Fact]
     public void ReplaceBirthday_On_UpdateBirthday_WhenBirthdayIsValid()
     {
-        var person = CreatePerson(Birthday.Create(new DateOnly(1990, 6, 15)).Value);
-        var replacement = Birthday.Create(new DateOnly(1991, 7, 16)).Value;
+        var person = CreatePerson(Birthday.Create(new DateOnly(1990, 6, 15), Today).Value);
+        var replacement = Birthday.Create(new DateOnly(1991, 7, 16), Today).Value;
 
         var result = person.UpdateBirthday(replacement);
 
@@ -42,7 +44,7 @@ public class PersonShould
     [Fact]
     public void RemoveBirthday_On_RemoveBirthday_WhenBirthdayExists()
     {
-        var person = CreatePerson(Birthday.Create(new DateOnly(1990, 6, 15)).Value);
+        var person = CreatePerson(Birthday.Create(new DateOnly(1990, 6, 15), Today).Value);
 
         person.RemoveBirthday();
 
