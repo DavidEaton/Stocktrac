@@ -1,12 +1,9 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
-
 namespace Stocktrac.Domain.Features.Customers;
 
 public sealed class Customer : Entity
 {
-    // TODO: Move these constants to user-configurable settings in the future.
-    // For now, they are hard-coded to match the current validation rules in StockTrac.
     public const string DuplicateItemMessagePrefix = "Customer already has this ";
     public const string UnknownCustomerTypeMessage = "Unknown type.";
     public const string RequiredMessage = "Please include all required items.";
@@ -51,16 +48,10 @@ public sealed class Customer : Entity
 
     public void RemoveAddress() => CustomerEntity.Contactable.RemoveAddress();
 
-    public Result UpdateCustomerType(CustomerType customerType)
-    {
-        if (Enum.IsDefined(customerType))
-        {
-            CustomerType = customerType;
-            return Result.Success();
-        }
-
-        return Result.Failure(RequiredMessage);
-    }
+    public Result UpdateCustomerType(CustomerType customerType) =>
+        !Enum.IsDefined(customerType)
+            ? Result.Failure(UnknownCustomerTypeMessage)
+            : Result.Success(CustomerType = customerType);
 
     public Result<ContactPhone> AddPhone(ContactPhone phone) =>
         CustomerEntity.Contactable.AddPhone(phone);
@@ -74,38 +65,33 @@ public sealed class Customer : Entity
     public Result<ContactEmail> RemoveEmail(ContactEmail email) =>
         CustomerEntity.Contactable.RemoveEmail(email);
 
-    public Result<Vehicle> AddVehicle(Vehicle vehicle)
-    {
-        if (vehicle is null)
-            return Result.Failure<Vehicle>(RequiredMessage);
+    public Result<Vehicle> AddVehicle(Vehicle vehicle) =>
+        vehicle is null
+            ? Result.Failure<Vehicle>(RequiredMessage)
+            : CustomerHasVehicle(vehicle)
+                ? Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.")
+                : Result.Success(vehicle)
+                    .Tap(() => vehicles.Add(vehicle));
 
-        if (CustomerHasVehicle(vehicle))
-            return Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.");
-
-        vehicles.Add(vehicle);
-        return Result.Success(vehicle);
-    }
-
-    public Result<Vehicle> RemoveVehicle(Vehicle vehicle)
-    {
-        if (vehicle is null)
-            return Result.Failure<Vehicle>(RequiredMessage);
-
-        return vehicles.Remove(vehicle)
+    public Result<Vehicle> RemoveVehicle(Vehicle vehicle) =>
+    vehicle is null
+        ? Result.Failure<Vehicle>(RequiredMessage)
+        : vehicles.Remove(vehicle)
             ? Result.Success(vehicle)
             : Result.Failure<Vehicle>(Contactable.NotFoundMessage);
-    }
 
     private bool CustomerHasVehicle(Vehicle vehicle) =>
         Vehicles.Any(existingVehicle => existingVehicle == vehicle);
 
     public Result UpdateCode(CustomerCode code) =>
-        code is null ? Result.Failure(RequiredMessage) : Result.Success().Tap(() => Code = code);
+        code is null
+            ? Result.Failure(RequiredMessage)
+            : Result.Success(Code = code);
 
     public void RemoveCode() => Code = Maybe<CustomerCode>.None;
 
     public Result UpdateCustomerEntity(CustomerEntity entity) =>
         entity.Value is null
             ? Result.Failure(RequiredMessage)
-            : Result.Success().Tap(() => CustomerEntity = entity);
+            : Result.Success(CustomerEntity = entity);
 }
