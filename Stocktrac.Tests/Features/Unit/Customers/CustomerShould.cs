@@ -527,7 +527,7 @@ public class CustomerShould
     private static Vehicle CreateVehicle() => Vehicle.Create(
         TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
         Maybe<int>.None, Maybe<string>.None, Maybe<State>.None,
-        Maybe<string>.None, Maybe<string>.None).Value;
+        Maybe<string>.None, Maybe<string>.None, new DateOnly(2025, 6, 15)).Value;
 
     private static Note CreateNote() => Note.Create(NonEmptyString.Create("Some notes").Value).Value;
 

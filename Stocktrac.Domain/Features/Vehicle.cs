@@ -16,7 +16,9 @@ public sealed class Vehicle : Entity
 
     public const string InvalidVinMessage = "VIN was invalid.";
     public const int YearMinimum = 1896; // First year of production commercial vehicles
-    public static readonly string InvalidYearMessage = $"Year must be between {YearMinimum} and {DateTime.Today.Year + 1}.";
+    public static int YearMaximum(DateOnly today) => today.Year + 1;
+    public static string InvalidYearMessage(DateOnly today) =>
+        $"Year must be between {YearMinimum} and {YearMaximum(today)}.";
     public static readonly string InvalidLengthMessage = $"Make, Model must be between {MinimumMakeModelLength} and {MaximumMakeModelLength} characters in length.";
     public const string NonTraditionalVehicleInvalidMakeModelMessage = "Please enter Make or Model.";
     public static string InvalidMaximumLengthMessage(int max) => $"Value must be less than {max} characters in length.";
@@ -66,6 +68,7 @@ public sealed class Vehicle : Entity
         Maybe<State> plateStateProvince,
         Maybe<string> unitNumber,
         Maybe<string> color,
+        DateOnly today,
         bool active = true)
     {
         var normalizedPlate = plate.Map(value => value.Trim());
@@ -74,7 +77,7 @@ public sealed class Vehicle : Entity
         return Result.Combine(
                 Environment.NewLine,
                 Result.FailureIf(kind.Value is null, KindRequiredMessage),
-                ValidateYear(year),
+                ValidateYear(year, today),
                 ValidatePlate(normalizedPlate),
                 ValidatePlateStateProvince(plateStateProvince),
                 ValidateUnitNumber(normalizedUnitNumber),
@@ -89,9 +92,9 @@ public sealed class Vehicle : Entity
                 active));
     }
 
-    private static Result ValidateYear(Maybe<int> year) =>
-        year.HasValue && (year.Value > DateTime.Today.Year + 1 || year.Value < YearMinimum)
-            ? Result.Failure(InvalidYearMessage)
+    private static Result ValidateYear(Maybe<int> year, DateOnly today) =>
+        year.HasValue && (year.Value > YearMaximum(today) || year.Value < YearMinimum)
+            ? Result.Failure(InvalidYearMessage(today))
             : Result.Success();
 
     private static Result ValidatePlate(Maybe<string> plate)
@@ -157,10 +160,9 @@ public sealed class Vehicle : Entity
         null => Result.Failure(KindRequiredMessage)
     };
 
-    public Result<Maybe<int>> UpdateYear(int year) =>
-        year > DateTime.Today.Year + 1 || year < YearMinimum
-            ? Result.Failure<Maybe<int>>(InvalidYearMessage)
-            : Result.Success(Year = year);
+    public Result<Maybe<int>> UpdateYear(int year, DateOnly today) =>
+        ValidateYear(year, today)
+            .Map(() => Year = year);
 
     public void RemoveYear() => Year = Maybe<int>.None;
 
