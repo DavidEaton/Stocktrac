@@ -29,9 +29,14 @@ public sealed record Address
         City city,
         State state,
         PostalCode postalCode,
-        Maybe<AddressLine> addressLine2 = default) =>
-        state.AsValidState()
-            .Map(validState => new Address(addressLine1, city, validState, postalCode, addressLine2));
+        Maybe<AddressLine> addressLine2 = default)
+    {
+        var validState = state.AsValidState();
+
+        return validState.IsSuccess
+            ? Result.Success(new Address(addressLine1, city, validState.Value, postalCode, addressLine2))
+            : Result.Failure<Address>(validState.Error);
+    }
 
     public Result<Address> ReplaceAddressLine1(AddressLine addressLine) =>
         Result.Success(

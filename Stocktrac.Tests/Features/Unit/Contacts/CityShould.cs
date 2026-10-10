@@ -7,6 +7,17 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class CityShould
 {
     [Fact]
+    public void PreserveValue_On_Create_WhenLengthEqualsMaximum()
+    {
+        var value = NonEmptyString.Create(new string('a', City.MaximumLength)).Value;
+
+        var result = City.Create(value);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBeSameAs(value);
+    }
+
+    [Fact]
     public void Create_WhenGivenANonEmptyValue()
     {
         var value = NonEmptyString.Create("New York").Value;

@@ -55,13 +55,12 @@ public sealed class Tenant : Entity<Guid>
         var normalizedCompanyName = companyName?.Trim() ?? string.Empty;
         var normalizedLogoUrl = logoUrl.Map(value => value.Trim());
 
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(string.IsNullOrWhiteSpace(normalizedName), NameRequiredMessage),
-                Result.FailureIf(normalizedName.Length is < MinimumNameLength or > MaximumNameLength, InvalidNameLengthMessage),
-                Result.FailureIf(string.IsNullOrWhiteSpace(normalizedCompanyName), CompanyNameRequiredMessage),
-                Result.FailureIf(normalizedCompanyName.Length is < MinimumCompanyNameLength or > MaximumCompanyNameLength, InvalidCompanyNameLengthMessage),
-                ValidateLogoUrl(normalizedLogoUrl))
+        return Result.Success()
+            .Ensure(() => !string.IsNullOrWhiteSpace(normalizedName), NameRequiredMessage)
+            .Ensure(() => normalizedName.Length is >= MinimumNameLength and <= MaximumNameLength, InvalidNameLengthMessage)
+            .Ensure(() => !string.IsNullOrWhiteSpace(normalizedCompanyName), CompanyNameRequiredMessage)
+            .Ensure(() => normalizedCompanyName.Length is >= MinimumCompanyNameLength and <= MaximumCompanyNameLength, InvalidCompanyNameLengthMessage)
+            .Bind(() => ValidateLogoUrl(normalizedLogoUrl))
             .Map(() => new Tenant(Guid.NewGuid(), normalizedName, normalizedCompanyName, normalizedLogoUrl));
     }
 

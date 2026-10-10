@@ -6,6 +6,15 @@ namespace Stocktrac.Tests.Features.Unit;
 public class TraditionalVehicleKindShould
 {
     [Fact]
+    public void ReturnFirstError_On_Create_WhenSeveralInputsAreInvalid()
+    {
+        var result = TraditionalVehicleKind.Create("invalid", "", "");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Vehicle.InvalidVinMessage);
+    }
+
+    [Fact]
     public void NormalizeRequiredValues_On_Create_WhenValuesAreValid()
     {
         var result = TraditionalVehicleKind.Create(" 1HGCM82633A004352 ", " Honda ", " Accord ");

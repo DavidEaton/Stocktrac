@@ -74,14 +74,13 @@ public sealed class Vehicle : Entity
         var normalizedPlate = plate.Map(value => value.Trim());
         var normalizedUnitNumber = unitNumber.Map(value => value.Trim());
         var normalizedColor = color.Map(value => value.Trim());
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(kind.Value is null, KindRequiredMessage),
-                ValidateYear(year, today),
-                ValidatePlate(normalizedPlate),
-                ValidatePlateStateProvince(plateStateProvince),
-                ValidateUnitNumber(normalizedUnitNumber),
-                ValidateColor(normalizedColor))
+        return Result.Success()
+            .Ensure(() => kind.Value is not null, KindRequiredMessage)
+            .Bind(() => ValidateYear(year, today))
+            .Bind(() => ValidatePlate(normalizedPlate))
+            .Bind(() => ValidatePlateStateProvince(plateStateProvince))
+            .Bind(() => ValidateUnitNumber(normalizedUnitNumber))
+            .Bind(() => ValidateColor(normalizedColor))
             .Map(() => new Vehicle(
                 kind,
                 year,

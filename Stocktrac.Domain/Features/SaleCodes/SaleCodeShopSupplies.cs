@@ -38,12 +38,11 @@ namespace Stocktrac.Domain.Features.SaleCodes
             double maximumCharge,
             bool includeParts,
             bool includeLabor)
-        => Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(!double.IsFinite(percentage) || percentage < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(!double.IsFinite(minimumJobAmount) || minimumJobAmount < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(!double.IsFinite(minimumCharge) || minimumCharge < MinimumValue, MinimumValueMessage),
-                Result.FailureIf(!double.IsFinite(maximumCharge) || maximumCharge < MinimumValue, MinimumValueMessage))
+        => Result.Success()
+            .Ensure(() => double.IsFinite(percentage) && percentage >= MinimumValue, MinimumValueMessage)
+            .Ensure(() => double.IsFinite(minimumJobAmount) && minimumJobAmount >= MinimumValue, MinimumValueMessage)
+            .Ensure(() => double.IsFinite(minimumCharge) && minimumCharge >= MinimumValue, MinimumValueMessage)
+            .Ensure(() => double.IsFinite(maximumCharge) && maximumCharge >= MinimumValue, MinimumValueMessage)
             .Map(() => new SaleCodeShopSupplies(
                 percentage,
                 minimumJobAmount,

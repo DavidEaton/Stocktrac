@@ -15,9 +15,9 @@ public sealed record DateRange
         (Start, End) = (start, end);
 
     public static Result<DateRange> Create(DateOnly start, DateOnly end) =>
-        Result.Success((Start: start, End: end))
-            .Ensure(range => range.Start < range.End, EndBeforeStartMessage)
-            .Map(range => new DateRange(range.Start, range.End));
+        start < end
+            ? Result.Success(new DateRange(start, end))
+            : Result.Failure<DateRange>(EndBeforeStartMessage);
 
     public static Result<DateRange> CreateDaysRange(DateOnly start, int days) =>
         CalculateEnd(start, () => start.AddDays(days));

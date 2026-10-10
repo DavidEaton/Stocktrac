@@ -45,41 +45,42 @@ public sealed class EmploymentRole : Entity
         NonEmptyString description,
         DateRange dateRange,
         IReadOnlyList<EmploymentRole> subordinateRoles,
-        EmploymentRole superiorRole)
+        EmploymentRole superiorRole) =>
+        Result.Success()
+            .Ensure(() => name is not null && description is not null && dateRange is not null &&
+                superiorRole is not null && subordinateRoles is not null &&
+                subordinateRoles.All(role => role is not null), RequiredMessage)
+            .Ensure(() => subordinateRoles.All(role => !ReferenceEquals(role, Empty)), EmptyRoleMessage)
+            .Ensure(() => subordinateRoles.Distinct().Count() == subordinateRoles.Count, DuplicateRoleMessage)
+            .Ensure(() => subordinateRoles.All(role => ReferenceEquals(role.SuperiorRole, Empty)), AssignedSuperiorMessage)
+            .Ensure(() => !HasAncestorAmong(superiorRole, subordinateRoles), CyclicHierarchyMessage)
+            .Map(() => new EmploymentRole(name!, description!, dateRange!))
+            .Tap(role =>
+            {
+                foreach (var subordinate in subordinateRoles)
+                {
+                    role.subordinateRoles.Add(subordinate);
+                    subordinate.SuperiorRole = role;
+                }
+
+                if (!ReferenceEquals(superiorRole, Empty))
+                {
+                    superiorRole.subordinateRoles.Add(role);
+                    role.SuperiorRole = superiorRole;
+                }
+            });
+
+    private static bool HasAncestorAmong(
+        EmploymentRole superiorRole,
+        IReadOnlyList<EmploymentRole> roles)
     {
-        if (name is null || description is null || dateRange is null || superiorRole is null ||
-            subordinateRoles is null || subordinateRoles.Any(role => role is null))
-            return Result.Failure<EmploymentRole>(RequiredMessage);
-
-        if (subordinateRoles.Any(role => ReferenceEquals(role, Empty)))
-            return Result.Failure<EmploymentRole>(EmptyRoleMessage);
-
-        if (subordinateRoles.Distinct().Count() != subordinateRoles.Count)
-            return Result.Failure<EmploymentRole>(DuplicateRoleMessage);
-
-        if (subordinateRoles.Any(role => !ReferenceEquals(role.SuperiorRole, Empty)))
-            return Result.Failure<EmploymentRole>(AssignedSuperiorMessage);
-
         for (var ancestor = superiorRole; !ReferenceEquals(ancestor, Empty); ancestor = ancestor.SuperiorRole)
         {
-            if (subordinateRoles.Contains(ancestor))
-                return Result.Failure<EmploymentRole>(CyclicHierarchyMessage);
+            if (roles.Contains(ancestor))
+                return true;
         }
 
-        var role = new EmploymentRole(name, description, dateRange);
-        foreach (var subordinate in subordinateRoles)
-        {
-            role.subordinateRoles.Add(subordinate);
-            subordinate.SuperiorRole = role;
-        }
-
-        if (!ReferenceEquals(superiorRole, Empty))
-        {
-            superiorRole.subordinateRoles.Add(role);
-            role.SuperiorRole = superiorRole;
-        }
-
-        return Result.Success(role);
+        return false;
     }
 
     public Result<EmploymentRole> AddSubordinateRole(EmploymentRole role)

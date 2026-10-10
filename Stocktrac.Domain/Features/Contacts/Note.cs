@@ -9,11 +9,9 @@ namespace Stocktrac.Domain.Features.Contacts
         public NonEmptyString Value { get; }
 
         public static Result<Note> Create(NonEmptyString notes) =>
-            Result.Success(notes)
-                .Ensure(
-                    value => value.Value.Length <= MaximumLength,
-                    MaximumLengthMessage)
-                .Map(value => new Note(value));
+            notes.Value.Length <= MaximumLength
+                ? Result.Success(new Note(notes))
+                : Result.Failure<Note>(MaximumLengthMessage);
 
         private Note(NonEmptyString note) => Value = note;
 

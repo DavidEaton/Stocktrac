@@ -56,30 +56,15 @@ public static class DomainExtensions
         /// Validates a driver's license date range.
         /// </summary>
         internal Result<DateRange> AsValidDriversLicenseDateRange(
-            DateOnly today)
-        {
-            if (dateRange is null)
-                return Result.Failure<DateRange>(
-                    DriversLicense.RequiredMessage);
-
-            return Result.Combine(
-                    Environment.NewLine,
-                    Result.FailureIf(
-                        dateRange.Start >= dateRange.End,
-                        DriversLicense.DateOrderInvalidMessage),
-                    Result.FailureIf(
-                        dateRange.Start < DriversLicense.MinimumValidDate,
-                        DriversLicense.StartDateTooEarlyMessage),
-                    Result.FailureIf(
-                        dateRange.Start > today,
-                        DriversLicense.StartDateInFutureMessage),
-                    Result.FailureIf(
-                        ExceedsMaximumDriversLicenseValidity(
-                            dateRange.Start,
-                            dateRange.End),
-                        DriversLicense.DateRangeTooLongMessage))
-                .Map(() => dateRange);
-        }
+            DateOnly today) =>
+            Result.Success(dateRange)
+                .Ensure(range => range is not null, DriversLicense.RequiredMessage)
+                .Ensure(range => range.Start < range.End, DriversLicense.DateOrderInvalidMessage)
+                .Ensure(range => range.Start >= DriversLicense.MinimumValidDate,
+                    DriversLicense.StartDateTooEarlyMessage)
+                .Ensure(range => range.Start <= today, DriversLicense.StartDateInFutureMessage)
+                .Ensure(range => !ExceedsMaximumDriversLicenseValidity(range.Start, range.End),
+                    DriversLicense.DateRangeTooLongMessage);
 
         private static bool ExceedsMaximumDriversLicenseValidity(
             DateOnly start,

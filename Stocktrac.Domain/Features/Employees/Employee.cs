@@ -113,31 +113,29 @@ public sealed class Employee : Entity
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
     {
-        var periodEmployed = EmploymentPeriod.Create(hired, date);
         var normalizedCertificationNumber = certificationNumber.Map(value => value.Trim());
         var normalizedPrintedName = printedName.Map(value => value.Trim());
 
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(hiredPerson is null, RequiredMessage),
-                ValidateRoleAssignments(roleAssignments, true, date),
-                Result.FailureIf(ssn is null, RequiredMessage),
-                Result.FailureIf(notes is null, RequiredMessage),
-                periodEmployed,
-                ValidateOptionalText(normalizedCertificationNumber, MaximumCertificationNumberLength),
-                ValidateOptionalText(normalizedPrintedName, MaximumPrintedNameLength),
-                ValidateExpenseCategory(expenseCategory),
-                ValidateBenefitLoad(benefitLoad))
-            .Map(() => new Employee(
-                hiredPerson!,
-                roleAssignments!,
-                ssn!,
-                periodEmployed.Value,
-                notes!,
-                normalizedCertificationNumber,
-                normalizedPrintedName,
-                expenseCategory,
-                benefitLoad));
+        return Result.Success()
+            .Ensure(() => hiredPerson is not null, RequiredMessage)
+            .Bind(() => ValidateRoleAssignments(roleAssignments, true, date))
+            .Ensure(() => ssn is not null, RequiredMessage)
+            .Ensure(() => notes is not null, RequiredMessage)
+            .Bind(() => EmploymentPeriod.Create(hired, date))
+            .Bind(period => ValidateOptionalText(normalizedCertificationNumber, MaximumCertificationNumberLength)
+                .Bind(() => ValidateOptionalText(normalizedPrintedName, MaximumPrintedNameLength))
+                .Bind(() => ValidateExpenseCategory(expenseCategory))
+                .Bind(() => ValidateBenefitLoad(benefitLoad))
+                .Map(() => new Employee(
+                    hiredPerson!,
+                    roleAssignments!,
+                    ssn!,
+                    period,
+                    notes!,
+                    normalizedCertificationNumber,
+                    normalizedPrintedName,
+                    expenseCategory,
+                    benefitLoad)));
     }
 
     private static Result ValidateOptionalText(Maybe<string> value, int maximumLength)

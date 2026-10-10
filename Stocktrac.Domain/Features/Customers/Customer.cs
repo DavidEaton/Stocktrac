@@ -51,10 +51,9 @@ public readonly union Customer(PersonCustomer, BusinessCustomer) : IEquatable<Cu
             .Map(() => (Customer)new BusinessCustomer(business, new CustomerState(customerType, code)));
 
     private static Result ValidateCreation(Contactable entity, CustomerType customerType) =>
-        Result.Combine(
-            Environment.NewLine,
-            Result.FailureIf(entity is null, RequiredMessage),
-            Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage));
+        Result.Success()
+            .Ensure(() => entity is not null, RequiredMessage)
+            .Ensure(() => Enum.IsDefined(customerType), UnknownCustomerTypeMessage);
 
     // Native unions are structs: boundaries must reject default/null-case values.
     public Result Validate() => Result.FailureIf(Value is null, RequiredMessage);

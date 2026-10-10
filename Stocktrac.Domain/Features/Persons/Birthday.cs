@@ -12,10 +12,9 @@ namespace Stocktrac.Domain.Features.Persons
             Value = date;
 
         public static Result<Birthday> Create(DateOnly date, DateOnly today) =>
-            Result.Success(date)
-                .Ensure(value => value >= MinimumDate && value <= today,
-                    $"Birthday must be between {MinimumDate:d} and {today:d}.")
-                .Map(value => new Birthday(value));
+            date >= MinimumDate && date <= today
+                ? Result.Success(new Birthday(date))
+                : Result.Failure<Birthday>($"Birthday must be between {MinimumDate:d} and {today:d}.");
 
         public override string ToString() =>
             Value.ToShortDateString();

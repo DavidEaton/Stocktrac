@@ -7,6 +7,26 @@ namespace Stocktrac.Tests.Features.Unit;
 public class TenantShould
 {
     [Fact]
+    public void ReturnFirstError_On_Create_WhenSeveralInputsAreInvalid()
+    {
+        var result = Tenant.Create("   ", "", "   ");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Tenant.NameRequiredMessage);
+    }
+
+    [Fact]
+    public void NormalizeValues_On_Create_WhenInputsAreValid()
+    {
+        var result = Tenant.Create(" Tenant ", " Company ", " https://example.test/logo.png ");
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Name.ShouldBe("Tenant");
+        result.Value.CompanyName.ShouldBe("Company");
+        result.Value.LogoUrl.Value.ShouldBe("https://example.test/logo.png");
+    }
+
+    [Fact]
     public void ReturnFailureAndPreserveAbsence_On_UpdateLogoUrl_WhenValueIsMissing()
     {
         var tenant = CreateTenant();

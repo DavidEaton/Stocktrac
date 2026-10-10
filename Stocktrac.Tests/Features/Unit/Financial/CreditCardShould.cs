@@ -8,6 +8,15 @@ namespace Stocktrac.Tests.Features.Unit.Financial;
 public class CreditCardShould
 {
     [Fact]
+    public void ReturnFirstError_On_Create_WhenNameAndFeeTypeAreInvalid()
+    {
+        var result = CreditCard.Create(null!, (CreditCardFeeType)(-1), Fee.Default, Maybe<DateTime>.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(CreditCard.RequiredMessage);
+    }
+
+    [Fact]
     public void SetAllRequestedValues_On_Create()
     {
         var name = CreateName("Visa");

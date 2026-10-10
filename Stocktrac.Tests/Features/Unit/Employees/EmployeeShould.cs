@@ -12,6 +12,16 @@ public class EmployeeShould
     private static readonly DateOnly ReferenceDate = new(2025, 1, 15);
 
     [Fact]
+    public void ReturnFirstError_On_Create_WhenRequiredInputsAreInvalid()
+    {
+        var result = Employee.Create(null!, null!, null!, default, null!, ReferenceDate,
+            "   ", "   ", (EmployeeExpenseCategory)(-1), double.NaN);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Employee.RequiredMessage);
+    }
+
+    [Fact]
     public void StoreExitDate_On_ReplaceExited_WhenDateIsValid()
     {
         var employee = CreateEmployee();

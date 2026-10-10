@@ -7,6 +7,17 @@ namespace Stocktrac.Tests.Features.Unit.Contacts;
 public class PostalCodeShould
 {
     [Fact]
+    public void PreserveValue_On_Create_WhenLengthEqualsMaximum()
+    {
+        var value = NonEmptyString.Create(new string('a', PostalCode.MaximumLength)).Value;
+
+        var result = PostalCode.Create(value);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.ShouldBeSameAs(value);
+    }
+
+    [Fact]
     public void Create_WhenGivenANonEmptyValue()
     {
         var value = NonEmptyString.Create("A1B 2C3").Value;

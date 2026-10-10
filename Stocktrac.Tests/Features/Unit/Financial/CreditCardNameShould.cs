@@ -6,6 +6,23 @@ namespace Stocktrac.Tests.Features.Unit.Financial;
 
 public class CreditCardNameShould
 {
+    [Theory]
+    [InlineData(CreditCardName.MinimumLength, true)]
+    [InlineData(CreditCardName.MaximumLength, true)]
+    [InlineData(CreditCardName.MaximumLength + 1, false)]
+    public void EnforceLengthRange_On_Create_WhenLengthIsAtBoundary(int length, bool valid)
+    {
+        var value = NonEmptyString.Create(new string('a', length)).Value;
+
+        var result = CreditCardName.Create(value);
+
+        result.IsSuccess.ShouldBe(valid);
+        if (valid)
+            result.Value.Value.ShouldBeSameAs(value);
+        else
+            result.Error.ShouldBe(CreditCardName.InvalidLengthMessage);
+    }
+
     [Fact]
     public void Create_WhenGivenANonEmptyString()
     {

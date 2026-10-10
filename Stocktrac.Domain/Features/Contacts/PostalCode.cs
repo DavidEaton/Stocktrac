@@ -11,9 +11,9 @@ public sealed record PostalCode
     private PostalCode(NonEmptyString value) => Value = value;
 
     public static Result<PostalCode> Create(NonEmptyString value) =>
-            Result.Success(value)
-                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
-            .Map(value => new PostalCode(value));
+        value.Value.Length <= MaximumLength
+            ? Result.Success(new PostalCode(value))
+            : Result.Failure<PostalCode>(InvalidLengthMessage);
 
     public override string ToString() => Value.ToString();
 }

@@ -29,6 +29,15 @@ an explicit side effect after success. Handle failure before reading
 `Result.Value`. Expected validation failures should be results rather than
 exceptions. Use [Maybe and Result consistently](../Stocktrac.Domain/Domain%20Optionality%20Policy.md).
 
+For `Create` factories, express a single validation rule with a conditional
+returning success or failure. A bounded range is one rule when it has one error
+message. Chain multiple rules with `Ensure` and compose fallible validation or
+transformations with `Bind`; construct with `Map` only after validation succeeds.
+Factory chains return the first failure in validation order. Keep normalization
+and required-input checks before rules that depend on them, and perform aggregate
+side effects with `Tap` only after all validation succeeds. Factories with no
+validation do not need a conditional or an artificial pipeline.
+
 For example, this transformation creates a new employment period without
 changing the original:
 

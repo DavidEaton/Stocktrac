@@ -15,9 +15,9 @@ public sealed record CreditCardName
         Value = value;
 
     public static Result<CreditCardName> Create(NonEmptyString name) =>
-        Result.Success(name)
-            .Ensure(value => value.Value.Length is >= MinimumLength and <= MaximumLength, InvalidLengthMessage)
-            .Map(value => new CreditCardName(value));
+        name.Value.Length is >= MinimumLength and <= MaximumLength
+            ? Result.Success(new CreditCardName(name))
+            : Result.Failure<CreditCardName>(InvalidLengthMessage);
 
     public override string ToString() => Value.ToString();
 }

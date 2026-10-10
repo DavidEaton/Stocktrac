@@ -31,22 +31,16 @@ public sealed class Person : Contactable
         IReadOnlyList<ContactPhone> phones,
         Maybe<Birthday> birthday = default,
         Maybe<DriversLicense> driversLicense = default,
-        Maybe<Address> address = default)
-    {
-        var contacts = ValidateContactCollections(phones, emails);
-
-        return Result.Combine(
-                Environment.NewLine,
-                name.AsRequired(),
-                contacts)
-            .Map(() => new Person(
-                name,
-                birthday,
-                driversLicense,
-                notes,
-                address,
-                contacts.Value));
-    }
+        Maybe<Address> address = default) =>
+        name.AsRequired()
+            .Bind(validName => ValidateContactCollections(phones, emails)
+                .Map(contacts => new Person(
+                    validName,
+                    birthday,
+                    driversLicense,
+                    notes,
+                    address,
+                    contacts)));
 
     public Result UpdateName(PersonName name) =>
         name is null

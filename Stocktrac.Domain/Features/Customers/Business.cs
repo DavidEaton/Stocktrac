@@ -31,8 +31,8 @@ public sealed class Business : Contactable
         Maybe<Person> contact,
         IReadOnlyList<ContactEmail> emails,
         IReadOnlyList<ContactPhone> phones) =>
-        Result.Success(
-            new Business(name, address, notes, contact, ValidateContactCollections(phones, emails).Value));
+        ValidateContactCollections(phones, emails)
+            .Map(contacts => new Business(name, address, notes, contact, contacts));
 
     public Result UpdateName(BusinessName name) =>
         Result.Success(

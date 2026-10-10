@@ -13,9 +13,9 @@ namespace Stocktrac.Domain.Features.Persons
             Number = number;
 
         public static Result<DriversLicenseNumber> Create(NonEmptyString number) =>
-            Result.Success(number)
-                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
-                .Map(value => new DriversLicenseNumber(value));
+            number.Value.Length <= MaximumLength
+                ? Result.Success(new DriversLicenseNumber(number))
+                : Result.Failure<DriversLicenseNumber>(InvalidLengthMessage);
 
         public static Result<DriversLicenseNumber> ReplaceNumber(NonEmptyString number) =>
             Create(number);

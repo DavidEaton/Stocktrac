@@ -11,6 +11,16 @@ public class PersonShould
     private static readonly DateOnly Today = new(2025, 6, 15);
 
     [Fact]
+    public void ReturnFirstError_On_Create_WhenNameAndContactsAreInvalid()
+    {
+        var result = Person.Create(null!,
+            Note.Create(NonEmptyString.Create("Notes").Value).Value, null!, null!);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(NonEmptyString.RequiredMessage);
+    }
+
+    [Fact]
     public void PreserveBirthday_On_Create_WhenBirthdayIsProvided()
     {
         var birthday = Birthday.Create(new DateOnly(1990, 6, 15), Today).Value;
