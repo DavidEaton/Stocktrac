@@ -6,16 +6,6 @@ namespace Stocktrac.Domain.Features.Employees;
 
 public sealed class Employee : Entity
 {
-    public static DateOnly StartDateMinimum(DateOnly date) =>
-        date.Year > 50
-            ? date.AddYears(-50)
-            : DateOnly.MinValue;
-
-    public static DateOnly EndDateMaximum(DateOnly date) =>
-        date.Year < 9999
-            ? date.AddYears(1)
-            : DateOnly.MaxValue;
-
     public const int MaximumNoteLength = 10000;
     public const int MaximumSSNLength = 12;
     public const int MaximumCertificationNumberLength = 20;
@@ -24,7 +14,6 @@ public sealed class Employee : Entity
     public static readonly double MaximumBenefitLoad = 100.0;
     public const string RequiredMessage = "Please include all required items.";
     public const string OptionalTextRequiredMessage = "Use the remove operation to clear an optional value.";
-    public const string DateRangeMessage = "Employment date(s) invalid.";
     public const string ActiveRoleAssignmentRequiredMessage = "An active employee must have at least one active role assignment.";
     public const string DuplicateRoleAssignmentMessage = "Each role assignment must be unique.";
     public const string RoleAssignmentNotFoundMessage = "Role assignment not found.";
@@ -37,9 +26,8 @@ public sealed class Employee : Entity
     public Maybe<Note> Notes { get; private set; }
     public SSN SSN { get; private set; }
     public Maybe<string> CertificationNumber { get; private set; } // TODO: This should be defined and probably a value object
-    public DateOnly Hired { get; private set; }
-    public Maybe<DateOnly> Exited { get; private set; }
-    public bool Active => !Exited.HasValue;
+    public EmploymentPeriod PeriodEmployed { get; private set; }
+    public bool Active => PeriodEmployed.Active;
     public Maybe<string> PrintedName { get; private set; } // TTODO: his should be defined and probably a value object
     public EmployeeExpenseCategory ExpenseCategory { get; private set; } = EmployeeExpenseCategory.CostOfDirectLabor;
     public double BenefitLoad { get; private set; } = 0.0; // TODO: This should be defined and probably a value object 
@@ -47,7 +35,7 @@ public sealed class Employee : Entity
     private Employee(Person personEmployed,
         IReadOnlyList<RoleAssignment> roleAssignments,
         SSN ssn,
-        DateOnly hired,
+        EmploymentPeriod periodEmployed,
         Note notes,
         Maybe<string> certificationNumber,
         Maybe<string> printedName,
@@ -56,7 +44,7 @@ public sealed class Employee : Entity
     {
         EmployedPerson = personEmployed;
         SSN = ssn;
-        Hired = hired;
+        PeriodEmployed = periodEmployed;
         Notes = notes;
         CertificationNumber = certificationNumber;
         PrintedName = printedName;
@@ -125,6 +113,7 @@ public sealed class Employee : Entity
         EmployeeExpenseCategory expenseCategory = EmployeeExpenseCategory.CostOfDirectLabor,
         double benefitLoad = 0.0)
     {
+        var periodEmployed = EmploymentPeriod.Create(hired, date);
         var normalizedCertificationNumber = certificationNumber.Map(value => value.Trim());
         var normalizedPrintedName = printedName.Map(value => value.Trim());
 
@@ -134,7 +123,7 @@ public sealed class Employee : Entity
                 ValidateRoleAssignments(roleAssignments, true, date),
                 Result.FailureIf(ssn is null, RequiredMessage),
                 Result.FailureIf(notes is null, RequiredMessage),
-                Result.FailureIf(!IsEmploymentDateWithinAllowedRange(hired, date), DateRangeMessage),
+                periodEmployed,
                 ValidateOptionalText(normalizedCertificationNumber, MaximumCertificationNumberLength),
                 ValidateOptionalText(normalizedPrintedName, MaximumPrintedNameLength),
                 ValidateExpenseCategory(expenseCategory),
@@ -143,7 +132,7 @@ public sealed class Employee : Entity
                 hiredPerson!,
                 roleAssignments!,
                 ssn!,
-                hired,
+                periodEmployed.Value,
                 notes!,
                 normalizedCertificationNumber,
                 normalizedPrintedName,
@@ -178,35 +167,20 @@ public sealed class Employee : Entity
             : Result.Failure<double>(BenefitLoadMessage);
     }
 
-    public Result<DateOnly> UpdateHired(DateOnly hired, DateOnly date)
-    {
-        if (!IsEmploymentDateWithinAllowedRange(hired, date))
-        {
-            return Result.Failure<DateOnly>(DateRangeMessage);
-        }
+    public Result<DateOnly> ReplaceHired(DateOnly hired, DateOnly date) =>
+        PeriodEmployed.ReplaceHired(hired, date)
+            .Bind(period => ValidateRoleAssignments(date).Map(() => period))
+            .Tap(period => PeriodEmployed = period)
+            .Map(period => period.Hired);
 
-        if (Exited.HasValue && hired > Exited.Value)
-        {
-            return Result.Failure<DateOnly>(DateRangeMessage);
-        }
-
-        return ValidateRoleAssignments(date)
-            .Map(() => Hired = hired);
-    }
-
-    public Result<DateOnly> UpdateExited(DateOnly exited, DateOnly date) =>
-        Result.Success(exited)
-            .Ensure(value => IsEmploymentDateWithinAllowedRange(value, date), DateRangeMessage)
-            .Ensure(value => value >= Hired, DateRangeMessage)
-            .Tap(value => Exited = value);
+    public Result<DateOnly> ReplaceExited(DateOnly exited, DateOnly date) =>
+        PeriodEmployed.ReplaceExited(exited, date)
+            .Tap(period => PeriodEmployed = period)
+            .Map(period => period.Exited.Value);
 
     public Result RemoveExited(DateOnly date) =>
         ValidateRoleAssignments(roleAssignments, true, date)
-            .Tap(() => Exited = Maybe<DateOnly>.None);
-
-    private static bool IsEmploymentDateWithinAllowedRange(DateOnly employmentDate, DateOnly date) =>
-        employmentDate >= StartDateMinimum(date) &&
-        employmentDate <= EndDateMaximum(date);
+            .Tap(() => PeriodEmployed = PeriodEmployed.RemoveExited());
 
     public Result UpdateNotes(Note notes) =>
         notes is null

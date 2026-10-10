@@ -50,8 +50,9 @@ transport seams, and all tracked project documentation, including
    the original union-refactoring scope. The subsequent
    [employee-role migration](employee-role-migration.md) adds explicit dates,
    immutable assignment values, and role hierarchy invariants without a new
-   lifecycle union. Hired/exited ordering still depends on validation; a
-   separate lifecycle design would be needed to justify a union.
+   lifecycle union. The subsequent [employment-period migration](employee-employment-period.md)
+   encapsulates hired/exited ordering in an immutable product value. A separate
+   lifecycle design would still be needed to justify a union.
 
 The following remain deliberately rejected:
 

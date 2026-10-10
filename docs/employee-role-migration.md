@@ -1,5 +1,9 @@
 # Employee and employment-role migration
 
+The subsequent [employment-period migration](employee-employment-period.md)
+combines employee dates into an immutable value and updates date APIs to DateOnly.
+The API examples and verification below describe this original migration.
+
 ## Repository baseline
 
 This change is based on fetched `origin/main` at
