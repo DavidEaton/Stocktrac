@@ -1,5 +1,9 @@
 # Customer and Vehicle native-union migration
 
+Customer has subsequently been consolidated into one public union. See
+[the consolidation report](customer-union-consolidation.md) for the current
+case APIs, identity semantics, and verification. Vehicle APIs remain as below.
+
 ## Scope and decisions
 
 This refactor follows the preliminary assessment in
@@ -12,7 +16,7 @@ No other aggregate, infrastructure, endpoint, or contract is redesigned.
 
 | Union | Domain concept and cases | Invalid states eliminated | Complexity removed |
 | --- | --- | --- | --- |
-| `CustomerEntity(Person, Business)` | The person or business that is a customer | Arbitrary customer implementations; a discriminator inconsistent with the actual entity; an unsupported implementation accepted by creation but rejected by mutations | Repeated case dispatch, discriminator validation, catch-all failures, unsupported-entity exception |
+| `Customer(PersonCustomer, BusinessCustomer)` | The person or business that is a customer | Arbitrary customer implementations; a discriminator inconsistent with the actual entity; an unsupported implementation accepted by creation but rejected by mutations | Repeated case dispatch, discriminator validation, catch-all failures, unsupported-entity exception |
 | `VehicleKind(TraditionalVehicleKind, NonTraditionalVehicleKind)` | A traditional road vehicle or non-traditional equipment being serviced | A successful traditional case without VIN, make, or model; a mode change independent of the data it requires; clearing the last non-traditional description | Parallel mode/VIN/make/model storage, boolean-controlled construction, procedural mode transitions, invalid EF placeholder construction |
 
 Customer has the lower migration risk and is prioritized first. Vehicle retains
@@ -23,9 +27,13 @@ which required fields belong together, rather than proving arbitrary strings val
 
 ## Important API changes
 
-- `Customer.Create`, `Customer.CustomerEntity`, and `UpdateCustomerEntity` use
-  `CustomerEntity`. Person and Business implicitly convert to it; arbitrary
-  interface implementations do not. Calls with `default` or a null case fail.
+- `Customer.Create` overloads accept a Person or Business plus classification
+  and optional code, returning the corresponding validated customer case.
+  Customer itself is the union; the CustomerEntity type/property and
+  UpdateCustomerEntity are removed. Use ReplacePerson or ReplaceBusiness and
+  retain the returned Customer. Only validated PersonCustomer/BusinessCustomer
+  cases implicitly convert to Customer. Customer.Validate and fallible
+  operations reject default/null-case unions.
 - `ICustomerEntity`, `EntityType`, and the discriminator properties on Customer,
   Person, and Business are removed. `UnsupportedEntityTypeMessage` and the
   unsupported-case branches/exception are removed. `CustomerType` is retained.
@@ -72,9 +80,11 @@ When these boundaries are introduced, use the following explicit mapping:
 1. **Customer storage:** keep a storage-only person/business discriminator and
    mutually exclusive PersonId/BusinessId foreign keys. A database check must
    require exactly the key corresponding to the discriminator. Load and validate
-   the referenced Person or Business, construct its native union, then call
-   Customer.Create. Unknown tags, missing references, or inconsistent columns
-   are mapping failures. Derive the tag and exclusive key from exhaustive union
+   the referenced Person or Business, call the corresponding
+   Customer.Create overload with classification and optional code, then validate
+   the returned Customer. Persist the shared customer identity and state
+   separately from the referenced Person/Business identity. Unknown tags,
+   missing references, or inconsistent columns are mapping failures. Derive the tag and exclusive key from exhaustive union
    matching on writes; do not store a second discriminator in the domain.
 2. **Vehicle storage:** use a storage-only kind tag (or legacy boolean), nullable
    VIN/make/model columns, and separate shared registration/lifecycle columns.
@@ -111,16 +121,19 @@ No further unions are introduced during the final review.
 
 ## Remaining limits
 
-Native union structs still allow default/null-case values. Customer and Vehicle
-reject them at aggregate construction and replacement; raw empty-union projections
-are not a supported domain operation. Nullable annotations can also be bypassed
+Native union structs still allow default/null-case values. Customer.Validate
+and fallible Customer operations reject them, as do Vehicle aggregate factories
+and replacements; raw empty-union projections are not a supported domain operation. Nullable annotations can also be bypassed
 in existing Person/Business/contact factories; their pre-existing validation gaps
 are outside this refactor. Existing employment date ordering and other aggregate
 invariants continue to rely on procedural checks. VIN validation still enforces
 the existing 17-character rule, without adding checksum/character validation.
 Year validity is checked against the current date when constructed or updated.
 
-## Verification
+## Original union migration verification
+
+These results describe the original migration before Customer consolidation.
+Current Customer verification is in the linked consolidation report.
 
 - Native declaration/implicit-conversion/exhaustive-match executable probe: passed.
 - Separate consumer project matching both cases of the actual domain unions:
