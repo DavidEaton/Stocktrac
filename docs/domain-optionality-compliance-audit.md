@@ -6,6 +6,8 @@ The review covered public state, construction, mutation, and collections under
 ## Result
 
 - Optional domain state uses `Maybe<T>`; collections are non-null snapshots.
+  The explicitly required `EmploymentRole.Empty` superior sentinel is the
+  documented exception; see [the employee-role migration](employee-role-migration.md).
 - Required APIs stay non-nullable, with some defensive runtime null checks.
 - Infallible mutations no longer return success-only `Result` values.
 - Contact creation and replacement validate uniqueness and primary cardinality

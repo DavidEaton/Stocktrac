@@ -25,6 +25,15 @@ Domain types must make absence explicit:
   is acceptable only when it cannot escape or weaken an invariant.
 - Do not combine absence models (for example, `Maybe<T?>`).
 
+### Employment-role superior exception
+
+The employment-role model explicitly represents an absent superior with the
+singleton `EmploymentRole.Empty`. `SuperiorRole` remains non-nullable and never
+uses null or `Maybe<T>` alongside this sentinel. Empty is always inactive, has
+no subordinates, cannot be assigned, and must not be persisted. All other optional
+domain values retain the `Maybe<T>` policy. See the
+[employee-role migration](../docs/employee-role-migration.md).
+
 ## Review checklist
 
 - [ ] Every public member has one clear absence model.
