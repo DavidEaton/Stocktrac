@@ -287,15 +287,15 @@ public class EmploymentRoleShould
     {
         var role = CreateRole();
 
-        role.IsActive(Range.Start.AddDays(days).ToDateTime(new TimeOnly(23, 59))).ShouldBe(expectedActive);
+        role.IsActive(Range.Start.AddDays(days)).ShouldBe(expectedActive);
     }
 
     [Fact]
     public void RemainInactive_On_IsActive_WhenRoleIsEmpty()
     {
-        EmploymentRole.Empty.IsActive(new DateTime(2025, 1, 15)).ShouldBeFalse();
-        EmploymentRole.Empty.IsActive(DateTime.MinValue).ShouldBeFalse();
-        EmploymentRole.Empty.IsActive(DateTime.MaxValue).ShouldBeFalse();
+        EmploymentRole.Empty.IsActive(new DateOnly(2025, 1, 15)).ShouldBeFalse();
+        EmploymentRole.Empty.IsActive(DateOnly.MinValue).ShouldBeFalse();
+        EmploymentRole.Empty.IsActive(DateOnly.MaxValue).ShouldBeFalse();
     }
 
     [Fact]

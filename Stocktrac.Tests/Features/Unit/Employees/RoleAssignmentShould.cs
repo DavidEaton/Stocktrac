@@ -62,16 +62,15 @@ public class RoleAssignmentShould
     }
 
     [Theory]
-    [InlineData(-1, 12, false)]
-    [InlineData(0, 0, true)]
-    [InlineData(0, 23, true)]
-    [InlineData(5, 23, true)]
-    [InlineData(6, 0, false)]
-    public void EvaluateActivity_On_IsActive_UsingSuppliedDate(int days, int hours, bool expectedActive)
+    [InlineData(-1, false)]
+    [InlineData(0, true)]
+    [InlineData(5, true)]
+    [InlineData(6, false)]
+    public void EvaluateActivity_On_IsActive_UsingSuppliedDate(int days, bool expectedActive)
     {
         var range = CreateRange(Start, Start.AddDays(5));
         var assignment = RoleAssignment.Create(CreateRole(range), range).Value;
-        var date = Start.AddDays(days).ToDateTime(new TimeOnly(hours, 59));
+        var date = Start.AddDays(days);
 
         assignment.IsActive(date).ShouldBe(expectedActive);
         if (expectedActive)

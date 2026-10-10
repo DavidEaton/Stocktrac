@@ -9,26 +9,26 @@ namespace Stocktrac.Tests.Features.Unit.Employees;
 
 public class EmployeeShould
 {
-    private static readonly DateTime ReferenceDate = new(2025, 1, 15);
+    private static readonly DateOnly ReferenceDate = new(2025, 1, 15);
 
     [Fact]
-    public void StoreExitDate_On_UpdateExited_WhenDateIsValid()
+    public void StoreExitDate_On_ReplaceExited_WhenDateIsValid()
     {
         var employee = CreateEmployee();
         var exitDate = ReferenceDate;
 
-        var result = employee.UpdateExited(exitDate, ReferenceDate);
+        var result = employee.ReplaceExited(exitDate, ReferenceDate);
 
         result.IsSuccess.ShouldBeTrue();
-        employee.Exited.Value.ShouldBe(exitDate);
+        employee.PeriodEmployed.Exited.Value.ShouldBe(exitDate);
     }
 
     [Fact]
-    public void BecomeInactive_On_UpdateExited_WhenDateIsValid()
+    public void BecomeInactive_On_ReplaceExited_WhenDateIsValid()
     {
         var employee = CreateEmployee();
 
-        employee.UpdateExited(ReferenceDate, ReferenceDate);
+        employee.ReplaceExited(ReferenceDate, ReferenceDate);
 
         employee.Active.ShouldBeFalse();
     }
@@ -37,18 +37,18 @@ public class EmployeeShould
     public void RemoveExitDate_On_RemoveExited_WhenExitDateExists()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate);
+        employee.ReplaceExited(ReferenceDate, ReferenceDate);
 
         employee.RemoveExited(ReferenceDate).IsSuccess.ShouldBeTrue();
 
-        employee.Exited.HasNoValue.ShouldBeTrue();
+        employee.PeriodEmployed.Exited.HasNoValue.ShouldBeTrue();
     }
 
     [Fact]
     public void BecomeActive_On_RemoveExited_WhenExitDateExists()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate);
+        employee.ReplaceExited(ReferenceDate, ReferenceDate);
 
         employee.RemoveExited(ReferenceDate).IsSuccess.ShouldBeTrue();
 
@@ -270,7 +270,7 @@ public class EmployeeShould
     public void RemoveLastAssignment_On_RemoveRoleAssignment_WhenEmployeeIsInactive()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
 
         var result = employee.RemoveRoleAssignment(employee.RoleAssignments.Single(), ReferenceDate);
 
@@ -283,7 +283,7 @@ public class EmployeeShould
     public void AllowEmptyAssignments_On_ReplaceRoleAssignments_WhenEmployeeIsInactive()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
 
         var result = employee.ReplaceRoleAssignments([], ReferenceDate);
 
@@ -296,13 +296,13 @@ public class EmployeeShould
     public void ReturnFailureAndPreserveExitDate_On_RemoveExited_WhenNoActiveAssignmentExists()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
         employee.ReplaceRoleAssignments([], ReferenceDate).IsSuccess.ShouldBeTrue();
 
         var result = employee.RemoveExited(ReferenceDate);
 
         result.IsFailure.ShouldBeTrue();
-        employee.Exited.Value.ShouldBe(ReferenceDate);
+        employee.PeriodEmployed.Exited.Value.ShouldBe(ReferenceDate);
         employee.Active.ShouldBeFalse();
     }
 
@@ -310,19 +310,19 @@ public class EmployeeShould
     public void ReturnFailureAndPreserveExitDate_On_RemoveExited_WhenAssignmentsHaveExpired()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
 
         var result = employee.RemoveExited(ReferenceDate.AddDays(11));
 
         result.IsFailure.ShouldBeTrue();
-        employee.Exited.Value.ShouldBe(ReferenceDate);
+        employee.PeriodEmployed.Exited.Value.ShouldBe(ReferenceDate);
     }
 
     [Fact]
     public void BecomeActive_On_RemoveExited_AfterAddingActiveAssignment()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
         employee.ReplaceRoleAssignments([], ReferenceDate).IsSuccess.ShouldBeTrue();
         employee.AddRoleAssignment(CreateAssignment(), ReferenceDate).IsSuccess.ShouldBeTrue();
 
@@ -361,57 +361,57 @@ public class EmployeeShould
     [InlineData(-50, -1, false)]
     [InlineData(1, 0, true)]
     [InlineData(1, 1, false)]
-    public void ValidateHireDateAndPreserveState_On_UpdateHired_UsingSuppliedDateBoundaries(int years, int days, bool expectedSuccess)
+    public void ValidateHireDateAndPreserveState_On_ReplaceHired_UsingSuppliedDateBoundaries(int years, int days, bool expectedSuccess)
     {
         var employee = CreateEmployee();
-        var original = employee.Hired;
+        var original = employee.PeriodEmployed.Hired;
         var hired = ReferenceDate.AddYears(years).AddDays(days);
 
-        var result = employee.UpdateHired(hired, ReferenceDate);
+        var result = employee.ReplaceHired(hired, ReferenceDate);
 
         result.IsSuccess.ShouldBe(expectedSuccess);
-        employee.Hired.ShouldBe(expectedSuccess ? hired : original);
+        employee.PeriodEmployed.Hired.ShouldBe(expectedSuccess ? hired : original);
     }
 
     [Fact]
-    public void ReturnFailureAndPreserveHireDate_On_UpdateHired_WhenAssignmentsHaveExpired()
+    public void ReturnFailureAndPreserveHireDate_On_ReplaceHired_WhenAssignmentsHaveExpired()
     {
         var employee = CreateEmployee();
-        var original = employee.Hired;
+        var original = employee.PeriodEmployed.Hired;
 
-        var result = employee.UpdateHired(ReferenceDate, ReferenceDate.AddDays(11));
+        var result = employee.ReplaceHired(ReferenceDate, ReferenceDate.AddDays(11));
 
         result.IsFailure.ShouldBeTrue();
-        employee.Hired.ShouldBe(original);
+        employee.PeriodEmployed.Hired.ShouldBe(original);
     }
 
     [Fact]
-    public void ReturnFailureAndPreserveHireDate_On_UpdateHired_WhenHireDateFollowsExit()
+    public void ReturnFailureAndPreserveHireDate_On_ReplaceHired_WhenHireDateFollowsExit()
     {
         var employee = CreateEmployee();
-        var original = employee.Hired;
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        var original = employee.PeriodEmployed.Hired;
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
 
-        var result = employee.UpdateHired(ReferenceDate.AddDays(1), ReferenceDate);
+        var result = employee.ReplaceHired(ReferenceDate.AddDays(1), ReferenceDate);
 
         result.IsFailure.ShouldBeTrue();
-        employee.Hired.ShouldBe(original);
+        employee.PeriodEmployed.Hired.ShouldBe(original);
     }
 
     [Fact]
-    public void ReturnFailureAndPreserveExitDate_On_UpdateExited_WhenNewDateIsInvalid()
+    public void ReturnFailureAndPreserveExitDate_On_ReplaceExited_WhenNewDateIsInvalid()
     {
         var employee = CreateEmployee();
-        employee.UpdateExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
 
-        var result = employee.UpdateExited(ReferenceDate.AddDays(-2), ReferenceDate);
+        var result = employee.ReplaceExited(ReferenceDate.AddDays(-2), ReferenceDate);
 
         result.IsFailure.ShouldBeTrue();
-        employee.Exited.Value.ShouldBe(ReferenceDate);
+        employee.PeriodEmployed.Exited.Value.ShouldBe(ReferenceDate);
     }
 
     [Fact]
-    public void UseCalendarDateBounds_On_Create_WhenEvaluationDateIncludesTime()
+    public void UseSuppliedDateBounds_On_Create_WhenHireDateIsAtMinimum()
     {
         var result = Employee.Create(
             CreatePerson(),
@@ -419,7 +419,7 @@ public class EmployeeShould
             SSN.Create(NonEmptyString.Create("123-45-6789").Value).Value,
             ReferenceDate.AddYears(-50),
             Note.Create(NonEmptyString.Create("No notes").Value).Value,
-            ReferenceDate.AddHours(23));
+            ReferenceDate);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -430,17 +430,17 @@ public class EmployeeShould
     [InlineData(0, true)]
     [InlineData(365, true)]
     [InlineData(366, false)]
-    public void ValidateExitDateAndPreserveState_On_UpdateExited_UsingSuppliedDateBoundaries(int days, bool expectedSuccess)
+    public void ValidateExitDateAndPreserveState_On_ReplaceExited_UsingSuppliedDateBoundaries(int days, bool expectedSuccess)
     {
         var employee = CreateEmployee();
         var exited = ReferenceDate.AddDays(days);
 
-        var result = employee.UpdateExited(exited, ReferenceDate);
+        var result = employee.ReplaceExited(exited, ReferenceDate);
 
         result.IsSuccess.ShouldBe(expectedSuccess);
-        employee.Exited.HasValue.ShouldBe(expectedSuccess);
+        employee.PeriodEmployed.Exited.HasValue.ShouldBe(expectedSuccess);
         if (expectedSuccess)
-            employee.Exited.Value.ShouldBe(exited);
+            employee.PeriodEmployed.Exited.Value.ShouldBe(exited);
     }
 
     [Theory]
@@ -448,17 +448,56 @@ public class EmployeeShould
     [InlineData(9999)]
     public void ReturnSupportedDateBounds_On_StartDateMinimumAndEndDateMaximum_WhenReferenceDateIsExtreme(int year)
     {
-        var date = new DateTime(year, 1, 1);
+        var date = new DateOnly(year, 1, 1);
 
-        Employee.StartDateMinimum(date).ShouldBeLessThanOrEqualTo(date);
-        Employee.EndDateMaximum(date).ShouldBeGreaterThanOrEqualTo(date);
+        EmploymentPeriod.StartDateMinimum(date).ShouldBeLessThanOrEqualTo(date);
+        EmploymentPeriod.EndDateMaximum(date).ShouldBeGreaterThanOrEqualTo(date);
     }
 
-    private static RoleAssignment CreateAssignment(DateTime? start = null, DateTime? end = null)
+    [Fact]
+    public void PreserveWholePeriod_On_ReplaceHired_WhenAssignmentValidationFails()
+    {
+        var employee = CreateEmployee();
+        var original = employee.PeriodEmployed;
+
+        var result = employee.ReplaceHired(ReferenceDate, ReferenceDate.AddDays(11));
+
+        result.IsFailure.ShouldBeTrue();
+        employee.PeriodEmployed.ShouldBeSameAs(original);
+    }
+
+    [Fact]
+    public void PreserveWholePeriod_On_RemoveExited_WhenReactivationFails()
+    {
+        var employee = CreateEmployee();
+        employee.ReplaceExited(ReferenceDate, ReferenceDate).IsSuccess.ShouldBeTrue();
+        var original = employee.PeriodEmployed;
+
+        var result = employee.RemoveExited(ReferenceDate.AddDays(11));
+
+        result.IsFailure.ShouldBeTrue();
+        employee.PeriodEmployed.ShouldBeSameAs(original);
+    }
+
+    [Fact]
+    public void PreservePreviouslyReadPeriod_On_ReplaceExited_WhenDateIsValid()
+    {
+        var employee = CreateEmployee();
+        var original = employee.PeriodEmployed;
+
+        var result = employee.ReplaceExited(ReferenceDate, ReferenceDate);
+
+        result.IsSuccess.ShouldBeTrue();
+        employee.PeriodEmployed.ShouldNotBeSameAs(original);
+        employee.PeriodEmployed.Hired.ShouldBe(original.Hired);
+        original.Exited.HasNoValue.ShouldBeTrue();
+    }
+
+    private static RoleAssignment CreateAssignment(DateOnly? start = null, DateOnly? end = null)
     {
         var range = DateRange.Create(
-            DateOnly.FromDateTime(start ?? ReferenceDate.AddDays(-10)),
-            DateOnly.FromDateTime(end ?? ReferenceDate.AddDays(10))).Value;
+            start ?? ReferenceDate.AddDays(-10),
+            end ?? ReferenceDate.AddDays(10)).Value;
         var role = EmploymentRole.Create(
             NonEmptyString.Create("Technician").Value,
             NonEmptyString.Create("Services vehicles").Value,
@@ -469,7 +508,7 @@ public class EmployeeShould
     }
 
     private static Result<Employee> CreateEmployeeResult(
-        IReadOnlyList<RoleAssignment> assignments, DateTime? hired = null) =>
+        IReadOnlyList<RoleAssignment> assignments, DateOnly? hired = null) =>
         Employee.Create(
             CreatePerson(),
             assignments,

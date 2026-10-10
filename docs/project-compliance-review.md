@@ -16,6 +16,9 @@ the contact-collection design, and the test-naming guidance.
   The [employee-role migration](employee-role-migration.md) introduces entity
   identity for EmploymentRole, immutable RoleAssignment values, validated
   subordinate relationships, and caller-supplied dates for employee validation.
+- Employee now owns an immutable EmploymentPeriod with required hire and optional
+  exit dates. Date validation belongs to that value; role-dependent changes remain
+  on the aggregate. See [the employment-period migration](employee-employment-period.md).
 - Tenant logo URLs follow the same explicit update/remove contract and cannot
   store a blank string as a present optional value.
 - Vehicle plates, unit numbers, and colors use that contract as well; blank

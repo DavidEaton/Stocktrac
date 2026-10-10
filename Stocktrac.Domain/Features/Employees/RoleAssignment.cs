@@ -19,6 +19,8 @@ public sealed record RoleAssignment
 
     public static Result<RoleAssignment> Create(EmploymentRole role, DateRange periodAssigned) =>
         Result.Success(role)
+            .Ensure(value => value is not null && periodAssigned is not null, RequiredMessage)
+            .Ensure(value => !ReferenceEquals(value, EmploymentRole.Empty), InvalidRoleMessage)
             .Ensure(value =>
                 periodAssigned.IsWithin(value.ValidDateRange), InvalidPeriodMessage)
             .Map(value => new RoleAssignment(value, periodAssigned));
