@@ -6,7 +6,9 @@ This change is based on fetched `origin/main` at
 `6cf2c88`, which already exposes `SubordinateRoles` as `IReadOnlyList`.
 It preserves that snapshot API and supplies validated construction and hierarchy
 operations. `Person` already has neither `ICustomerEntity` nor `EntityType`;
-Person, Business, and CustomerEntity are unchanged from this base revision.
+Person, Business, and CustomerEntity were unchanged in that migration. The
+subsequent [Customer consolidation](customer-union-consolidation.md) replaces
+CustomerEntity and the Customer class with a single Customer union.
 
 ## Model and invariants
 

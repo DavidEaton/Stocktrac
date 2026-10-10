@@ -22,9 +22,15 @@ the contact-collection design, and the test-naming guidance.
   present values fail without mutation rather than becoming hidden absence.
 - Contact collection replacement continues to validate complete input before
   mutation, as described in the collection design.
-- Customer entity alternatives and Vehicle kinds now use verified native C#
-  unions. Aggregate boundaries reject default/null-case unions; Vehicle case
-  properties are immutable and validated before aggregate assignment. Optional
+- Customer is one native union with PersonCustomer and BusinessCustomer cases.
+  The former Customer class and CustomerEntity union are consolidated. Required
+  Person/Business references and shared aggregate state are encapsulated. Case
+  replacement returns a new Customer while preserving customer identity, code,
+  classification, preferences, and vehicle membership. Customer.Validate and
+  fallible operations reject default/null cases. See the
+  [consolidation report](customer-union-consolidation.md).
+- Vehicle kinds use a verified native C# union. Aggregate boundaries reject
+  default/null-case unions; Vehicle case properties are immutable and validated before aggregate assignment. Optional
   non-traditional descriptions use `Maybe<string>` with explicit removal.
   Shared Vehicle identity, lifecycle, and registration state remain on the
   aggregate. See [the scoped migration report](customer-vehicle-union-migration.md)
@@ -52,6 +58,8 @@ placed there because contracts may use nullable transport values.
 - Employee and tenant tests assert both the failure result and unchanged state
   for invalid mutations.
 - New and touched test names use the documented outcome-first naming pattern.
+- Customer tests cover both cases, case replacement, aggregate identity, shared
+  reference state, collection snapshots, empty unions, and atomic failures.
 - Employee-role tests cover activity at fixed dates, value and entity equality,
   hierarchy consistency, cycles, collection validation, and failed reactivation.
 

@@ -12,99 +12,175 @@ public class CustomerShould
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void ExposeEntityDetails_On_Create_ForEitherCase(bool business)
+    public void ExposeCustomerDetails_On_Create_ForEitherCase(bool business)
     {
-        var entity = CreateEntity(business);
-
-        var result = Customer.Create(entity, CustomerType.Retail, Maybe<CustomerCode>.None);
+        var result = CreateCustomerResult(business, CustomerType.Retail, Maybe<CustomerCode>.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.CustomerEntity.Value.ShouldBeSameAs(entity.Value);
-        result.Value.Name.ShouldBe(entity.Name);
-        result.Value.Notes.ShouldBe(CreateNote());
-        result.Value.Address.HasNoValue.ShouldBeTrue();
-        result.Value.Code.HasNoValue.ShouldBeTrue();
-        result.Value.Phones.ShouldBeEmpty();
-        result.Value.Emails.ShouldBeEmpty();
-        result.Value.ContactPreferences.AllowMail.ShouldBeTrue();
-        result.Value.ContactPreferences.AllowEmail.ShouldBeTrue();
-        result.Value.ContactPreferences.AllowSms.ShouldBeTrue();
+        var customer = result.Value;
+        customer.Validate().IsSuccess.ShouldBeTrue();
+        var name = customer switch
+        {
+            PersonCustomer person => person.Person.ToString(),
+            BusinessCustomer company => company.Business.ToString()
+        };
+        customer.Name.ShouldBe(name);
+        customer.Notes.ShouldBe(CreateNote());
+        customer.Address.HasNoValue.ShouldBeTrue();
+        customer.Code.HasNoValue.ShouldBeTrue();
+        customer.CustomerType.ShouldBe(CustomerType.Retail);
+        customer.Phones.ShouldBeEmpty();
+        customer.Emails.ShouldBeEmpty();
+        customer.Vehicles.ShouldBeEmpty();
+        customer.ContactPreferences.AllowMail.ShouldBeTrue();
+        customer.ContactPreferences.AllowEmail.ShouldBeTrue();
+        customer.ContactPreferences.AllowSms.ShouldBeTrue();
     }
 
     [Fact]
-    public void ReturnFailure_On_Create_WhenEntityIsDefault() =>
-        Customer.Create(default, CustomerType.Retail, Maybe<CustomerCode>.None)
+    public void ReturnFailure_On_Create_WhenPersonIsNull() =>
+        Customer.Create((Person)null!, CustomerType.Retail, Maybe<CustomerCode>.None)
+            .Error.ShouldBe(Customer.RequiredMessage);
+
+    [Fact]
+    public void ReturnFailure_On_Create_WhenBusinessIsNull() =>
+        Customer.Create((Business)null!, CustomerType.Retail, Maybe<CustomerCode>.None)
             .Error.ShouldBe(Customer.RequiredMessage);
 
     [Theory]
-    [InlineData(true)]
     [InlineData(false)]
-    public void ReturnFailure_On_Create_WhenEntityCaseIsNull(bool business)
-    {
-        CustomerEntity entity = business
-            ? new CustomerEntity((Business)null!)
-            : new CustomerEntity((Person)null!);
-
-        Customer.Create(entity, CustomerType.Retail, Maybe<CustomerCode>.None)
-            .Error.ShouldBe(Customer.RequiredMessage);
-    }
-
-    [Fact]
-    public void ReturnFailure_On_Create_WhenCustomerTypeIsUndefined() =>
-        Customer.Create(CreateEntity(false), (CustomerType)999, Maybe<CustomerCode>.None)
+    [InlineData(true)]
+    public void ReturnFailure_On_Create_WhenCustomerTypeIsUndefined(bool business) =>
+        CreateCustomerResult(business, (CustomerType)999, Maybe<CustomerCode>.None)
             .Error.ShouldBe(Customer.UnknownCustomerTypeMessage);
 
     [Theory]
-    [InlineData(true)]
     [InlineData(false)]
-    public void ReplaceEntityAndPreserveAggregateState_On_UpdateCustomerEntity(bool business)
+    [InlineData(true)]
+    public void PreserveAggregateState_On_ReplacePerson_ForEitherCase(bool business)
     {
-        var code = CustomerCode.Create(NonEmptyString.Create("CUST-100").Value).Value;
-        var customer = Customer.Create(CreateEntity(!business), CustomerType.Fleet, code).Value;
-        var vehicle = Vehicle.Create(
-            TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
-            Maybe<int>.None, Maybe<string>.None, Maybe<State>.None,
-            Maybe<string>.None, Maybe<string>.None).Value;
-        customer.AddVehicle(vehicle);
-        var replacement = CreateEntity(business);
+        var customer = CreateCustomerWithVehicle(business);
         var originalId = customer.Id;
+        var person = CreatePerson();
+        person.ReplaceAddress(CreateAddress());
+        person.AddPhone(CreatePhone("5551234567"));
+        person.AddEmail(CreateEmail("jane@example.com"));
 
-        var result = customer.UpdateCustomerEntity(replacement);
+        var result = customer.ReplacePerson(person);
 
         result.IsSuccess.ShouldBeTrue();
-        customer.CustomerEntity.Value.ShouldBeSameAs(replacement.Value);
-        customer.Name.ShouldBe(replacement.Name);
-        customer.CustomerType.ShouldBe(CustomerType.Fleet);
-        customer.Code.Value.ShouldBe(code);
-        customer.Vehicles.ShouldBe(new[] { vehicle });
-        customer.Id.ShouldBe(originalId);
-    }
-
-    [Fact]
-    public void PreserveEntity_On_UpdateCustomerEntity_WhenEntityIsDefault()
-    {
-        var customer = CreateCustomer(false);
-        var original = customer.CustomerEntity.Value;
-
-        customer.UpdateCustomerEntity(default).Error.ShouldBe(Customer.RequiredMessage);
-
-        customer.CustomerEntity.Value.ShouldBeSameAs(original);
+        var replacement = result.Value;
+        (replacement switch
+        {
+            PersonCustomer individual => individual.Person,
+            BusinessCustomer => throw new Xunit.Sdk.XunitException("Expected a person customer.")
+        }).ShouldBeSameAs(person);
+        replacement.Name.ShouldBe(person.ToString());
+        replacement.Address.ShouldBe(person.Address);
+        replacement.Phones.ShouldBe(person.Phones);
+        replacement.Emails.ShouldBe(person.Emails);
+        replacement.CustomerType.ShouldBe(CustomerType.Fleet);
+        replacement.Code.ShouldBe(customer.Code);
+        replacement.ContactPreferences.ShouldBe(customer.ContactPreferences);
+        replacement.Vehicles.ShouldBe(customer.Vehicles);
+        replacement.Id.ShouldBe(originalId);
+        replacement.ShouldBe(customer);
+        replacement.GetHashCode().ShouldBe(customer.GetHashCode());
     }
 
     [Theory]
-    [InlineData(true)]
     [InlineData(false)]
-    public void PreserveEntity_On_UpdateCustomerEntity_WhenCaseIsNull(bool business)
+    [InlineData(true)]
+    public void PreserveAggregateState_On_ReplaceBusiness_ForEitherCase(bool business)
     {
-        var customer = CreateCustomer(false);
-        var original = customer.CustomerEntity.Value;
-        CustomerEntity entity = business
-            ? new CustomerEntity((Business)null!)
-            : new CustomerEntity((Person)null!);
+        var customer = CreateCustomerWithVehicle(business);
+        var company = CreateBusiness();
+        company.ReplaceAddress(CreateAddress());
+        company.AddPhone(CreatePhone("5551234567"));
+        company.AddEmail(CreateEmail("acme@example.com"));
 
-        customer.UpdateCustomerEntity(entity).Error.ShouldBe(Customer.RequiredMessage);
+        var result = customer.ReplaceBusiness(company);
 
-        customer.CustomerEntity.Value.ShouldBeSameAs(original);
+        result.IsSuccess.ShouldBeTrue();
+        var replacement = result.Value;
+        (replacement switch
+        {
+            PersonCustomer => throw new Xunit.Sdk.XunitException("Expected a business customer."),
+            BusinessCustomer commercial => commercial.Business
+        }).ShouldBeSameAs(company);
+        replacement.Name.ShouldBe(company.ToString());
+        replacement.Address.ShouldBe(company.Address);
+        replacement.Phones.ShouldBe(company.Phones);
+        replacement.Emails.ShouldBe(company.Emails);
+        replacement.CustomerType.ShouldBe(CustomerType.Fleet);
+        replacement.Code.ShouldBe(customer.Code);
+        replacement.ContactPreferences.ShouldBe(customer.ContactPreferences);
+        replacement.Vehicles.ShouldBe(customer.Vehicles);
+        replacement.Id.ShouldBe(customer.Id);
+        replacement.ShouldBe(customer);
+        replacement.GetHashCode().ShouldBe(customer.GetHashCode());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveCustomer_On_ReplacePerson_WhenPersonIsNull(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var original = customer.Value;
+        var vehicles = customer.Vehicles;
+
+        customer.ReplacePerson(null!).Error.ShouldBe(Customer.RequiredMessage);
+
+        customer.Value.ShouldBeSameAs(original);
+        customer.Vehicles.ShouldBe(vehicles);
+        customer.CustomerType.ShouldBe(CustomerType.Fleet);
+        customer.Code.HasValue.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveCustomer_On_ReplaceBusiness_WhenBusinessIsNull(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var original = customer.Value;
+        var vehicles = customer.Vehicles;
+
+        customer.ReplaceBusiness(null!).Error.ShouldBe(Customer.RequiredMessage);
+
+        customer.Value.ShouldBeSameAs(original);
+        customer.Vehicles.ShouldBe(vehicles);
+        customer.CustomerType.ShouldBe(CustomerType.Fleet);
+        customer.Code.HasValue.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ReturnFailure_On_Validate_WhenCustomerIsEmpty(int representation) =>
+        CreateEmptyCustomer(representation).Validate().Error.ShouldBe(Customer.RequiredMessage);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ReturnFailure_On_Mutations_WhenCustomerIsEmpty(int representation)
+    {
+        var customer = CreateEmptyCustomer(representation);
+
+        customer.ReplacePerson(CreatePerson()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.ReplaceBusiness(CreateBusiness()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.UpdateAddress(CreateAddress()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.UpdateCustomerType(CustomerType.Fleet).Error.ShouldBe(Customer.RequiredMessage);
+        customer.UpdateCode(CreateCode()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.AddVehicle(CreateVehicle()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.RemoveVehicle(CreateVehicle()).Error.ShouldBe(Customer.RequiredMessage);
+        customer.AddPhone(CreatePhone("5551234567")).Error.ShouldBe(Customer.RequiredMessage);
+        customer.RemovePhone(CreatePhone("5551234567")).Error.ShouldBe(Customer.RequiredMessage);
+        customer.AddEmail(CreateEmail("jane@example.com")).Error.ShouldBe(Customer.RequiredMessage);
+        customer.RemoveEmail(CreateEmail("jane@example.com")).Error.ShouldBe(Customer.RequiredMessage);
     }
 
     [Theory]
@@ -227,14 +303,231 @@ public class CustomerShould
         customer.Emails.ShouldBeEmpty();
     }
 
-    private static Customer CreateCustomer(bool business) =>
-        Customer.Create(CreateEntity(business), CustomerType.Retail, Maybe<CustomerCode>.None).Value;
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveCustomerType_On_UpdateCustomerType_WhenTypeIsUndefined(bool business)
+    {
+        var customer = CreateCustomer(business);
 
-    private static CustomerEntity CreateEntity(bool business) => business
-        ? Business.Create(BusinessName.Create(NonEmptyString.Create("Acme Repair").Value).Value,
-            Maybe<Address>.None, CreateNote(), Maybe<Person>.None, [], []).Value
-        : Person.Create(PersonName.Create(NonEmptyString.Create("Doe").Value,
+        customer.UpdateCustomerType((CustomerType)999).Error.ShouldBe(Customer.UnknownCustomerTypeMessage);
+
+        customer.CustomerType.ShouldBe(CustomerType.Retail);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ReplaceCustomerType_On_UpdateCustomerType_WhenTypeIsValid(bool business)
+    {
+        var customer = CreateCustomer(business);
+
+        customer.UpdateCustomerType(CustomerType.Fleet).IsSuccess.ShouldBeTrue();
+
+        customer.CustomerType.ShouldBe(CustomerType.Fleet);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveCode_On_UpdateCode_WhenCodeIsNull(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var original = customer.Code;
+
+        customer.UpdateCode(null!).Error.ShouldBe(Customer.RequiredMessage);
+
+        customer.Code.ShouldBe(original);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SetCode_On_UpdateCode_WhenCodeIsValid(bool business)
+    {
+        var customer = CreateCustomer(business);
+        var code = CreateCode();
+
+        customer.UpdateCode(code).IsSuccess.ShouldBeTrue();
+
+        customer.Code.Value.ShouldBeSameAs(code);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ClearCode_On_RemoveCode_WhenCodeExists(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+
+        customer.RemoveCode();
+
+        customer.Code.HasNoValue.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveVehicles_On_AddVehicle_WhenVehicleIsDuplicate(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var vehicle = customer.Vehicles.Single();
+        var snapshot = customer.Vehicles;
+
+        customer.AddVehicle(vehicle).IsFailure.ShouldBeTrue();
+
+        customer.Vehicles.ShouldBe(new[] { vehicle });
+        customer.RemoveVehicle(vehicle).IsSuccess.ShouldBeTrue();
+        customer.Vehicles.ShouldBeEmpty();
+        snapshot.ShouldBe(new[] { vehicle });
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveVehicles_On_RemoveVehicle_WhenVehicleIsMissing(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var snapshot = customer.Vehicles;
+
+        customer.RemoveVehicle(CreateVehicle()).Error.ShouldBe(Contactable.NotFoundMessage);
+
+        customer.Vehicles.ShouldBe(snapshot);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveVehicles_On_VehicleMutations_WhenVehicleIsNull(bool business)
+    {
+        var customer = CreateCustomerWithVehicle(business);
+        var snapshot = customer.Vehicles;
+
+        customer.AddVehicle(null!).Error.ShouldBe(Customer.RequiredMessage);
+        customer.RemoveVehicle(null!).Error.ShouldBe(Customer.RequiredMessage);
+
+        customer.Vehicles.ShouldBe(snapshot);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CompareByCustomerIdentity_On_Equals_WhenSubjectsHaveIdenticalValues(bool business)
+    {
+        var first = CreateCustomer(business);
+        var second = CreateCustomer(business);
+        var copy = first;
+
+        first.Equals(second).ShouldBeFalse();
+        (first == second).ShouldBeFalse();
+        (first != second).ShouldBeTrue();
+        first.Equals(copy).ShouldBeTrue();
+        first.Equals((object)copy).ShouldBeTrue();
+        first.Equals((object?)null).ShouldBeFalse();
+        first.Equals(new object()).ShouldBeFalse();
+        first.GetHashCode().ShouldBe(copy.GetHashCode());
+    }
+
+    [Fact]
+    public void CompareByCustomerIdentity_On_Equals_WhenCustomersReferToTheSamePerson()
+    {
+        var person = CreatePerson();
+        var first = Customer.Create(person, CustomerType.Retail, Maybe<CustomerCode>.None).Value;
+        var second = Customer.Create(person, CustomerType.Retail, Maybe<CustomerCode>.None).Value;
+
+        first.Equals(second).ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void CompareSafely_On_Equals_WhenCustomerIsEmpty(int representation)
+    {
+        var empty = CreateEmptyCustomer(representation);
+        var customer = CreateCustomer(false);
+
+        empty.Equals(default(Customer)).ShouldBeTrue();
+        empty.Equals(customer).ShouldBeFalse();
+        customer.Equals(empty).ShouldBeFalse();
+        empty.GetHashCode().ShouldBe(0);
+    }
+
+    [Fact]
+    public void ShareAggregateMutations_On_ReplaceBusiness_WhilePreservingOriginalPersonCase()
+    {
+        var customer = CreateCustomerWithVehicle(false);
+        var originalCase = customer.Value;
+        var snapshot = customer.Vehicles;
+        var replacement = customer.ReplaceBusiness(CreateBusiness()).Value;
+
+        replacement.RemoveCode();
+        replacement.UpdateCustomerType(CustomerType.Retail).IsSuccess.ShouldBeTrue();
+        replacement.RemoveVehicle(snapshot.Single()).IsSuccess.ShouldBeTrue();
+
+        customer.Value.ShouldBeSameAs(originalCase);
+        customer.Code.HasNoValue.ShouldBeTrue();
+        customer.CustomerType.ShouldBe(CustomerType.Retail);
+        customer.Vehicles.ShouldBeEmpty();
+        snapshot.Count.ShouldBe(1);
+        replacement.ShouldBe(customer);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PreserveCustomer_On_ImplicitConversion_FromValidatedCase(bool business)
+    {
+        var customer = CreateCustomer(business);
+
+        Customer converted = customer switch
+        {
+            PersonCustomer person => person,
+            BusinessCustomer company => company
+        };
+
+        converted.Validate().IsSuccess.ShouldBeTrue();
+        converted.ShouldBe(customer);
+        converted.Value.ShouldBeSameAs(customer.Value);
+    }
+
+    private static Customer CreateCustomer(bool business) =>
+        CreateCustomerResult(business, CustomerType.Retail, Maybe<CustomerCode>.None).Value;
+
+    private static Result<Customer> CreateCustomerResult(
+        bool business, CustomerType customerType, Maybe<CustomerCode> code) => business
+        ? Customer.Create(CreateBusiness(), customerType, code)
+        : Customer.Create(CreatePerson(), customerType, code);
+
+    private static Customer CreateCustomerWithVehicle(bool business)
+    {
+        var customer = CreateCustomerResult(business, CustomerType.Fleet, CreateCode()).Value;
+        customer.AddVehicle(CreateVehicle()).IsSuccess.ShouldBeTrue();
+        return customer;
+    }
+
+    private static Customer CreateEmptyCustomer(int representation) => representation switch
+    {
+        1 => new Customer((PersonCustomer)null!),
+        2 => new Customer((BusinessCustomer)null!),
+        _ => default
+    };
+
+    private static Business CreateBusiness() =>
+        Business.Create(BusinessName.Create(NonEmptyString.Create("Acme Repair").Value).Value,
+            Maybe<Address>.None, CreateNote(), Maybe<Person>.None, [], []).Value;
+
+    private static Person CreatePerson() =>
+        Person.Create(PersonName.Create(NonEmptyString.Create("Doe").Value,
             NonEmptyString.Create("Jane").Value).Value, CreateNote(), [], []).Value;
+
+    private static CustomerCode CreateCode() =>
+        CustomerCode.Create(NonEmptyString.Create("CUST-100").Value).Value;
+
+    private static Vehicle CreateVehicle() => Vehicle.Create(
+        TraditionalVehicleKind.Create("1HGCM82633A004352", "Honda", "Accord").Value,
+        Maybe<int>.None, Maybe<string>.None, Maybe<State>.None,
+        Maybe<string>.None, Maybe<string>.None).Value;
 
     private static Note CreateNote() => Note.Create(NonEmptyString.Create("Some notes").Value).Value;
 

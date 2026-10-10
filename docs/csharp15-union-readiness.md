@@ -29,11 +29,15 @@ transport seams, and all tracked project documentation, including
 
 1. **Customer entity — high value; implemented.** The old `ICustomerEntity`
    accepted arbitrary implementations, while behavior repeatedly matched Person
-   and Business and checked `EntityType`. `CustomerEntity(Person, Business)`
-   closes that set and centralizes shared behavior. The redundant interface,
-   discriminator enum and properties, unsupported-case branches, and exception
+   and Business and checked `EntityType`. `Customer(PersonCustomer, BusinessCustomer)`
+   closes that set and centralizes shared behavior. Each case contains the
+   required Person or Business plus encapsulated customer aggregate state;
+   the former Customer class and CustomerEntity union are consolidated. See
+   [the consolidation report](customer-union-consolidation.md). The redundant
+   interface, discriminator enum and properties, unsupported-case branches, and exception
    are removed. Customer classification (`CustomerType`) is independent and
-   stays an enum. The aggregate boundary rejects default or null-case unions.
+   stays an enum. Customer.Validate and fallible operations reject default or
+   null-case unions.
 2. **Vehicle kind — high value, higher migration risk; implemented.**
    `VehicleKind(TraditionalVehicleKind, NonTraditionalVehicleKind)` owns the
    mutually exclusive forms. Traditional cases require a validated VIN, make,
@@ -62,11 +66,12 @@ The following remain deliberately rejected:
 
 ## Compiler limitations
 
-Native union declarations generate structs. `default(CustomerEntity)` and
+Native union declarations generate structs. `default(Customer)` and
 `default(VehicleKind)` contain a null `Value`; callers can also bypass nullable
 annotations and pass a null reference to a generated case constructor. This is
-not a legitimate domain case. Aggregate factories and replacements reject those
-values with a failure result before mutation. Successful Vehicle cases have
+not a legitimate domain case. Customer.Validate, Customer fallible operations,
+and Vehicle aggregate factories/replacements reject those values with a failure
+result before mutation. Successful Vehicle cases have
 private constructors and immutable properties, so their required data cannot be
 removed independently. Using a raw empty union's projections remains a
 programmer error; the type system does not eliminate default struct values.

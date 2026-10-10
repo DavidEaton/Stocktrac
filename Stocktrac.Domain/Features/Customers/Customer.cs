@@ -1,97 +1,113 @@
 using CSharpFunctionalExtensions;
 using Stocktrac.Domain.Features.Contacts;
+using Stocktrac.Domain.Features.Persons;
+
 namespace Stocktrac.Domain.Features.Customers;
 
-public sealed class Customer : Entity
+// The union selects the customer form; copies share the encapsulated aggregate
+// state. Keep the returned value when replacing the person or business case.
+public readonly union Customer(PersonCustomer, BusinessCustomer) : IEquatable<Customer>
 {
     public const string DuplicateItemMessagePrefix = "Customer already has this ";
     public const string UnknownCustomerTypeMessage = "Unknown type.";
     public const string RequiredMessage = "Please include all required items.";
 
-    public CustomerType CustomerType { get; private set; }
-    public Maybe<CustomerCode> Code { get; private set; }
-    public ContactPreferences ContactPreferences { get; private set; }
-    public CustomerEntity CustomerEntity { get; private set; }
-    public string Name => CustomerEntity.Name;
-    public Note Notes => CustomerEntity.Contactable.Notes;
-    public Maybe<Address> Address => CustomerEntity.Contactable.Address;
-    private readonly List<Vehicle> vehicles = [];
-    public IReadOnlyList<Vehicle> Vehicles => [.. vehicles];
-    public IReadOnlyList<ContactPhone> Phones => CustomerEntity.Contactable.Phones;
-    public IReadOnlyList<ContactEmail> Emails => CustomerEntity.Contactable.Emails;
-
-    private Customer(
-        CustomerEntity entity,
-        CustomerType customerType,
-        Maybe<CustomerCode> code,
-        ContactPreferences contactPreferences)
+    private CustomerState State => this switch
     {
-        CustomerEntity = entity;
-        CustomerType = customerType;
-        Code = code;
-        ContactPreferences = contactPreferences;
-    }
+        PersonCustomer customer => customer.State,
+        BusinessCustomer customer => customer.State,
+        null => throw new InvalidOperationException("An empty Customer has no aggregate state.")
+    };
 
-    public static Result<Customer> Create(CustomerEntity entity, CustomerType customerType, Maybe<CustomerCode> code) =>
+    private Contactable Contactable => this switch
+    {
+        PersonCustomer customer => customer.Person,
+        BusinessCustomer customer => customer.Business,
+        null => throw new InvalidOperationException("An empty Customer has no contact details.")
+    };
+
+    public long Id => State.Id;
+    public CustomerType CustomerType => State.CustomerType;
+    public Maybe<CustomerCode> Code => State.Code;
+    public ContactPreferences ContactPreferences => State.ContactPreferences;
+    public string Name => this switch
+    {
+        PersonCustomer customer => customer.Person.ToString(),
+        BusinessCustomer customer => customer.Business.ToString(),
+        null => throw new InvalidOperationException("An empty Customer has no name.")
+    };
+    public Note Notes => Contactable.Notes;
+    public Maybe<Address> Address => Contactable.Address;
+    public IReadOnlyList<Vehicle> Vehicles => State.Vehicles;
+    public IReadOnlyList<ContactPhone> Phones => Contactable.Phones;
+    public IReadOnlyList<ContactEmail> Emails => Contactable.Emails;
+
+    public static Result<Customer> Create(Person person, CustomerType customerType, Maybe<CustomerCode> code) =>
+        ValidateCreation(person, customerType)
+            .Map(() => (Customer)new PersonCustomer(person, new CustomerState(customerType, code)));
+
+    public static Result<Customer> Create(Business business, CustomerType customerType, Maybe<CustomerCode> code) =>
+        ValidateCreation(business, customerType)
+            .Map(() => (Customer)new BusinessCustomer(business, new CustomerState(customerType, code)));
+
+    private static Result ValidateCreation(Contactable entity, CustomerType customerType) =>
         Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(entity.Value is null, RequiredMessage),
-                Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage))
-            .Map(() => new Customer(
-                entity,
-                customerType,
-                code,
-                ContactPreferences.Create(true, true, true)));
+            Environment.NewLine,
+            Result.FailureIf(entity is null, RequiredMessage),
+            Result.FailureIf(!Enum.IsDefined(customerType), UnknownCustomerTypeMessage));
+
+    // Native unions are structs: boundaries must reject default/null-case values.
+    public Result Validate() => Result.FailureIf(Value is null, RequiredMessage);
+
+    public Result<Customer> ReplacePerson(Person person) =>
+        Value is null || person is null
+            ? Result.Failure<Customer>(RequiredMessage)
+            : Result.Success<Customer>(new PersonCustomer(person, State));
+
+    public Result<Customer> ReplaceBusiness(Business business) =>
+        Value is null || business is null
+            ? Result.Failure<Customer>(RequiredMessage)
+            : Result.Success<Customer>(new BusinessCustomer(business, State));
 
     public Result UpdateAddress(Address address) =>
-        CustomerEntity.Contactable.ReplaceAddress(address);
+        Value is null ? Result.Failure(RequiredMessage) : Contactable.ReplaceAddress(address);
 
-    public void RemoveAddress() => CustomerEntity.Contactable.RemoveAddress();
+    public void RemoveAddress() => Contactable.RemoveAddress();
 
     public Result UpdateCustomerType(CustomerType customerType) =>
-        !Enum.IsDefined(customerType)
-            ? Result.Failure(UnknownCustomerTypeMessage)
-            : Result.Success(CustomerType = customerType);
+        Value is null ? Result.Failure(RequiredMessage) : State.UpdateCustomerType(customerType);
 
     public Result<ContactPhone> AddPhone(ContactPhone phone) =>
-        CustomerEntity.Contactable.AddPhone(phone);
+        Value is null ? Result.Failure<ContactPhone>(RequiredMessage) : Contactable.AddPhone(phone);
 
     public Result<ContactPhone> RemovePhone(ContactPhone phone) =>
-        CustomerEntity.Contactable.RemovePhone(phone);
+        Value is null ? Result.Failure<ContactPhone>(RequiredMessage) : Contactable.RemovePhone(phone);
 
     public Result<ContactEmail> AddEmail(ContactEmail email) =>
-        CustomerEntity.Contactable.AddEmail(email);
+        Value is null ? Result.Failure<ContactEmail>(RequiredMessage) : Contactable.AddEmail(email);
 
     public Result<ContactEmail> RemoveEmail(ContactEmail email) =>
-        CustomerEntity.Contactable.RemoveEmail(email);
+        Value is null ? Result.Failure<ContactEmail>(RequiredMessage) : Contactable.RemoveEmail(email);
 
     public Result<Vehicle> AddVehicle(Vehicle vehicle) =>
-        vehicle is null
-            ? Result.Failure<Vehicle>(RequiredMessage)
-            : CustomerHasVehicle(vehicle)
-                ? Result.Failure<Vehicle>($"{DuplicateItemMessagePrefix} Vehicle: {vehicle}, VIN: {vehicle.VIN}.")
-                : Result.Success(vehicle)
-                    .Tap(() => vehicles.Add(vehicle));
+        Value is null ? Result.Failure<Vehicle>(RequiredMessage) : State.AddVehicle(vehicle);
 
     public Result<Vehicle> RemoveVehicle(Vehicle vehicle) =>
-    vehicle is null
-        ? Result.Failure<Vehicle>(RequiredMessage)
-        : vehicles.Remove(vehicle)
-            ? Result.Success(vehicle)
-            : Result.Failure<Vehicle>(Contactable.NotFoundMessage);
-
-    private bool CustomerHasVehicle(Vehicle vehicle) =>
-        Vehicles.Any(existingVehicle => existingVehicle == vehicle);
+        Value is null ? Result.Failure<Vehicle>(RequiredMessage) : State.RemoveVehicle(vehicle);
 
     public Result UpdateCode(CustomerCode code) =>
-        code is null
-            ? Result.Failure(RequiredMessage)
-            : Result.Success(Code = code);
+        Value is null ? Result.Failure(RequiredMessage) : State.UpdateCode(code);
 
-    public void RemoveCode() => Code = Maybe<CustomerCode>.None;
+    public void RemoveCode() => State.RemoveCode();
 
-    public Result UpdateCustomerEntity(CustomerEntity entity) =>
-        entity.Value is null
-            ? Result.Failure(RequiredMessage)
-            : Result.Success(CustomerEntity = entity);
+    // Replacing a case preserves customer identity, independently of its subject.
+    public bool Equals(Customer other) =>
+        Value is null
+            ? other.Value is null
+            : other.Value is not null && State.Equals(other.State);
+
+    public override bool Equals(object? obj) => obj is Customer other && Equals(other);
+    public override int GetHashCode() => Value is null ? 0 : State.GetHashCode();
+    public static bool operator ==(Customer left, Customer right) => left.Equals(right);
+    public static bool operator !=(Customer left, Customer right) => !left.Equals(right);
 }
