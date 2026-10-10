@@ -1,6 +1,6 @@
 # Domain optionality
 
-Domain types must make absence explicit:
+Use one explicit representation for each meaning:
 
 | Meaning | Type |
 | --- | --- |
@@ -8,37 +8,32 @@ Domain types must make absence explicit:
 | Optional value | `Maybe<T>` |
 | Zero or more values | Non-null collection |
 | Fallible operation | `Result` or `Result<T>` |
-| Infallible mutation | `void` or the new value |
+| Infallible operation | The new value or `void` |
 
-## Rules
+These are conventions for new and changed code; existing success-only results
+and runtime validation gaps do not imply universal compliance.
 
-- Never expose `null`, empty strings, zero, or default dates as domain absence.
-- Keep required parameters non-nullable. Defensive null checks may still reject
-  callers that bypass C# nullability.
-- Use empty collections for “none.” Validate elements, uniqueness, and primary
-  cardinality before construction or mutation.
-- Give optional values explicit set and clear operations.
-- Name mutations precisely: `Replace...`, `AddOrReplace...`, and `Remove...`.
-- Normalize nullable transport data at the API boundary. Persistence converters
-  may map `Maybe<T>` to nullable columns.
-- Follow framework contracts such as `Equals(object?)`. A private nullable field
-  is acceptable only when it cannot escape or weaken an invariant.
-- Do not combine absence models (for example, `Maybe<T?>`).
+- Do not represent absence with null, blank strings, zero, or default dates;
+  legitimate zero values remain valid, such as `Amount.FromDecimal(0)`.
+- Keep required inputs non-nullable and reject invalid runtime inputs before
+  construction. Nullable annotations alone do not enforce invariants.
+- Use empty collections for none, subject to the collection's business rules.
+  Validate members, uniqueness, and primary cardinality before changing state.
+- Give optional values explicit set and clear operations. Prefer precise names
+  such as `Replace...`, `AddOrReplace...`, and `Remove...`; existing `Update...`
+  APIs remain in the code. Preserve state when a fallible change fails.
+- Normalize nullable transport input at the API boundary; map database nulls to
+  domain absence at the persistence boundary. Do not combine absence models
+  such as `Maybe<T?>`.
+- Respect framework contracts such as `Equals(object?)`. Private nullable
+  implementation details must not escape or weaken domain invariants.
 
-### Employment-role superior exception
+`EmploymentRole.SuperiorRole` is the explicit exception: absence uses the
+non-null singleton `EmploymentRole.Empty`. It is inactive, has no subordinates,
+rejects hierarchy changes and assignment creation, and must never be persisted.
+Do not also use null or Maybe for this relationship. Other optional domain
+values use `Maybe<T>`.
 
-The employment-role model explicitly represents an absent superior with the
-singleton `EmploymentRole.Empty`. `SuperiorRole` remains non-nullable and never
-uses null or `Maybe<T>` alongside this sentinel. Empty is always inactive, has
-no subordinates, cannot be assigned, and must not be persisted. All other optional
-domain values retain the `Maybe<T>` policy. See the
-[employee-role migration](../docs/employee-role-migration.md).
-
-## Review checklist
-
-- [ ] Every public member has one clear absence model.
-- [ ] Successful construction leaves all required values and invariants valid.
-- [ ] Failed mutations leave existing state unchanged.
-- [ ] `Result` reports real failures; unconditional work does not return it.
-- [ ] Boundary and persistence code prevent nullable state from leaking inward.
-- [ ] Tests cover present, absent, invalid, and persistence round-trip cases.
+See [architecture](../docs/architecture.md) for union defaults, collection rules,
+and persistence limits, and [test guidance](../Stocktrac.Tests/README.md) for
+verification of present, absent, invalid, and unchanged-on-failure behavior.

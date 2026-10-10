@@ -1,27 +1,37 @@
-# Test naming
+# Stocktrac.Tests
 
-Names should read as short, outcome-first sentences:
+This xUnit/Shouldly project verifies observable domain rules and optional-value
+persistence converters. It references Domain and API. Database-backed aggregate
+round trips are not implemented because aggregate mappings are not yet active.
+
+```sh
+dotnet test Stocktrac.Tests/Stocktrac.Tests.csproj
+```
+
+Use the SDK described in the [root README](../README.md).
+
+## Test conventions
+
+Use short, outcome-first names for new and changed tests; some older names vary:
 
 ```text
 {DomainType}Should.{ExpectedBehavior}_On_{Member}_{Scenario}
+EmploymentPeriodShould.ReturnNewValueAndPreserveOriginal_On_ReplaceExited_WhenDateIsValid
 ```
 
-Example:
+- Name classes `{DomainType}Should`; use PascalCase within phrases and underscores
+  between them. Match the production member name when practical.
+- Put observable behavior first, then a precise `When...` scenario if it adds
+  value. Use a clearer connector such as `After` when needed.
+- Test concrete types and one behavior at a time; avoid implementation details.
+- Cover normalization, boundaries, equality, present/absent optional values, and
+  invalid inputs. Assert unchanged aggregate state after failure and unchanged
+  original values after immutable transformations.
+- Cover collection duplicates, primary cardinality, and membership snapshots.
+  Use theories for boundaries and fixed caller-supplied dates where supported.
+- Add provider-backed round-trip and corrupt-row tests when aggregate persistence
+  is introduced. Converter tests alone do not prove aggregate persistence works.
 
-```text
-EmailAddressShould.ReturnFailureResult_On_Create_WhenValueIsNull
-```
-
-## Rules
-
-- Name the class `{DomainType}Should`.
-- Put observable behavior before the member under test.
-- Use PascalCase within phrases and underscores between phrases.
-- Match the production member name when practical.
-- Prefer a precise `When...` scenario; omit it if none adds value.
-- Use a clearer connector such as `After` when needed.
-- Test concrete types, not abstract base classes.
-- Keep one behavior per test and avoid implementation details.
-
-Read the full name aloud before committing. If it is not a clear sentence,
-shorten or restructure it.
+Use code, existing tests, and coverage reports to find gaps. Keep test guidance
+about behavior and conventions rather than maintaining duplicate coverage lists
+or historical test counts.

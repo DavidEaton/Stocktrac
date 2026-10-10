@@ -223,7 +223,7 @@ public class ApplicationDbContext : DbContext
     // public DbSet<Employee> Employees { get; set; }
     // public DbSet<Business> Businesses { get; set; }
     // Customer is a native union struct; introduce an explicit storage mapping
-    // before adding customer persistence (see docs/customer-union-consolidation.md).
+    // before adding customer persistence (see docs/architecture.md).
     // public DbSet<Vehicle> Vehicles { get; set; }
     // public DbSet<Vendor> Vendors { get; set; }
     // public DbSet<VendorInvoice> VendorInvoices { get; set; }
