@@ -10,6 +10,15 @@ public class VehicleShould
     private static readonly DateOnly Today = new(2025, 6, 15);
 
     [Fact]
+    public void ReturnFirstError_On_Create_WhenKindAndRegistrationAreInvalid()
+    {
+        var result = Vehicle.Create(default, 0, "   ", (State)(-1), "   ", "   ", Today);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Vehicle.KindRequiredMessage);
+    }
+
+    [Fact]
     public void RepresentOptionalValuesAsAbsent_On_Create_WhenKindIsNonTraditional()
     {
         var vehicle = CreateVehicle(NonTraditionalVehicleKind.Create(

@@ -7,6 +7,15 @@ namespace Stocktrac.Tests.Features.Unit;
 public class NonTraditionalVehicleKindShould
 {
     [Fact]
+    public void ReturnFirstError_On_Create_WhenVinAndDescriptionAreInvalid()
+    {
+        var result = NonTraditionalVehicleKind.Create("invalid", Maybe<string>.None, Maybe<string>.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Vehicle.InvalidVinMessage);
+    }
+
+    [Fact]
     public void NormalizePresentValues_On_Create()
     {
         var result = NonTraditionalVehicleKind.Create(" 1HGCM82633A004352 ", " Trailer ", " Utility ");

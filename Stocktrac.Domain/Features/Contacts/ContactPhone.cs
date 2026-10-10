@@ -17,9 +17,14 @@ public sealed record ContactPhone : IHasPrimary
         IsPrimary = isPrimary;
     }
 
-    public static Result<ContactPhone> Create(PhoneNumber number, PhoneType phoneType, bool isPrimary) =>
-        phoneType.AsValidPhoneType()
-            .Map(validPhoneType => new ContactPhone(number, validPhoneType, isPrimary));
+    public static Result<ContactPhone> Create(PhoneNumber number, PhoneType phoneType, bool isPrimary)
+    {
+        var validPhoneType = phoneType.AsValidPhoneType();
+
+        return validPhoneType.IsSuccess
+            ? Result.Success(new ContactPhone(number, validPhoneType.Value, isPrimary))
+            : Result.Failure<ContactPhone>(validPhoneType.Error);
+    }
 
     public override string ToString() => Number.ToString();
 

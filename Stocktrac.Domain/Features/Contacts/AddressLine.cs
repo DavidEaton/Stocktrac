@@ -11,9 +11,9 @@ namespace Stocktrac.Domain.Features.Contacts
         private AddressLine(NonEmptyString value) => Value = value;
 
         public static Result<AddressLine> Create(NonEmptyString value) =>
-            Result.Success(value)
-                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
-                .Map(value => new AddressLine(value));
+            value.Value.Length <= MaximumLength
+                ? Result.Success(new AddressLine(value))
+                : Result.Failure<AddressLine>(InvalidLengthMessage);
 
         public override string ToString() => Value.ToString();
     }

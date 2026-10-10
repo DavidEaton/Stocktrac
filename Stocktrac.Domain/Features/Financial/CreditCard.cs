@@ -31,11 +31,10 @@ public sealed class CreditCard : Entity
         CreditCardFeeType feeType,
         Fee fee,
         Maybe<DateTime> addedToDeposit) =>
-        Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(name is null, RequiredMessage),
-                ValidateFeeType(feeType))
-            .Map(() => new CreditCard(name!, feeType, fee!, addedToDeposit));
+        Result.Success(name)
+            .Ensure(value => value is not null, RequiredMessage)
+            .Bind(validName => ValidateFeeType(feeType)
+                .Map(validFeeType => new CreditCard(validName, validFeeType, fee, addedToDeposit)));
 
     public Result<CreditCard> ChangeName(string name) =>
         NonEmptyString.Create(name)

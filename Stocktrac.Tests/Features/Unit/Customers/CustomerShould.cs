@@ -9,6 +9,15 @@ namespace Stocktrac.Tests.Features.Unit.Customers;
 
 public class CustomerShould
 {
+    [Fact]
+    public void ReturnFirstError_On_Create_WhenPersonAndTypeAreInvalid()
+    {
+        var result = Customer.Create((Person)null!, (CustomerType)(-1), Maybe<CustomerCode>.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Customer.RequiredMessage);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

@@ -40,13 +40,23 @@ public class DriversLicenseShould
     }
 
     [Fact]
-    public void ReturnEveryError_On_Create_WhenAllComponentsAreInvalid()
+    public void ReturnFirstError_On_Create_WhenStateAndDateRangeAreInvalid()
     {
-        var result = DriversLicense.Create(null!, (State)(-1), null!, Start);
+        var result = DriversLicense.Create(CreateNumber("A123456"), (State)(-1), null!, Start);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain(DriversLicense.RequiredMessage);
-        result.Error.ShouldContain("A valid State is required.");
+        result.Error.ShouldBe("A valid State is required.");
+    }
+
+    [Fact]
+    public void ReturnFirstDateError_On_Create_WhenStartAndValidityAreInvalid()
+    {
+        var range = CreateRange(DriversLicense.MinimumValidDate.AddDays(-1), Start);
+
+        var result = DriversLicense.Create(CreateNumber("A123456"), State.CA, range, Start);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(DriversLicense.StartDateTooEarlyMessage);
     }
 
     [Fact]

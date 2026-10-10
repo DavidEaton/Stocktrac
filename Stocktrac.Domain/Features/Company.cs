@@ -19,10 +19,9 @@ public sealed class Company : Entity
         (Business, NextInvoiceNumberOrSeed) = (business, invoiceNumberSeed);
 
     public static Result<Company> Create(Business business, long seed) =>
-        Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(business is null, RequiredMessage),
-                Result.FailureIf(seed <= MinimumValue, MinimumValueMessage))
+        Result.Success()
+            .Ensure(() => business is not null, RequiredMessage)
+            .Ensure(() => seed > MinimumValue, MinimumValueMessage)
             .Map(() => new Company(business!, seed));
 
     public Result<long> ReplaceInvoiceNumberSeed(long seed) =>

@@ -12,9 +12,9 @@ public sealed record CustomerCode
         Value = value;
 
     public static Result<CustomerCode> Create(NonEmptyString value) =>
-        Result.Success(value)
-            .Ensure(input => input.Value.Length <= MaximumLength, InvalidLengthMessage)
-            .Map(input => new CustomerCode(input));
+        value.Value.Length <= MaximumLength
+            ? Result.Success(new CustomerCode(value))
+            : Result.Failure<CustomerCode>(InvalidLengthMessage);
 
     public override string ToString() => Value.ToString();
 }

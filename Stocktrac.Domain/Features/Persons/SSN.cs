@@ -24,11 +24,14 @@ public sealed record SSN
     private SSN(NonEmptyString value) =>
         Value = value;
 
-    public static Result<SSN> Create(NonEmptyString value) =>
-        Result.Success(value)
-            .Ensure(input => Normalize(input.Value) is not null, InvalidFormatMessage)
-            .Map(input => NonEmptyString.Create(Normalize(input.Value)!).Value)
-            .Map(normalized => new SSN(normalized));
+    public static Result<SSN> Create(NonEmptyString value)
+    {
+        var normalized = Normalize(value.Value);
+
+        return normalized is not null
+            ? Result.Success(new SSN(NonEmptyString.Create(normalized).Value))
+            : Result.Failure<SSN>(InvalidFormatMessage);
+    }
 
     private static string? Normalize(string value) =>
         value.Length switch

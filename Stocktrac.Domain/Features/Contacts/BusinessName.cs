@@ -9,9 +9,9 @@ public sealed record BusinessName
     public NonEmptyString Name { get; }
     private BusinessName(NonEmptyString name) => Name = name;
     public static Result<BusinessName> Create(NonEmptyString name) =>
-            Result.Success(name)
-                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
-                .Map(value => new BusinessName(value));
+        name.Value.Length <= MaximumLength
+            ? Result.Success(new BusinessName(name))
+            : Result.Failure<BusinessName>(InvalidLengthMessage);
 
     public override string ToString() => Name.ToString();
 }

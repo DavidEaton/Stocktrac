@@ -11,9 +11,9 @@ namespace Stocktrac.Domain.Features.Contacts
         private City(NonEmptyString value) => Value = value;
 
         public static Result<City> Create(NonEmptyString value) =>
-            Result.Success(value)
-                .Ensure(value => value.Value.Length <= MaximumLength, InvalidLengthMessage)
-                .Map(value => new City(value));
+            value.Value.Length <= MaximumLength
+                ? Result.Success(new City(value))
+                : Result.Failure<City>(InvalidLengthMessage);
 
         public override string ToString() => Value.ToString();
     }

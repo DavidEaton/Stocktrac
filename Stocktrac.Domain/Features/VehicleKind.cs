@@ -42,11 +42,10 @@ public sealed class TraditionalVehicleKind
         var normalizedMake = make?.Trim() ?? string.Empty;
         var normalizedModel = model?.Trim() ?? string.Empty;
 
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(normalizedVin.Length != Vehicle.VinRequiredLength, Vehicle.InvalidVinMessage),
-                ValidateMakeModel(normalizedMake),
-                ValidateMakeModel(normalizedModel))
+        return Result.Success()
+            .Ensure(() => normalizedVin.Length == Vehicle.VinRequiredLength, Vehicle.InvalidVinMessage)
+            .Bind(() => ValidateMakeModel(normalizedMake))
+            .Bind(() => ValidateMakeModel(normalizedModel))
             .Map(() => new TraditionalVehicleKind(normalizedVin, normalizedMake, normalizedModel));
     }
 
@@ -74,14 +73,13 @@ public sealed class NonTraditionalVehicleKind
         var normalizedMake = make.Map(value => value.Trim());
         var normalizedModel = model.Map(value => value.Trim());
 
-        return Result.Combine(
-                Environment.NewLine,
-                Result.FailureIf(normalizedVin.HasValue && normalizedVin.Value.Length != Vehicle.VinRequiredLength,
-                    Vehicle.InvalidVinMessage),
-                Result.FailureIf(normalizedMake.HasNoValue && normalizedModel.HasNoValue,
-                    Vehicle.NonTraditionalVehicleInvalidMakeModelMessage),
-                ValidateDescription(normalizedMake),
-                ValidateDescription(normalizedModel))
+        return Result.Success()
+            .Ensure(() => normalizedVin.HasNoValue || normalizedVin.Value.Length == Vehicle.VinRequiredLength,
+                Vehicle.InvalidVinMessage)
+            .Ensure(() => normalizedMake.HasValue || normalizedModel.HasValue,
+                Vehicle.NonTraditionalVehicleInvalidMakeModelMessage)
+            .Bind(() => ValidateDescription(normalizedMake))
+            .Bind(() => ValidateDescription(normalizedModel))
             .Map(() => new NonTraditionalVehicleKind(normalizedVin, normalizedMake, normalizedModel));
     }
 
